@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -13,15 +17,41 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
     "strictNullChecks": false,
     "strictPropertyInitialization": false,
     "noImplicitAny": false,
     "noImplicitOverride": true,
-    "noImplicitThis": true
+    "noImplicitThis": true,
+    "strict": false,
+    "baseUrl": ".",
+    "paths": {
+      "_comp/*": [
+        "src/components/*"
+      ],
+      "_ctx/*": [
+        "src/contexts/*"
+      ],
+      "_service/*": [
+        "src/services/*"
+      ],
+      "_styles/*": [
+        "styles/*"
+      ],
+      "_utils/*": [
+        "src/utils/*"
+      ]
+    }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "configs/app.config.js"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "global.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "configs/app.config.js"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

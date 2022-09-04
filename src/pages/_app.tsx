@@ -1,20 +1,17 @@
-import "../services/api";
-import "../styles/globals.css";
+import "_service/api";
+import "_styles/index.less";
+
+import { isFn } from "@mars/common";
+import { Layout } from "antd";
 import type { AppContext, AppProps } from "next/app";
 import Head from "next/head";
-import {
-    getSession,
-    SessionProvider,
-    signIn,
-    useSession,
-} from "next-auth/react";
+import { getSession, SessionProvider, useSession } from "next-auth/react";
 import { Session } from "next-auth";
-import { isBrowser } from "../utils/constants";
-import { isFn } from "@mars/common";
+import { isBrowser } from "_utils/constants";
+import Page from "_comp/page";
 
 const dash = ["/auth/login", "/auth/register", "/_error", "/dashboard"];
-const isExcluded = (t: string) =>
-    dash.findIndex((e) => t.startsWith(e)) !== -1;
+const isExcluded = (t: string) => dash.findIndex((e) => t.startsWith(e)) !== -1;
 
 function MarsRocApp({ Component, pageProps, router }: AppProps) {
     const session = useSession();
@@ -29,12 +26,12 @@ function MarsRocApp({ Component, pageProps, router }: AppProps) {
         <>
             <Head>
                 <meta charSet="UTF-8" />
-                <meta
-                    name="viewport"
-                    content="width=device-width, initial-scale=1.0"
-                />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             </Head>
-            <Component {...pageProps} />
+
+            <Page>
+                <Component {...pageProps} />
+            </Page>
         </>
     );
 }
