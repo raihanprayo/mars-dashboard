@@ -36,9 +36,10 @@ const route = NextAuth({
                         }
                     );
 
+                    console.log(token);
                     const { data: user } = await api.get<DTO.Users>("/user/info", {
                         headers: {
-                            [HttpHeader.AUTHORIZATION]: token.token,
+                            [HttpHeader.AUTHORIZATION]: "Bearer " + token.access_token,
                         },
                     });
 
@@ -52,17 +53,22 @@ const route = NextAuth({
                     };
                 } catch (ex) {
                     if (axios.isAxiosError(ex)) {
-                        const { status, data }: AxiosResponse = ex.response;
+
                         console.error(ex.toJSON());
+                        console.error(ex.stack);
 
-                        if (status === 401 || status === 400) {
-                            const { code, message } = data;
-                            return Promise.reject(new Error(`${code}: ${message}`));
-                        }
+                        if (ex.response) {
+                            const { status, data }: AxiosResponse = ex.response;
 
-                        return Promise.reject(
-                            new Error(`${data?.code || "AUTH-99"}: ${data?.message}`)
-                        );
+                            if (status === 401 || status === 400) {
+                                const { code, message } = data;
+                                return Promise.reject(new Error(`${code}: ${message}`));
+                            }
+
+                            return Promise.reject(
+                                new Error(`${data?.code || "AUTH-99"}: ${data?.message}`)
+                            );
+                        } else return Promise.reject(ex.message);
                     } else console.error(ex);
                 }
                 return null;
@@ -73,6 +79,7 @@ const route = NextAuth({
 
 export default route;
 
-interface TokenRes {
-    token: string;
+interface TokenRes extends map {
+    access_token: string;
+    expired_at: number;
 }

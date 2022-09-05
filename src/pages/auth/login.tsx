@@ -1,6 +1,8 @@
 import { LoginOutlined } from "@ant-design/icons";
+import { HttpHeader, MimeType } from "@mars/common";
 import { Button, Divider, Form, Input, message } from "antd";
 import Layout from "antd/lib/layout/layout";
+import { AxiosError, AxiosResponse } from "axios";
 import { NextPageContext } from "next";
 import { Session } from "next-auth";
 import { getProviders, getSession, signIn } from "next-auth/react";
@@ -10,12 +12,10 @@ import { NextRouter, useRouter } from "next/router";
 import { MarsIcon } from "_comp/logo/mars-roc";
 
 function LoginPage(props: { session: Session; providers: NextAuthProviders }) {
-    const { session, providers } = props;
     const router = useRouter();
     const callbackUrl = (router.query.callbackUrl as string) || "/";
 
     const logoDimension = 650;
-    const provider = providers["mars-roc"];
 
     return (
         <Layout className="login-container">
@@ -49,11 +49,11 @@ function LoginPage(props: { session: Session; providers: NextAuthProviders }) {
                     </Form.Item>
 
                     <Form.Item className="submit-container">
-                        <Button type="link" className="register-btn">
+                        {/* <Button type="link" className="register-btn">
                             <Link href="/auth/register">
                                 <b>register</b>
                             </Link>
-                        </Button>
+                        </Button> */}
                         <Button type="primary" htmlType="submit" className="right">
                             <b>Login</b>
                         </Button>
@@ -83,7 +83,11 @@ interface LoginOpt {
     callbackUrl: string;
 }
 
-async function login(router: NextRouter, { callbackUrl, nik, password }: LoginOpt) {
+async function login(
+    router: NextRouter,
+    { callbackUrl, nik, password }: LoginOpt,
+    attempt = 1
+) {
     const res = await signIn("mars-roc", {
         callbackUrl,
         redirect: false,
@@ -93,9 +97,41 @@ async function login(router: NextRouter, { callbackUrl, nik, password }: LoginOp
 
     console.log(res);
     if (res?.ok) await router.push(res.url);
-    else message.error(res?.error, 5);
+    else {
+        const msg = res.error;
 
-    // fetch('/api/auth/callback/credentials').then(res => {
+        const [code, err] = msg.split(": ");
+        switch (code) {
+            case "AUTH-02":
+                console.log("[INFO] User not linked, trying self-registration");
+                const ok = await register(nik, password);
+                if (attempt > 0 && ok) {
+                    return await login(router, { callbackUrl, nik, password }, attempt - 1);
+                }
+                message.error(msg, 5);
+                break;
+            default:
+                console.error("[ERR] Invalid user credential");
+                message.error(msg, 5);
+                break;
+        }
+    }
+}
 
-    // })
+async function register(nik: string, password: string) {
+    return await api
+        .post(
+            "/user/register/" + nik,
+            { password },
+            { headers: { [HttpHeader.CONTENT_TYPE]: MimeType.APPLICATION_JSON } }
+        )
+        .then((res) => {
+            return true;
+        })
+        .catch((err: AxiosError) => {
+            console.error(err);
+            const res: AxiosResponse = err.response;
+            message.error(`${res.data.code}: ${res.data.message}`);
+            return false;
+        });
 }

@@ -3,5 +3,9 @@ module.exports = {
     browser: {},
     server: {},
 
-    general: {}
+    general: {
+        service: {
+            url: process.env.SERVICE_URL
+        }
+    }
 }

@@ -1,8 +1,10 @@
 import axios, { Axios } from "axios";
 import getConfig from "next/config";
 
+const config = getConfig().publicRuntimeConfig
+
 const api = axios.create({
-    baseURL: process.env.SERVICE_URL,
+    baseURL: config.service.url,
 });
 
 globalThis.api = api;
