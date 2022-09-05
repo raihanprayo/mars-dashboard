@@ -1,2 +1,19 @@
-
 @primary-color: #d7433e;
+
+@secondary-color: #ffa36a;
+@secondary-color-hover: color(~`colorPalette("@{secondary-color}", 5) `);
+@secondary-color-active: color(~`colorPalette("@{secondary-color}", 7) `);
+@secondary-color-outline: fade(@secondary-color, @outline-fade);
+
+@third-color: #ffce80;
+@third-color-hover: color(~`colorPalette("@{third-color}", 5) `);
+@third-color-active: color(~`colorPalette("@{third-color}", 7) `);
+@third-color-outline: fade(@third-color, @outline-fade);
+
+@body-background: #f0f2f5;
+
+@menu-bg: @body-background;
+// @layout-sider-background-light: #dcdfe2;
+@layout-sider-background-light: #cdd0d3;
+// @layout-sider-background-light-collapsed: #bbbec0;
+@layout-sider-background-light-collapsed: @third-color;

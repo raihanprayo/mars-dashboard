@@ -1,0 +1,130 @@
+.ant-layout.login-container {
+    flex-direction: row;
+
+    div.login-forms {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        background-color: @third-color;
+        min-width: 350px;
+
+        @form-radius: 5px;
+
+        > .login-forms-header {
+            margin-bottom: 1.5rem;
+
+            a {
+                .anticon {
+                    display: inline;
+                    font-size: 20px;
+                    line-height: 40px;
+                    margin-right: 10px;
+                }
+                h1 {
+                    font-weight: 630;
+                    letter-spacing: 2px;
+                    display: inline;
+                    color: @primary-color;
+                    line-height: 40px;
+                }
+            }
+
+            h5.motto {
+                color: white;
+            }
+        }
+
+        > .login-forms-content {
+            width: 60%;
+            min-width: 250px;
+            height: fit-content;
+            border-radius: @form-radius;
+
+            .submit-container {
+                width: 100%;
+            }
+        }
+    }
+
+    div.login-logo {
+        width: 72%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.ant-layout-sider {
+    div.logo {
+        display: flex;
+        width: 100%;
+        overflow: hidden;
+        align-items: center;
+        justify-content: center;
+        transition: padding 300ms, background-color 200ms;
+
+        padding: 15px 0;
+        // margin-bottom: 10px;
+
+        .anticon {
+            width: 75%;
+            height: auto;
+            transition: width 300ms;
+            > svg {
+                width: 100%;
+                height: 100%;
+            }
+        }
+    }
+
+    &.ant-layout-sider-collapsed {
+        // background-color: @layout-sider-background-light-collapsed;
+
+        div.logo {
+            padding: 10px 0;
+        }
+        .ant-menu {
+            // background-color: @layout-sider-background-light-collapsed;
+            .ant-menu-item .anticon {
+                color: @primary-color;
+            }
+        }
+    }
+
+    .ant-menu {
+        background-color: @layout-sider-background-light;
+        border-right: none;
+
+        .ant-menu-item {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0;
+
+            .anticon {
+                // color: @primary-color;
+                font-size: 20px;
+            }
+
+            &.ant-menu-item-selected {
+                border-right: none;
+            }
+        }
+    }
+}
+
+.ant-layout-content {
+    padding: 8px 20px;
+
+    .workspace {
+        width: 100%;
+        height: 40px;
+        line-height: 40px;
+
+        .workspace-header {
+            margin-bottom: 10px;
+        }
+    }
+}

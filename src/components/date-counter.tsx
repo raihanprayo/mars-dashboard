@@ -13,7 +13,9 @@ function DateCounter() {
 
     return (
         <span style={{ fontSize: 17 }}>
-            <b>{time}</b>
+            <b>
+                {time}
+            </b>
         </span>
     );
 }

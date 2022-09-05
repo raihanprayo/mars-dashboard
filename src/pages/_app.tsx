@@ -2,10 +2,10 @@ import "_service/api";
 import "_styles/index.less";
 
 import { isFn } from "@mars/common";
-import { Layout } from "antd";
+import { Layout, message } from "antd";
 import type { AppContext, AppProps } from "next/app";
 import Head from "next/head";
-import { getSession, SessionProvider, useSession } from "next-auth/react";
+import { getSession, SessionProvider, signIn, useSession } from "next-auth/react";
 import { Session } from "next-auth";
 import { isBrowser } from "_utils/constants";
 import Page from "_comp/page";
@@ -17,10 +17,11 @@ function MarsRocApp({ Component, pageProps, router }: AppProps) {
     const session = useSession();
     const isUnauthenticated = session.status !== "authenticated";
 
-    // if (isUnauthenticated && isExcluded(router.pathname)) {
-    //     if (isBrowser) signIn();
-    //     return <></>;
-    // }
+    console.log(session);
+    if (isUnauthenticated && isExcluded(router.pathname)) {
+        if (isBrowser) signIn();
+        return <></>;
+    }
 
     return (
         <>
