@@ -1,7 +1,8 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-import { HttpHeader, MimeType } from "@mars/common";
+import { HttpHeader, MimeType, upperCase } from "@mars/common";
+import axios, { AxiosResponse } from "axios";
 
 const route = NextAuth({
     pages: {
@@ -10,7 +11,7 @@ const route = NextAuth({
 
     providers: [
         CredentialsProvider({
-            id: "local",
+            id: "mars-roc",
             name: "mars-roc",
             type: "credentials",
             credentials: {
@@ -25,25 +26,21 @@ const route = NextAuth({
             },
             async authorize(credential, req) {
                 try {
-                    const { data } = await api.post<TokenRes>(
+                    const { data: token } = await api.post<TokenRes>(
                         "/user/login",
                         credential,
                         {
                             headers: {
-                                [HttpHeader.CONTENT_TYPE]:
-                                    MimeType.APPLICATION_JSON,
+                                [HttpHeader.CONTENT_TYPE]: MimeType.APPLICATION_JSON,
                             },
                         }
                     );
 
-                    const { data: user } = await api.get<DTO.Users>(
-                        "/user/info",
-                        {
-                            headers: {
-                                [HttpHeader.AUTHORIZATION]: data.token,
-                            },
-                        }
-                    );
+                    const { data: user } = await api.get<DTO.Users>("/user/info", {
+                        headers: {
+                            [HttpHeader.AUTHORIZATION]: token.token,
+                        },
+                    });
 
                     return {
                         id: user.id,
@@ -53,9 +50,22 @@ const route = NextAuth({
                         group: user.group,
                         image: user.image,
                     };
-                } catch (error) {
-                    return null;
+                } catch (ex) {
+                    if (axios.isAxiosError(ex)) {
+                        const { status, data }: AxiosResponse = ex.response;
+                        console.error(ex.toJSON());
+
+                        if (status === 401 || status === 400) {
+                            const { code, message } = data;
+                            return Promise.reject(new Error(`${code}: ${message}`));
+                        }
+
+                        return Promise.reject(
+                            new Error(`${data?.code || "AUTH-99"}: ${data?.message}`)
+                        );
+                    } else console.error(ex);
                 }
+                return null;
             },
         }),
     ],

@@ -12,7 +12,9 @@ const isExcluded = (t: string) => dash.findIndex((e) => t.startsWith(e)) !== -1;
 const { Content, Header, Sider } = Layout;
 function Page(props: HasChild) {
     const loc = useRouter();
-    if (isExcluded(loc.pathname)) return <>{props.children}</>;
+    if (isExcluded(loc.pathname)) {
+        return <>{props.children}</>;
+    }
 
     const [collapsed, setCollapse] = useState(false);
 

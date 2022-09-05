@@ -1,4 +1,5 @@
 @import "~antd/dist/antd.less";
+@import "./antd-vars.less";
 
 body {
     overflow: hidden;
@@ -14,15 +15,97 @@ body {
     }
 }
 
-.mt-auto, .my-auto {
+.ant-layout.login-container {
+    flex-direction: row;
+
+    div.login-forms {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        background-color: #ffa36a;
+        min-width: 350px;
+
+        @form-radius: 5px;
+
+        > .login-forms-header {
+            margin-bottom: 1.5rem;
+
+            a {
+                .anticon {
+                    display: inline;
+                    font-size: 20px;
+                    line-height: 40px;
+                    margin-right: 10px;
+                }
+                h1 {
+                    font-weight: 630;
+                    letter-spacing: 2px;
+                    display: inline;
+                    color: @primary-color;
+                    line-height: 40px;
+                }
+            }
+
+            h5.motto {
+                color: white;
+            }
+        }
+
+        > .login-forms-content {
+            width: 60%;
+            min-width: 250px;
+            height: fit-content;
+            border-radius: @form-radius;
+
+            .submit-container {
+                width: 100%;
+            }
+        }
+    }
+
+    div.login-logo {
+        width: 72%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.mt-auto,
+.my-auto {
     margin-top: auto !important;
 }
-.mr-auto, .mx-auto {
+.mr-auto,
+.mx-auto {
     margin-right: auto !important;
 }
-.mb-auto, .my-auto {
+.mb-auto,
+.my-auto {
     margin-bottom: auto !important;
 }
-.ml-auto, .mx-auto {
+.ml-auto,
+.mx-auto {
     margin-left: auto !important;
+}
+// .mt-auto,
+// .mr-auto,
+// .mb-auto,
+// .ml-auto,
+// .mx-auto,
+// .my-auto {
+//     display: inline-block;
+// }
+
+.text-muted {
+    color: @text-color-secondary !important;
+}
+.text-center {
+    text-align: center !important;
+}
+
+.right {
+    float: right !important;
 }
