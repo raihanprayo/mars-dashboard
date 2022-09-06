@@ -1,14 +1,13 @@
 import "_service/api";
 import "_styles/index.less";
 
-import { isFn } from "@mars/common";
-import { Layout, message } from "antd";
+import { HttpHeader, isFn } from "@mars/common";
 import type { AppContext, AppProps } from "next/app";
 import Head from "next/head";
 import { getSession, SessionProvider, signIn, useSession } from "next-auth/react";
 import { Session } from "next-auth";
-import { isBrowser } from "_utils/constants";
-import Page from "_comp/page";
+import { Page } from "_comp/page";
+import { useEffect } from "react";
 
 const dash = ["/auth/login", "/auth/register", "/_error", "/dashboard"];
 const isExcluded = (t: string) => dash.findIndex((e) => t.startsWith(e)) !== -1;
@@ -18,10 +17,17 @@ function MarsRocApp({ Component, pageProps, router }: AppProps) {
     const isUnauthenticated = session.status !== "authenticated";
 
     console.log(session);
-    if (isUnauthenticated && isExcluded(router.pathname)) {
-        if (isBrowser) signIn();
-        return <></>;
-    }
+
+    useEffect(() => {
+        if (!isUnauthenticated) {
+            api.defaults.headers.common[HttpHeader.AUTHORIZATION] =
+                "Bearer " + session.data.user.bearer;
+        }
+
+        if (isUnauthenticated && !isExcluded(router.pathname)) {
+            signIn();
+        }
+    }, []);
 
     return (
         <>
@@ -41,7 +47,7 @@ function MarsRocWrapper(props: AppProps & CustomAppProps) {
     const { session, ...others } = props;
 
     return (
-        <SessionProvider session={session}>
+        <SessionProvider session={session} refetchInterval={60 * 5}>
             <MarsRocApp {...others} />
         </SessionProvider>
     );

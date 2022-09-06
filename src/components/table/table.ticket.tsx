@@ -1,17 +1,17 @@
 import { HttpHeader, upperCase } from "@mars/common";
 import { Button, Table } from "antd";
 import { ColumnType } from "antd/lib/table";
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { usePageable } from "_hook/pageable.hook";
 import { ColRender } from "./table.value";
 
 export default TableTicket;
-function TableTicket() {
+function TableTicket(props: TableTicketProps) {
     const {
         pageable: { page, size },
         setPageable,
     } = usePageable();
-
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState<Partial<DTO.Orders>>({});
@@ -19,7 +19,7 @@ function TableTicket() {
 
     useEffect(() => {
         setLoading(true);
-        getData({ page, size, ...filter })
+        getData({ page, size, ...filter }, props.inbox)
             .then((res) => {
                 const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
                 setTotal(Number(total));
@@ -27,6 +27,24 @@ function TableTicket() {
             })
             .finally(() => setLoading(false));
     }, [page, size]);
+
+    const columns = useMemo(() => {
+        const cols = Array(...TableTicketColms);
+        if (props.inbox) {
+            cols.pop();
+
+            const orderNoCol = cols.find((e) => e.dataIndex === "orderno");
+            orderNoCol.render = (v) => (
+                <Link href={"/detail/" + v}>
+                    <a>{v}</a>
+                </Link>
+            );
+        } else {
+            const orderNoCol = cols.find((e) => e.dataIndex === "orderno");
+            delete orderNoCol.render;
+        }
+        return cols;
+    }, []);
 
     return (
         <div className="workspace table-view">
@@ -41,10 +59,10 @@ function TableTicket() {
                 })}
             </div>
             <Table
-                loading={loading}
                 size="small"
+                loading={loading}
                 dataSource={orders}
-                columns={TableTicketColms}
+                columns={columns}
                 pagination={{
                     total,
                     current: page + 1,
@@ -115,8 +133,13 @@ const TableTicketColms: ColumnType<DTO.Orders>[] = [
     },
 ];
 
-function getData(query: map = {}) {
-    return api.get<DTO.Orders[]>("/order", {
-        params: query,
+function getData(params: map = {}, inbox = false) {
+    const url = "/order" + (inbox ? "/inbox" : "");
+    return api.get<DTO.Orders[]>(url, {
+        params,
     });
+}
+
+interface TableTicketProps {
+    inbox?: boolean;
 }
