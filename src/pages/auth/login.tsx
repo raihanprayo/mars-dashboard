@@ -1,5 +1,5 @@
 import { LoginOutlined } from "@ant-design/icons";
-import { HttpHeader, MimeType } from "@mars/common";
+import { HttpHeader, isDefined, MimeType } from "@mars/common";
 import { Button, Divider, Form, Input, message } from "antd";
 import Layout from "antd/lib/layout/layout";
 import { AxiosError, AxiosResponse } from "axios";
@@ -120,18 +120,18 @@ async function login(
 
 async function register(nik: string, password: string) {
     return await api
-        .post(
-            "/user/register/" + nik,
-            { password },
-            { headers: { [HttpHeader.CONTENT_TYPE]: MimeType.APPLICATION_JSON } }
-        )
+        .post("/user/register", { nik, password })
         .then((res) => {
             return true;
         })
         .catch((err: AxiosError) => {
             console.error(err);
             const res: AxiosResponse = err.response;
-            message.error(`${res.data.code}: ${res.data.message}`);
+            if (res && isDefined(res.data)) {
+                message.error(`${res.data.code}: ${res.data.message}`);
+            } else {
+                message.error(`AUTH-99 (${err.name}): ${err.message}`);
+            }
             return false;
         });
 }

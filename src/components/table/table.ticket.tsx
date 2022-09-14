@@ -22,9 +22,14 @@ function TableTicket(props: TableTicketProps) {
         getData({ page, size, ...filter }, props.inbox)
             .then((res) => {
                 const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
-                setTotal(Number(total));
-                setOrders(res.data);
+
+                console.log(res.data);
+                if (Array.isArray(res.data)) {
+                    setTotal(Number(total));
+                    setOrders(res.data);
+                }
             })
+            .catch((err) => {})
             .finally(() => setLoading(false));
     }, [page, size]);
 

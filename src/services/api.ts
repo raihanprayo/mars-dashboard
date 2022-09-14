@@ -16,11 +16,12 @@ const api = axios.create({
             if (isUndef(v)) continue;
             else if (isNull(v)) value = "null";
             else if (isArr(v)) value = isArr(v) ? v.join(",") : v;
+            else if (v instanceof Date) value = v.toJSON();
             else value = v.toString();
 
             result.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
         }
-        return "?" + result.join("&");
+        return result.join("&");
     },
 });
 
