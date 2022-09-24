@@ -24,7 +24,6 @@ export default function orderno(props: TableTicketProps) {
         setLoading(true);
         getData(bebas.query.orderno as string,{ page, size, ...filter })
             .then((res) => {
-                const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
                 setOrders(res.data);
                 console.log(res.data);
             })
@@ -49,6 +48,7 @@ export default function orderno(props: TableTicketProps) {
     )
     const menu = (
         <Menu
+          mode='inline'
           items={[
             {
               label: <a href="https://www.antgroup.com">Actual Solution 1</a>,
@@ -142,14 +142,34 @@ export default function orderno(props: TableTicketProps) {
         </div>
         <div className='detailWork'>
             <div className='dropdownSolution'>
-                <Dropdown overlay={menu} trigger={['click']} open placement='bottom'>
-                    <a onClick={e => e.preventDefault()}>
-                        <Space>
-                            Actual Solution 
-                            <DownOutlined />
-                        </Space>
-                    </a>
-                </Dropdown>
+            <Menu
+          mode='inline'
+          items={[
+            {
+                label: <span>Actual Solution</span>,
+                type:'group',
+                children: [
+                    {
+                        label: <a href="https://www.antgroup.com">Actual Solution 1</a>,
+                        key: '0',
+                      },
+                      {
+                        label: <a href="https://www.aliyun.com">Actual Solution 2</a>,
+                        key: '1',
+                      },
+                      {
+                        label: <a href="https://www.antgroup.com">Actual Solution 3</a>,
+                        key: '2',
+                      },
+                      {
+                        label: <a href="https://www.aliyun.com">Actual Solution 4</a>,
+                        key: '3',
+                      },
+                ]
+            },
+            
+          ]}
+        />
             </div>
             <div className='workLog'>
                 <TextArea
