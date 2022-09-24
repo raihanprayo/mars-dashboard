@@ -1,10 +1,37 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { DownOutlined } from '@ant-design/icons';
 import { Dropdown, Menu, Space, Input, Button } from 'antd';
+import { usePageable } from "_hook/pageable.hook";
+import { HttpHeader, upperCase } from "@mars/common";
+import { useRouter } from 'next/router';
 
-export default function orderno() {
+
+export default function orderno(props: TableTicketProps) {
+    const {
+        pageable: { page, size },
+        setPageable,
+    } = usePageable();
     const { TextArea } = Input;
     const [value, setValue] = useState('');
+    const [total, setTotal] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [orders, setOrders] = useState<DTO.Orders>();
+    const [filter, setFilter] = useState<Partial<DTO.Orders>>({});
+
+    const bebas = useRouter()
+
+    useEffect(() => {
+        setLoading(true);
+        getData(bebas.query.orderno as string,{ page, size, ...filter })
+            .then((res) => {
+                const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
+                setOrders(res.data);
+                console.log(res.data);
+            })
+            .catch((err) => {})
+            .finally(() => setLoading(false));
+    }, [page, size]);
+
     const request = (
         <Menu
             items={[
@@ -56,29 +83,32 @@ export default function orderno() {
         <div style={{display:'flex'}}>
             <div className='detailLeft'>
                 <div className='detailOrder'>
-                    <div className='detailOrderLeft'>
-                        Order ID : {} <br/>
-                        No Service : {} <br/>
-                        Tiket NOSSA : {} <br/>
-                        Status : {} <br/>
-                    </div>
-                    <div className='detailOrderRight'>
-                        Umur Order : {} <br/>
-                        Umur Action : {} <br/>
-                        Kendala : {} <br/>
-                        Keterangan : {} <br/>
-                    </div>
+                    {orders&&<>
+                        <div className='detailOrderLeft'>
+                            Order ID : {orders.orderno} <br/>
+                            No Service : {orders.serviceno} <br/>
+                            Tiket NOSSA : {orders.incidentno} <br/>
+                            Status : {orders.status} <br/>
+                        </div>
+                        <div className='detailOrderRight'>
+                            Umur Order : {'0'} <br/>
+                            Umur Action : {'0'} <br/>
+                            Kendala : {orders.problemtype} <br/>
+                            Keterangan : {orders.notes} <br/>
+                        </div>
+                    </>
+                    }
                 </div>
                 <div className='detailSender'>
                     <div className='detailSenderLeft'>
-                        Pengirim : {} <br/>
-                        Service Type : {} <br/>
-                        Request Type : {} <br/>
-                        Witel : {} <br/>
-                        STO : {} <br/>
+                        Pengirim : {orders?.sendername} <br/> 
+                        Service Type : {'lewatin'} <br/>
+                        Request Type : {'lewatin'} <br/>
+                        Witel : {orders?.witel} <br/>
+                        STO : {orders?.sto} <br/>
                     </div>
                     <div className='detailSenderRight'>
-                        Evidence : {} <br/>
+                        Evidence : {orders?.attachment} <br/>
                     </div>
                 </div>
             </div>
@@ -145,4 +175,14 @@ export default function orderno() {
         </div>
     </div>
   )
+}
+
+function getData(id:string,params: map = {}, inbox = false) {
+    const url = `/order/by-noorder/${id}`;
+    return api.get<DTO.Orders>(url, {
+        params,
+    });
+}
+
+interface TableTicketProps {
 }
