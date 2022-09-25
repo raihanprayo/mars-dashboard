@@ -35,7 +35,7 @@ function TableTicket(props: TableTicketProps) {
 
     const columns = useMemo(() => {
         const cols = Array(...TableTicketColms);
-        if (props.inbox) {
+        // if (props.inbox) {
             cols.pop();
 
             const orderNoCol = cols.find((e) => e.dataIndex === "orderno");
@@ -44,10 +44,10 @@ function TableTicket(props: TableTicketProps) {
                     <a>{v}</a>
                 </Link>
             );
-        } else {
-            const orderNoCol = cols.find((e) => e.dataIndex === "orderno");
-            delete orderNoCol.render;
-        }
+        // } else {
+        //     const orderNoCol = cols.find((e) => e.dataIndex === "orderno");
+        //     delete orderNoCol.render;
+        // }
         return cols;
     }, []);
 
