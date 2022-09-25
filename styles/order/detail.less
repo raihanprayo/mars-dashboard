@@ -1,73 +1,82 @@
 .ant-layout-content {
-    .detailLeft{
-        width: 75%;
+    .detail-left {
+        flex: 1;
         display: block;
-        .detailOrder{
+        padding-right: 10px;
+
+        .detail-order {
             display: flex;
-            .detailOrderLeft{
+            .detail-order-left {
                 width: 50%;
             }
-            .detailOrderRight{
-    
+            .detail-order-right {
             }
         }
-        .detailSender{
+        .detail-sender {
             display: flex;
             margin-top: 40px;
-            border-bottom: 1px solid #B8B8B8;
+            border-bottom: 1px solid #b8b8b8;
             padding-bottom: 20px;
-            .detailSenderLeft{
+            .detail-sender-left {
                 width: 50%;
             }
-            .detailSenderRight{
-    
+            .detail-sender-right {
             }
         }
     }
-    .detailRight{
-        width: 25%;
-        border-bottom: 1px solid #B8B8B8;
-        .textGaul{
-            color: #FF0000;
+    .detail-right {
+        width: 30%;
+
+        &.hide {
+            display: none;
+        }
+
+        .text-gaul {
+            color: #ff0000;
             font-size: 13px;
             margin-bottom: 30px;
         }
-        .dropdownGaul{
+        .dropdown-gaul {
             color: black;
         }
     }
-    .detailWork{
+    .detail-work {
         display: flex;
         margin-top: 15px;
         width: 100%;
-        .dropdownSolution{
+
+        &.hide {
+            display: none;
+        }
+
+        .dropdown-solution {
             width: 15%;
         }
-        .workLog{
+        .worklog {
             width: 60%;
             height: 100%;
         }
-        .buttonDetail{
+        .button-detail {
             padding: 0 20px;
             width: 25%;
             margin: 0 auto;
             display: flex;
             align-items: center;
-            .insideButton{
+            .inside-button {
                 display: block;
-                .closeTicket{
+                .close-ticket {
                     margin-bottom: 10px;
-                    background-color: #7DBE8C;
-                    border-color: #7DBE8C;
+                    background-color: #7dbe8c;
+                    border-color: #7dbe8c;
                     border-radius: 8px;
                 }
-                .dispatch{
+                .dispatch {
                     margin-bottom: 10px;
                     border-radius: 8px;
                 }
-                .pending{
-                    background-color: #FF9A5C;
-                    border-color: #FF9A5C;
+                .pending {
+                    background-color: #ff9a5c;
+                    border-color: #ff9a5c;
                     border-radius: 8px;
                 }
             }

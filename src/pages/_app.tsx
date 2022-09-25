@@ -2,6 +2,8 @@ import "_service/api";
 import "_styles/index.less";
 
 import { HttpHeader, isFn } from "@mars/common";
+import { setDefaultOptions } from "date-fns";
+import { id as IdnLocale } from "date-fns/locale";
 import type { AppContext, AppProps } from "next/app";
 import Head from "next/head";
 import { getSession, SessionProvider, signIn, useSession } from "next-auth/react";
@@ -11,6 +13,10 @@ import { useEffect } from "react";
 
 const dash = ["/auth/login", "/auth/register", "/_error", "/dashboard"];
 const isExcluded = (t: string) => dash.findIndex((e) => t.startsWith(e)) !== -1;
+
+setDefaultOptions({
+    locale: IdnLocale,
+});
 
 function MarsRocApp({ Component, pageProps, router }: AppProps) {
     const session = useSession();
@@ -27,7 +33,7 @@ function MarsRocApp({ Component, pageProps, router }: AppProps) {
         if (isUnauthenticated && !isExcluded(router.pathname)) {
             signIn();
         }
-    }, []);
+    }, [isUnauthenticated]);
 
     return (
         <>

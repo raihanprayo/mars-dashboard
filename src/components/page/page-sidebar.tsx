@@ -28,8 +28,9 @@ function PageSidebar() {
                     {
                         key: "tickets",
                         title: "Tickets",
-                        label: "Tickets",
+                        label: <Link href="/">Tickets</Link>,
                         icon: <AuditOutlined />,
+                        onClick(info) {},
                     },
                     {
                         key: "reports",

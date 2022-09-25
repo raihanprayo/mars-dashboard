@@ -22,10 +22,8 @@ function Page(props: HasChild) {
             <Layout>
                 <PageSidebar />
                 <Layout>
-                        <PageHeader />
-                    <Content>
-                        {props.children}
-                    </Content>
+                    <PageHeader />
+                    <Content style={{ overflowY: "auto" }}>{props.children}</Content>
                 </Layout>
             </Layout>
         </PageProvider>

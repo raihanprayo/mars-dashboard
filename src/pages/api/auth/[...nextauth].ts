@@ -36,16 +36,19 @@ const route = NextAuth({
                         }
                     );
 
-                    console.log(token);
                     const { data: user } = await api.get<DTO.Users>("/user/info", {
                         headers: {
                             [HttpHeader.AUTHORIZATION]: "Bearer " + token.access_token,
                         },
                     });
 
+                    console.log("* User Login", {
+                        token,
+                        user,
+                    });
                     return {
                         id: user.id,
-                        tg: user.tgId,
+                        tg: Number(user.tgId),
                         nik: user.nik,
                         name: user.name,
                         group: user.group,
@@ -89,13 +92,15 @@ const route = NextAuth({
 
         session({ session, token, user }) {
             if (user) {
-                session.user.tg = user.tg;
+                session.user.id = user.id;
+                session.user.tg = Number(user.tg);
                 session.user.name = user.name;
                 session.user.bearer = user.token;
             }
 
             if (token) {
-                session.user.tg = token.tg;
+                session.user.id = token.sub;
+                session.user.tg = Number(token.tg);
                 session.user.name = token.name;
                 session.user.bearer = token.bearer;
             }
@@ -132,4 +137,5 @@ interface MarsUserSession {
     name: string;
     group: string;
     bearer: string;
+    id: string;
 }

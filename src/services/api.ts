@@ -5,7 +5,7 @@ import getConfig from "next/config";
 const config = getConfig().publicRuntimeConfig;
 
 const api = axios.create({
-    baseURL: config.service.url,
+    baseURL: config.service.url + "/api/mars",
     paramsSerializer(params) {
         const o = inlineKey(params, { separateArray: false });
         const result: string[] = [];
