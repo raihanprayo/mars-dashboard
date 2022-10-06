@@ -1,5 +1,6 @@
 {
-    "name": "ui",
+    "name": "@mars/ui",
+    "mars": "ui-client",
     "version": "0.1.0",
     "private": true,
     "scripts": {
