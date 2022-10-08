@@ -1,20 +1,44 @@
-import React, { useState } from "react";
-import { DownOutlined } from "@ant-design/icons";
-import { Dropdown, Menu, Space, Input, Button, Row, Col, Typography, Divider } from "antd";
-import { useRouter } from "next/router";
-import { NextPageContext } from "next";
-import { ColRender } from "_comp/table/table.value";
-import { mergeClassName } from "@mars/common";
-import getConfig from "next/config";
-import { OrderSider } from "_comp/orders/order-sider.info";
+import React, { createContext, useCallback, useContext, useState } from 'react';
+import { Menu, Input, Button, Row, Col, Typography, Divider } from 'antd';
+import { ReloadOutlined } from '@ant-design/icons';
+import { useRouter } from 'next/router';
+import { NextPageContext } from 'next';
+import { ColRender } from '_comp/table/table.value';
+import { HttpHeader, mergeClassName, MimeType } from '@mars/common';
+import getConfig from 'next/config';
+import { OrderSider } from '_comp/orders/order-sider.info';
+import axios from 'axios';
 
 const { TextArea } = Input;
+const DetailSpanCtx = createContext<DetailItemProps['spans']>({});
 export default function DetailOrderPage(props: DetailOrderProps) {
     const route = useRouter();
     const config: NextAppConfiguration = getConfig();
-    const [value, setValue] = useState("");
+    const [worklog, setWorklog] = useState('');
 
     const order = props.data;
+    if (props.error) {
+        const { status, message, code } = props.error;
+        return (
+            <div className="err-container">
+                <div className="wrap">
+                    <Typography.Title type="danger" level={4}>
+                        {status} | {code}
+                    </Typography.Title>
+                </div>
+                <div className="wrap">
+                    <Typography.Title level={5}>{message}</Typography.Title>
+                    <Button
+                        type="dashed"
+                        icon={<ReloadOutlined />}
+                        onClick={() => window.location.reload()}
+                    >
+                        refresh the page
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
     const request = (
         <Menu
@@ -28,7 +52,7 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                             Worklog :abcdefgh
                         </div>
                     ),
-                    key: "0",
+                    key: '0',
                 },
             ]}
         />
@@ -39,27 +63,27 @@ export default function DetailOrderPage(props: DetailOrderProps) {
             items={[
                 {
                     label: <a href="https://www.antgroup.com">Actual Solution 1</a>,
-                    key: "0",
+                    key: '0',
                 },
                 {
                     label: <a href="https://www.aliyun.com">Actual Solution 2</a>,
-                    key: "1",
+                    key: '1',
                 },
                 {
                     label: <a href="https://www.antgroup.com">Actual Solution 3</a>,
-                    key: "2",
+                    key: '2',
                 },
                 {
                     label: <a href="https://www.aliyun.com">Actual Solution 4</a>,
-                    key: "3",
+                    key: '3',
                 },
                 {
                     label: <a href="https://www.antgroup.com">Actual Solution 5</a>,
-                    key: "4",
+                    key: '4',
                 },
                 {
                     label: <a href="https://www.aliyun.com">Actual Solution 6</a>,
-                    key: "5",
+                    key: '5',
                 },
             ]}
         />
@@ -68,130 +92,109 @@ export default function DetailOrderPage(props: DetailOrderProps) {
     const age = ColRender.calcOrderAge(order.opentime);
     const problem: DTO.Problem = order.problemtype as any;
 
+    const onDetailBtnClick = useCallback(
+        (s: Mars.Status.CLOSED | Mars.Status.DISPATCH | Mars.Status.PENDING) => () => {
+            updateStatus[s](order.id, worklog)
+                .then((res) => {})
+                .catch((err) => {});
+        },
+        [worklog]
+    );
+
+    const detailSpans: Exclude<DetailItemProps['spans'], undefined> = {
+        title: order.gaul ? 8 : 6,
+        separator: 1,
+        value: order.gaul ? 15 : 17,
+    };
+
     return (
-        <div className="containerDetail">
-            <div style={{ display: "flex" }}>
+        <>
+            <div style={{ display: 'flex' }}>
                 <div className="detail-left">
-                    <Row>
-                        <Col span={12}>
-                            <DetailItem label="Order No">{order.orderno}</DetailItem>
-                            <DetailItem label="No Service">{order.serviceno}</DetailItem>
-                            <DetailItem label="Tiket NOSSA">{order.incidentno}</DetailItem>
-                            <DetailItem label="Status">
-                                {ColRender.orderStatus(order.status, true)}
-                            </DetailItem>
-                        </Col>
-                        <Col span={12}>
-                            <DetailItem label="Umur Order">
-                                {age.hour}j {age.minute}m
-                            </DetailItem>
-                            <DetailItem label="Umur Action">0m</DetailItem>
-                            <DetailItem label="Kendala">{problem.name}</DetailItem>
-                            <DetailItem label="Keterangan">
-                                <Typography.Text>{order.notes || "-"}</Typography.Text>
-                            </DetailItem>
-                        </Col>
-                    </Row>
-                    <Divider />
-                    <Row>
-                        <Col span={12}>
-                            <DetailItem label="Pengirim">{order.sendername}</DetailItem>
-                            <DetailItem label="Service Type">
-                                {ColRender.product(order.producttype)}
-                            </DetailItem>
-                            <DetailItem label="Request Type">{problem.name}</DetailItem>
-                            <DetailItem label="Witel">{order.witel}</DetailItem>
-                            <DetailItem label="STO">{order.sto}</DetailItem>
-                        </Col>
-                        <Col span={12}>
-                            <DetailItem
-                                label="Evidence"
-                                spans={{
-                                    value: order.attachment ? 24 : undefined,
-                                }}
-                            >
-                                {!order.attachment ? (
-                                    "-"
-                                ) : (
-                                    <img
-                                        src={
-                                            config.publicRuntimeConfig.service.url +
-                                            "/file" +
-                                            order.attachment
-                                        }
-                                        alt={order.attachment || "no image"}
-                                        style={{ width: "80%" }}
-                                    />
-                                )}
-                            </DetailItem>
-                        </Col>
-                    </Row>
+                    <DetailSpanCtx.Provider value={detailSpans}>
+                        <Row>
+                            <Col span={12}>
+                                <DetailItem label="Order No">{order.orderno}</DetailItem>
+                                <DetailItem label="No Service">
+                                    {order.serviceno}
+                                </DetailItem>
+                                <DetailItem label="Tiket NOSSA">
+                                    {order.incidentno}
+                                </DetailItem>
+                                <DetailItem label="Status">
+                                    {ColRender.orderStatus(order.status, true)}
+                                </DetailItem>
+                            </Col>
+                            <Col span={12}>
+                                <DetailItem label="Umur Order">
+                                    {age.hour}j {age.minute}m
+                                </DetailItem>
+                                <DetailItem label="Umur Action">0m</DetailItem>
+                                <DetailItem label="Kendala">{problem.name}</DetailItem>
+                                <DetailItem label="Keterangan">
+                                    <Typography.Text>
+                                        {order.notes || '-'}
+                                    </Typography.Text>
+                                </DetailItem>
+                            </Col>
+                        </Row>
+                        <Divider />
+                        <Row>
+                            <Col span={12}>
+                                <DetailItem label="Pengirim">
+                                    {order.sendername}
+                                </DetailItem>
+                                <DetailItem label="Service Type">
+                                    {ColRender.product(order.producttype)}
+                                </DetailItem>
+                                <DetailItem label="Request Type">
+                                    {problem.name}
+                                </DetailItem>
+                                <DetailItem label="Witel">{order.witel}</DetailItem>
+                                <DetailItem label="STO">{order.sto}</DetailItem>
+                            </Col>
+                            <Col span={12}>
+                                <DetailItem
+                                    label="Evidence"
+                                    spans={{
+                                        value: order.attachment ? 24 : undefined,
+                                    }}
+                                >
+                                    {!order.attachment ? (
+                                        '-'
+                                    ) : (
+                                        <img
+                                            src={
+                                                config.publicRuntimeConfig.service.url +
+                                                '/file' +
+                                                order.attachment
+                                            }
+                                            alt={order.attachment || 'no image'}
+                                            style={{ width: '80%' }}
+                                        />
+                                    )}
+                                </DetailItem>
+                            </Col>
+                        </Row>
+                    </DetailSpanCtx.Provider>
                 </div>
                 <div
-                    className={mergeClassName("detail-right", {
+                    className={mergeClassName('detail-right', {
                         hide: !order.gaul,
                     })}
                 >
                     <OrderSider order={order} />
-                    {/* <div>
-                        <span className="text-gaul">
-                            Nomor ini telah terjadi GAUL sebanyak X Kali dengan Request Type
-                            Internet lambat{" "}
-                        </span>{" "}
-                        <br />
-                        <Dropdown
-                            overlay={request}
-                            trigger={["click"]}
-                            placement="bottom"
-                            className="dropdown-gaul"
-                        >
-                            <a onClick={(e) => e.preventDefault()}>
-                                <Space>
-                                    hh mm yyyy
-                                    <DownOutlined />
-                                </Space>
-                            </a>
-                        </Dropdown>{" "}
-                        <br />
-                        <Dropdown
-                            overlay={request}
-                            trigger={["click"]}
-                            placement="bottom"
-                            className="dropdown-gaul"
-                        >
-                            <a onClick={(e) => e.preventDefault()}>
-                                <Space>
-                                    hh mm yyyy
-                                    <DownOutlined />
-                                </Space>
-                            </a>
-                        </Dropdown>{" "}
-                        <br />
-                        <Dropdown
-                            overlay={request}
-                            trigger={["click"]}
-                            placement="bottom"
-                            className="dropdown-gaul"
-                        >
-                            <a onClick={(e) => e.preventDefault()}>
-                                <Space>
-                                    hh mm yyyy
-                                    <DownOutlined />
-                                </Space>
-                            </a>
-                        </Dropdown>
-                    </div> */}
                 </div>
             </div>
             <Divider />
             <div className="detail-work">
-                <div className="dropdown-solution">
+                <div className="detail-solution">
                     <Menu
                         mode="inline"
                         items={[
                             {
                                 label: <span>Actual Solution</span>,
-                                type: "group",
+                                type: 'group',
                                 children: [
                                     {
                                         label: (
@@ -199,7 +202,7 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                                                 Actual Solution 1
                                             </a>
                                         ),
-                                        key: "0",
+                                        key: '0',
                                     },
                                     {
                                         label: (
@@ -207,7 +210,7 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                                                 Actual Solution 2
                                             </a>
                                         ),
-                                        key: "1",
+                                        key: '1',
                                     },
                                     {
                                         label: (
@@ -215,7 +218,7 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                                                 Actual Solution 3
                                             </a>
                                         ),
-                                        key: "2",
+                                        key: '2',
                                     },
                                     {
                                         label: (
@@ -223,36 +226,50 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                                                 Actual Solution 4
                                             </a>
                                         ),
-                                        key: "3",
+                                        key: '3',
                                     },
                                 ],
                             },
                         ]}
                     />
                 </div>
-                <div className="worklog">
+                <div className="detail-worklog">
                     <TextArea
-                        value={value}
-                        onChange={(e) => setValue(e.target.value)}
+                        value={worklog}
+                        onChange={(e) => setWorklog(e.target.value)}
                         placeholder="Ini Field untuk agent mengisi history (worklog) pengerjaan"
-                        autoSize={{ minRows: 10, maxRows: 10 }}
                     />
                 </div>
-                <div className="button-detail">
-                    <div className="inside-button">
-                        <Button type="primary" block className="close-ticket">
-                            Close Ticket
+                <div className="detail-button">
+                    <div className="detail-button-container">
+                        <Button
+                            type="primary"
+                            block
+                            onClick={onDetailBtnClick(Mars.Status.CLOSED)}
+                            className="d-btn close"
+                        >
+                            <b>Close Ticket</b>
                         </Button>
-                        <Button type="primary" block className="dispatch">
-                            Dispatch
+                        <Button
+                            type="primary"
+                            block
+                            onClick={onDetailBtnClick(Mars.Status.DISPATCH)}
+                            className="d-btn dispatch"
+                        >
+                            <b>Dispatch</b>
                         </Button>
-                        <Button type="primary" block className="pending">
-                            Pending
+                        <Button
+                            type="primary"
+                            block
+                            onClick={onDetailBtnClick(Mars.Status.PENDING)}
+                            className="d-btn pending"
+                        >
+                            <b>Pending</b>
                         </Button>
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 }
 
@@ -260,10 +277,28 @@ DetailOrderPage.getInitialProps = async (ctx: NextPageContext) => {
     const orderno = ctx.query.orderno;
     try {
         const res = await getOrder(orderno as string);
-        console.log("* Order Detail", res.data);
+        console.log('* Order Detail', res.data);
         return { data: res.data };
-    } catch (error) {}
-    return {};
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            switch (error.code) {
+                case NodeJS.SystemErr.ECONNREFUSED: {
+                    return {
+                        error: {
+                            code: error.code,
+                            status: 500,
+                            message: 'Unable to connect to core-service',
+                        },
+                    };
+                }
+
+                default:
+                    break;
+            }
+        }
+    }
+
+    return { error: 'Internal Server Error' };
 };
 
 function getOrder(id: string, params: map = {}, inbox = false) {
@@ -272,10 +307,14 @@ function getOrder(id: string, params: map = {}, inbox = false) {
         params,
     });
 }
-function updateOrder(id: string, status: Mars.Status, desc?: string) {}
 
 function DetailItem(props: DetailItemProps) {
-    const { title = 6, separator = 1, value = 17 } = props.spans || {};
+    const ctx = useContext(DetailSpanCtx);
+    const {
+        title = ctx.title,
+        separator = ctx.separator,
+        value = ctx.value,
+    } = props.spans || {};
     return (
         <Row>
             <Col span={title}>
@@ -291,6 +330,7 @@ function DetailItem(props: DetailItemProps) {
 
 interface DetailOrderProps {
     data: DTO.Orders;
+    error?: any;
 }
 interface DetailItemProps {
     label: string;
@@ -301,3 +341,24 @@ interface DetailItemProps {
     };
     children: React.ReactNode;
 }
+
+const updateStatusUrl = '/order/update/status/dashboard';
+const updateStatus = {
+    update(id: string, status: Mars.Status, description: string) {
+        return api.put<DTO.OrderAssignment>(`${updateStatusUrl}/${id}/${status}`, description, {
+            headers: {
+                [HttpHeader.CONTENT_TYPE]: MimeType.TEXT_PLAIN,
+            },
+        })
+        .then(res => res.data)
+    },
+    [Mars.Status.CLOSED](id: string, description: string) {
+        return updateStatus.update(id, Mars.Status.CLOSED, description);
+    },
+    [Mars.Status.DISPATCH](id: string, description: string) {
+        return updateStatus.update(id, Mars.Status.DISPATCH, description);
+    },
+    [Mars.Status.PENDING](id: string, description: string) {
+        return updateStatus.update(id, Mars.Status.PENDING, description);
+    },
+} as const;

@@ -1,27 +1,27 @@
-import { inlineKey, isArr, isNull, isUndef } from "@mars/common";
-import axios, { Axios } from "axios";
-import getConfig from "next/config";
+import axios, { Axios } from 'axios';
+import qs from 'qs';
+import getConfig from 'next/config';
 
 const config = getConfig().publicRuntimeConfig;
 
 const api = axios.create({
-    baseURL: config.service.url + "/api/mars",
+    baseURL: config.service.url + '/api/mars',
     paramsSerializer(params) {
-        const o = inlineKey(params, { separateArray: false });
-        const result: string[] = [];
+        // const o = inlineKey(params, { separateArray: false });
+        // const result: string[] = [];
 
-        for (let [key, v] of Object.entries(o)) {
-            let value: any;
+        const result = qs.stringify(params, {
+            allowDots: true,
+            arrayFormat: 'repeat',
+            charset: 'utf-8',
+            skipNulls: false,
+            addQueryPrefix: true,
+            serializeDate: d => d.toJSON(),
+            indices: true
+        });
 
-            if (isUndef(v)) continue;
-            else if (isNull(v)) value = "null";
-            else if (isArr(v)) value = isArr(v) ? v.join(",") : v;
-            else if (v instanceof Date) value = v.toJSON();
-            else value = v.toString();
-
-            result.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
-        }
-        return result.join("&");
+        console.log(result);
+        return result.slice(1);
     },
 });
 

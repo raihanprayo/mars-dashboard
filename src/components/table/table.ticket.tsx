@@ -1,12 +1,12 @@
-import { HttpHeader } from "@mars/common";
-import { Badge, Button, message, Table, Tag } from "antd";
-import { ColumnType } from "antd/lib/table";
-import { format } from "date-fns";
-import axios, { AxiosResponse } from "axios";
-import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { usePageable } from "_hook/pageable.hook";
-import { ColRender } from "./table.value";
+import { HttpHeader } from '@mars/common';
+import { Badge, Button, message, Table, Tag } from 'antd';
+import { ColumnType } from 'antd/lib/table';
+import { format } from 'date-fns';
+import axios, { AxiosResponse } from 'axios';
+import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePageable } from '_hook/pageable.hook';
+import { ColRender } from './table.value';
 
 export default TableTicket;
 function TableTicket(props: TableTicketProps) {
@@ -16,7 +16,7 @@ function TableTicket(props: TableTicketProps) {
     } = usePageable();
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [filter, setFilter] = useState<Partial<DTO.Orders>>({});
+    const [filter, setFilter] = useState<ICriteria<DTO.Orders>>({});
     const [orders, setOrders] = useState<DTO.OrdersDashboard>({
         counts: {} as any,
         orders: [],
@@ -26,7 +26,8 @@ function TableTicket(props: TableTicketProps) {
         setLoading(true);
         return getData({ page, size, ...filters }, props.inbox)
             .then((res) => {
-                const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.orders.length;
+                const total =
+                    res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.orders.length;
 
                 console.log(res.data);
                 if (res.data && Array.isArray(res.data.orders)) {
@@ -39,8 +40,8 @@ function TableTicket(props: TableTicketProps) {
     };
     const takeOrder = (id: string) => {
         return api
-            .post("/order/take/" + id)
-            .then((res) => message.success("Berhasil Mengambil order/tiket"))
+            .post('/order/take/' + id)
+            .then((res) => message.success('Berhasil Mengambil order/tiket'))
             .catch((err) => {
                 if (axios.isAxiosError(err)) {
                     const res = err.response as AxiosResponse<any, any>;
@@ -52,7 +53,7 @@ function TableTicket(props: TableTicketProps) {
                 }
             })
             .finally(() => {
-                window.dispatchEvent(new Event("refresh-badge"));
+                window.dispatchEvent(new Event('refresh-badge'));
                 getOrders(filter);
             });
     };
@@ -62,24 +63,24 @@ function TableTicket(props: TableTicketProps) {
     }, [page, size]);
 
     const columns = useMemo(() => {
-        const cols = Array(...TableTicketColms({ takeOrder }));
+        const cols = TableTicketColms({ takeOrder });
         if (props.inbox) {
             cols.pop();
 
-            const orderNoCol = cols.find((e) => e.dataIndex === "orderno");
+            const orderNoCol = cols.find((e) => e.dataIndex === 'orderno');
             orderNoCol.render = (v) => (
-                <Link href={"/order/detail/" + v}>
+                <Link href={'/order/detail/' + v}>
                     <a>{v}</a>
                 </Link>
             );
         } else {
-            const orderNoCol = cols.find((e) => e.dataIndex === "orderno");
+            const orderNoCol = cols.find((e) => e.dataIndex === 'orderno');
             delete orderNoCol.render;
         }
         return cols;
     }, []);
 
-    const buttonSelect = (c: boolean) => (c ? "primary" : "dashed");
+    const buttonSelect = (c: boolean) => (c ? 'primary' : 'dashed');
     return (
         <div className="workspace table-view">
             <div className="workspace-header">
@@ -99,12 +100,14 @@ function TableTicket(props: TableTicketProps) {
                         return (
                             <Badge count={orders.counts[e]}>
                                 <Button
-                                    type={buttonSelect(filter.producttype === e)}
-                                    key={"button-" + e.toLowerCase()}
+                                    type={buttonSelect(
+                                        filter.producttype && filter.producttype.eq === e
+                                    )}
+                                    key={'button-' + e.toLowerCase()}
                                     style={{ marginLeft: 10 }}
                                     onClick={() => {
                                         const f = { ...filter };
-                                        f.producttype = e;
+                                        f.producttype = { eq: e };
                                         setFilter(f);
                                         getOrders(f);
                                     }}
@@ -137,20 +140,20 @@ function TableTicket(props: TableTicketProps) {
 const TableTicketColms = (props: TableTickerColumnOptions) => {
     const cols: ColumnType<DTO.Orders>[] = [
         {
-            title: "No",
+            title: 'No',
             width: 40,
-            align: "center",
+            align: 'center',
             render: (v, r, i) => <b>{`${i + 1}`}</b>,
         },
         {
-            title: "Order ID",
-            align: "center",
-            dataIndex: "orderno",
+            title: 'Order ID',
+            align: 'center',
+            dataIndex: 'orderno',
         },
         {
-            title: "Status",
-            dataIndex: "status",
-            align: "center",
+            title: 'Status',
+            dataIndex: 'status',
+            align: 'center',
             render: (v, r) => {
                 const tag = ColRender.orderStatus(v, true);
 
@@ -163,61 +166,65 @@ const TableTicketColms = (props: TableTickerColumnOptions) => {
             },
         },
         {
-            title: "Umur Tiket",
-            align: "center",
-            dataIndex: "opentime",
+            title: 'Umur Tiket',
+            align: 'center',
+            dataIndex: 'opentime',
             render(value, record, index) {
                 if (record.status === Mars.Status.CLOSED) return -1;
                 return <Difference orderno={record.orderno} opentime={value} />;
             },
         },
         {
-            title: "Service No",
-            align: "center",
-            dataIndex: "serviceno",
+            title: 'Service No',
+            align: 'center',
+            dataIndex: 'serviceno',
         },
         {
-            title: "Product",
-            align: "center",
-            dataIndex: "producttype",
+            title: 'Product',
+            align: 'center',
+            dataIndex: 'producttype',
             render: ColRender.product,
         },
         {
-            title: "Source",
-            align: "center",
-            dataIndex: "ordersource",
+            title: 'Source',
+            align: 'center',
+            dataIndex: 'ordersource',
         },
         {
-            title: "Keterangan",
-            align: "center",
-            dataIndex: "ordertext",
+            title: 'Keterangan',
+            align: 'center',
+            dataIndex: 'ordertext',
         },
         {
-            title: "Witel",
-            align: "center",
-            dataIndex: "witel",
+            title: 'Witel',
+            align: 'center',
+            dataIndex: 'witel',
         },
         {
-            title: "STO",
-            align: "center",
-            dataIndex: "sto",
+            title: 'STO',
+            align: 'center',
+            dataIndex: 'sto',
         },
         {
-            title: "Tgl Masuk",
-            align: "center",
-            dataIndex: "opentime",
+            title: 'Tgl Masuk',
+            align: 'center',
+            dataIndex: 'opentime',
             render(value, record, index) {
                 const d = new Date(value);
-                const f = format(d, "EEEE, dd MMM yyyy - HH:mm:ss aa");
+                const f = format(d, 'EEEE, dd MMM yyyy - HH:mm:ss aa');
                 return f;
             },
         },
         {
-            title: "Action",
-            align: "center",
+            title: 'Action',
+            align: 'center',
             render(v, rec, index) {
                 return (
-                    <Button type="primary" onClick={() => props.takeOrder(rec.id)}>
+                    <Button
+                        type="primary"
+                        onClick={() => props.takeOrder(rec.id)}
+                        disabled={rec.status === Mars.Status.CONFIRMATION}
+                    >
                         Ambil
                     </Button>
                 );
@@ -228,7 +235,7 @@ const TableTicketColms = (props: TableTickerColumnOptions) => {
 };
 
 function getData(params: map = {}, inbox = false) {
-    const url = "/order" + (inbox ? "/inbox" : "/dashboard");
+    const url = '/order' + (inbox ? '/inbox' : '/dashboard');
     return api.get<DTO.OrdersDashboard>(url, {
         params,
     });

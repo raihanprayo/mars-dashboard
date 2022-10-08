@@ -21,7 +21,7 @@ function DateCounter() {
 function dateCounter(lang: "id" | "en") {
     const d = new Date();
     const locale = lang === "id" ? IdnLocale : EnLocale;
-    return format(d, "EEEE, dd MMMM yyyy - HH:mm:ss aa", { locale });
+    return format(d, "EEEE, dd MMMM yyyy - HH:mm aa", { locale });
 }
 
 export default DateCounter;

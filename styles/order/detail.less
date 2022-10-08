@@ -44,40 +44,51 @@
         display: flex;
         margin-top: 15px;
         width: 100%;
+        height: 240px;
 
         &.hide {
             display: none;
         }
 
-        .dropdown-solution {
+        .detail-solution {
             width: 15%;
         }
-        .worklog {
+        .detail-worklog {
             width: 60%;
             height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+
+            > textarea {
+                height: 100%;
+                resize: none;
+            }
         }
-        .button-detail {
+        .detail-button {
             padding: 0 20px;
             width: 25%;
             margin: 0 auto;
             display: flex;
             align-items: center;
-            .inside-button {
+            justify-content: center;
+            .detail-button-container {
                 display: block;
-                .close-ticket {
-                    margin-bottom: 10px;
-                    background-color: #7dbe8c;
-                    border-color: #7dbe8c;
+                width: 90%;
+
+                .d-btn {
+                    margin: 10px 0;
+                    letter-spacing: 1.5px;
                     border-radius: 8px;
-                }
-                .dispatch {
-                    margin-bottom: 10px;
-                    border-radius: 8px;
-                }
-                .pending {
-                    background-color: #ff9a5c;
-                    border-color: #ff9a5c;
-                    border-radius: 8px;
+
+                    &.close {
+                        // margin-bottom: 10px;
+                        background-color: #7dbe8c;
+                        border-color: #7dbe8c;
+                    }
+                    &.pending {
+                        background-color: #ff9a5c;
+                        border-color: #ff9a5c;
+                    }
                 }
             }
         }
