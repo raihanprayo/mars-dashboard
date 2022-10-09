@@ -69,9 +69,9 @@ function getOrderByServiNo(currentOrderId: string, serviceno: string) {
     return api.get<DTO.Orders[]>('/order', {
         params: {
             serviceno: { eq: serviceno },
-            gaul: { eq: true },
+            gaul: { gt: 0 },
             id: { negate: true, eq: currentOrderId },
-            sort: {
+            sort: {   
                 opentime: Pageable.Sorts.DESC,
             },
         },

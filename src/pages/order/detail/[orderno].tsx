@@ -3,7 +3,7 @@ import { Menu, Input, Button, Row, Col, Typography, Divider } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/router';
 import { NextPageContext } from 'next';
-import { ColRender } from '_comp/table/table.value';
+import { Render } from '_comp/value-renderer';
 import { HttpHeader, mergeClassName, MimeType } from '@mars/common';
 import getConfig from 'next/config';
 import { OrderSider } from '_comp/orders/order-sider.info';
@@ -89,13 +89,13 @@ export default function DetailOrderPage(props: DetailOrderProps) {
         />
     );
 
-    const age = ColRender.calcOrderAge(order.opentime);
+    const age = Render.calcOrderAge(order.opentime);
     const problem: DTO.Problem = order.problemtype as any;
 
     const onDetailBtnClick = useCallback(
         (s: Mars.Status.CLOSED | Mars.Status.DISPATCH | Mars.Status.PENDING) => () => {
             updateStatus[s](order.id, worklog)
-                .then((res) => {})
+                .then((res) => window.dispatchEvent(new Event('refresh-badge')))
                 .catch((err) => {});
         },
         [worklog]
@@ -122,7 +122,7 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                                     {order.incidentno}
                                 </DetailItem>
                                 <DetailItem label="Status">
-                                    {ColRender.orderStatus(order.status, true)}
+                                    {Render.orderStatus(order.status, true)}
                                 </DetailItem>
                             </Col>
                             <Col span={12}>
@@ -145,7 +145,7 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                                     {order.sendername}
                                 </DetailItem>
                                 <DetailItem label="Service Type">
-                                    {ColRender.product(order.producttype)}
+                                    {Render.product(order.producttype)}
                                 </DetailItem>
                                 <DetailItem label="Request Type">
                                     {problem.name}
@@ -301,11 +301,9 @@ DetailOrderPage.getInitialProps = async (ctx: NextPageContext) => {
     return { error: 'Internal Server Error' };
 };
 
-function getOrder(id: string, params: map = {}, inbox = false) {
-    const url = `/order/by-noorder/${id}`;
-    return api.get<DTO.Orders>(url, {
-        params,
-    });
+function getOrder(no: string, params: map = {}) {
+    const url = `/order/by-noorder/${no}`;
+    return api.get<DTO.Orders>(url, { params });
 }
 
 function DetailItem(props: DetailItemProps) {
@@ -345,12 +343,13 @@ interface DetailItemProps {
 const updateStatusUrl = '/order/update/status/dashboard';
 const updateStatus = {
     update(id: string, status: Mars.Status, description: string) {
-        return api.put<DTO.OrderAssignment>(`${updateStatusUrl}/${id}/${status}`, description, {
-            headers: {
-                [HttpHeader.CONTENT_TYPE]: MimeType.TEXT_PLAIN,
-            },
-        })
-        .then(res => res.data)
+        return api
+            .put<DTO.OrderAssignment>(`${updateStatusUrl}/${id}/${status}`, description, {
+                headers: {
+                    [HttpHeader.CONTENT_TYPE]: MimeType.TEXT_PLAIN,
+                },
+            })
+            .then((res) => res.data);
     },
     [Mars.Status.CLOSED](id: string, description: string) {
         return updateStatus.update(id, Mars.Status.CLOSED, description);

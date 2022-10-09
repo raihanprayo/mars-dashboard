@@ -6,47 +6,47 @@ import {
     LogoutOutlined,
     LoginOutlined,
     UserOutlined,
-} from "@ant-design/icons";
-import { Menu, Layout, Avatar, Badge, message, Button } from "antd";
-import { signOut, useSession } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import { useContext, CSSProperties, useState, useEffect, useCallback } from "react";
-import { PageContext } from "_ctx/page.ctx";
-import DateCounter from "../date-counter";
+} from '@ant-design/icons';
+import { Menu, Layout, Avatar, Badge, message, Button } from 'antd';
+import { signOut, useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useContext, CSSProperties, useState, useEffect, useCallback } from 'react';
+import { PageContext } from '_ctx/page.ctx';
+import DateCounter from '../date-counter';
 
 function PageHeader() {
     const ctx = useContext(PageContext);
     const session = useSession();
     const router = useRouter();
     const [badge, setBadge] = useState(0);
-    const isLogin = session.status === "authenticated";
+    const isLogin = session.status === 'authenticated';
 
     const FoldIcon = ctx.collapsed ? MenuUnfoldOutlined : MenuFoldOutlined;
     const IconStyle: CSSProperties = {
         fontSize: 22,
-        padding: "0",
+        padding: '0',
     };
 
     const onFoldClick = () => ctx.setCollapse(!ctx.collapsed);
     const getBadgeCounter = useCallback(() => {
-        api.get("/order/inbox", {
+        api.get('/order/inbox', {
             params: { counter: true },
         })
             .then((res) => setBadge(res.data))
-            .catch((err) => console.error("Fetch Badge Counter: " + err.message));
+            .catch((err) => console.error('Fetch Badge Counter: ' + err.message));
     }, []);
 
     const LoginLogoutIcon =
-        session.status === "authenticated" ? LogoutOutlined : LoginOutlined;
+        session.status === 'authenticated' ? LogoutOutlined : LoginOutlined;
 
     useEffect(() => isLogin && getBadgeCounter(), [isLogin]);
     useEffect(() => {
-        window.addEventListener("refresh-badge", getBadgeCounter);
+        window.addEventListener('refresh-badge', getBadgeCounter);
         return () => {
-            window.removeEventListener("refresh-badge", getBadgeCounter);
+            window.removeEventListener('refresh-badge', getBadgeCounter);
         };
-    });
+    }, []);
 
     return (
         <Layout.Header style={{ padding: 0, height: 56 }}>
@@ -64,7 +64,7 @@ function PageHeader() {
                     <DateCounter />
                 </Menu.Item>
 
-                <Menu.Item key="inbox-btn" title='Inbox'>
+                <Menu.Item key="inbox-btn" title="Inbox">
                     <Badge count={badge}>
                         <Link href="/inbox">
                             <BellOutlined style={IconStyle} />
@@ -83,10 +83,10 @@ function PageHeader() {
                     <Menu.Item
                         icon={<LoginLogoutIcon />}
                         onClick={() => {
-                            signOut({ callbackUrl: "/auth/login", redirect: true });
+                            signOut({ callbackUrl: '/auth/login', redirect: true });
                         }}
                     >
-                        {isLogin ? "Logout" : "Login"}
+                        {isLogin ? 'Logout' : 'Login'}
                     </Menu.Item>
                 </Menu.SubMenu>
             </Menu>

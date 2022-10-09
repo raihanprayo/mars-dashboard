@@ -1,12 +1,14 @@
 import { BarChartOutlined, AuditOutlined, TeamOutlined } from "@ant-design/icons";
 import { Layout, Menu } from "antd";
 import Link from "next/link";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { PageContext } from "_ctx/page.ctx";
 import { MarsIcon } from "../logo/mars-roc";
 
 function PageSidebar() {
     const ctx = useContext(PageContext);
+
+    const [collapsed, setCollapse] = useState(false);
 
     return (
         <Layout.Sider
