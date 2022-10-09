@@ -2,6 +2,7 @@
     "name": "@mars/ui",
     "mars": "ui-client",
     "version": "0.1.0",
+    "main": "server.js",
     "private": true,
     "scripts": {
         "dev": "next dev -p 9011",

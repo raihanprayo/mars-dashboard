@@ -1,7 +1,8 @@
 const NextWithLess = require('next-with-less');
 const NextTranspileModule = require('next-transpile-modules');
 const config = require('./configs/app.config');
-const merged = require('merge-deep')
+const merged = require('merge-deep');
+const { format, formatWithOptions } = require('util');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -20,6 +21,7 @@ const nextConfig = {
   },
 
   webpack(config, context) {
+    console.log(formatWithOptions({ depth: 5 }, config))
     return config;
   }
 }

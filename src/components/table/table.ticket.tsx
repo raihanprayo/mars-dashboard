@@ -17,7 +17,9 @@ function TableTicket(props: TableTicketProps) {
 
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [filter, setFilter] = useState<ICriteria<DTO.Orders>>({});
+    const [filter, setFilter] = useState<ICriteria<DTO.Orders>>({
+        
+    });
     const [orders, setOrders] = useState<DTO.OrdersDashboard>({
         counts: {} as any,
         orders: [],
@@ -230,7 +232,6 @@ const TableTicketColms = (props: TableTickerColumnOptions) => {
             align: 'center',
             dataIndex: 'opentime',
             render(value, record, index) {
-                if (record.status === Mars.Status.CLOSED) return -1;
                 return <Difference orderno={record.orderno} opentime={value} />;
             },
         },
@@ -250,11 +251,6 @@ const TableTicketColms = (props: TableTickerColumnOptions) => {
             align: 'center',
             dataIndex: 'ordersource',
             render: Render.orderSource,
-        },
-        {
-            title: 'Keterangan',
-            align: 'center',
-            dataIndex: 'ordertext',
         },
         {
             title: 'Witel',

@@ -46,9 +46,9 @@ export namespace Render {
         );
     }
 
-    export function calcOrderAge(opentime: Date | string) {
+    export function calcOrderAge(opentime: Date | string, from?: Date) {
         if (isStr(opentime)) opentime = new Date(opentime);
-        const current = new Date();
+        const current = from || new Date();
         const diffSec = differenceInSeconds(current, opentime);
         const diffHour = Math.floor(diffSec / 3600);
         const diffMin = Math.floor((diffSec - diffHour * 3600) / 60);

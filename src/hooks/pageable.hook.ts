@@ -6,6 +6,7 @@ export function usePageable(defaultSort?: string): PageableHook {
     const [pageable, setPageable] = useState<Pageable>({
         page: Number(router.query.page || 0),
         size: Number(router.query.size || 50),
+        sort: {}
     });
 
     return {

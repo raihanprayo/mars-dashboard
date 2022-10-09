@@ -1,7 +1,10 @@
 import { List, Tabs, Typography } from 'antd';
 import { AxiosError } from 'axios';
+import { format } from 'date-fns';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import { Render } from '_comp/value-renderer';
+import { doRender } from '_utils/fns/should-render';
 
 export function OrderSider(props: OrderSiderProps) {
     const session = useSession();
@@ -11,7 +14,7 @@ export function OrderSider(props: OrderSiderProps) {
 
     const [others, setOthers] = useState<DTO.Orders[]>([]);
     const assigments = order.assignments;
-    const disableGaul = !order.gaul;
+    const disableGaul = order.gaul === 0;
     const disableAssigment = assigments.length < 1;
 
     useEffect(() => {
@@ -24,14 +27,24 @@ export function OrderSider(props: OrderSiderProps) {
         }
     }, []);
 
+    const gaulTab = doRender(
+        !disableGaul,
+        <Tabs.TabPane tab="Gangguan Ulang" key="tab:gaul-1">
+            <TabContentGaul orders={others} />
+        </Tabs.TabPane>
+    );
+
+    const historyTab = doRender(
+        !disableAssigment,
+        <Tabs.TabPane tab="History" key="tab:history-2">
+            <TabHistoryContent assignments={order.assignments} />
+        </Tabs.TabPane>
+    );
+
     return (
         <Tabs title="Detail Summaries">
-            <Tabs.TabPane tab="Gangguan Ulang" key={1} disabled={disableGaul}>
-                <TabContentGaul orders={others} />
-            </Tabs.TabPane>
-            <Tabs.TabPane tab="History" key={2} disabled={disableAssigment}>
-                <TabHistoryContent assignments={order.assignments} />
-            </Tabs.TabPane>
+            {gaulTab}
+            {historyTab}
         </Tabs>
     );
 }
@@ -62,8 +75,48 @@ function TabContentGaul(props: { orders: DTO.Orders[] }) {
 }
 
 function TabHistoryContent(props: { assignments: DTO.OrderAssignment[] }) {
-    return <></>;
+    return (
+        <List
+            className="order-sider history"
+            size="large"
+            itemLayout="horizontal"
+            dataSource={props.assignments.filter(
+                (e) => e.status !== Mars.AssignStatus.PROGRESS
+            )}
+            renderItem={TabHistoryContent.Item}
+        />
+    );
 }
+TabHistoryContent.Item = function (agent: DTO.OrderAssignment, index: number) {
+    console.log(agent);
+    return (
+        <List.Item className="order-sider-item">
+            <List.Item.Meta
+                title={
+                    <>
+                        {agent.user.nik} | {agent.user.name}
+                    </>
+                }
+                description={
+                    <>
+                        <div className="item update-at">
+                            <span>
+                                {format(
+                                    new Date(agent.updatedAt),
+                                    'dd/MM/yyyy, HH:mm:ss'
+                                )}
+                            </span>
+                        </div>
+                        <div className="item status right">
+                            <span>{agent.status}</span>
+                        </div>
+                    </>
+                }
+            />
+            {agent.description || '(no description)'}
+        </List.Item>
+    );
+};
 
 function getOrderByServiNo(currentOrderId: string, serviceno: string) {
     return api.get<DTO.Orders[]>('/order', {
@@ -71,7 +124,7 @@ function getOrderByServiNo(currentOrderId: string, serviceno: string) {
             serviceno: { eq: serviceno },
             gaul: { gt: 0 },
             id: { negate: true, eq: currentOrderId },
-            sort: {   
+            sort: {
                 opentime: Pageable.Sorts.DESC,
             },
         },

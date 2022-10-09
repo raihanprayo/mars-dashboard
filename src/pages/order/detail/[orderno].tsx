@@ -101,10 +101,11 @@ export default function DetailOrderPage(props: DetailOrderProps) {
         [worklog]
     );
 
+    const expandSpan = !!order.gaul || order.assignments.length > 1;
     const detailSpans: Exclude<DetailItemProps['spans'], undefined> = {
-        title: order.gaul ? 8 : 6,
+        title: expandSpan ? 8 : 6,
         separator: 1,
-        value: order.gaul ? 15 : 17,
+        value: expandSpan ? 15 : 17,
     };
 
     return (
@@ -180,7 +181,11 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                 </div>
                 <div
                     className={mergeClassName('detail-right', {
-                        hide: !order.gaul,
+                        get hide() {
+                            if (order.gaul > 0) return false;
+                            else if (order.assignments.length > 1) return false;
+                            return true;
+                        },
                     })}
                 >
                     <OrderSider order={order} />
