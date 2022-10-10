@@ -120,7 +120,7 @@ async function login(
 
 async function register(nik: string, password: string) {
     return await api
-        .post("/user/register", { nik, password })
+        .post("/user/auth/register", { nik, password })
         .then((res) => {
             return true;
         })

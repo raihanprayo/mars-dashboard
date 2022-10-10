@@ -27,7 +27,7 @@ const route = NextAuth({
             async authorize(credential, req) {
                 try {
                     const { data: token } = await api.post<TokenRes>(
-                        "/user/login",
+                        "/user/auth/login",
                         credential,
                         {
                             headers: {
