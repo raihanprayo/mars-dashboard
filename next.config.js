@@ -8,7 +8,6 @@ const { format, formatWithOptions } = require('util');
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  output: 'standalone',
 
   poweredByHeader: false,
   publicRuntimeConfig: merged({}, config.general, config.browser),
