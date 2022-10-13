@@ -1,7 +1,12 @@
 
 module.exports = {
-    browser: {},
-    server: {},
+    browser: {
+        service: {
+            prefix: '/api/core'
+        }
+    },
+    server: {
+    },
 
     general: {
         service: {

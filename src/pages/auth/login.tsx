@@ -1,19 +1,21 @@
-import { LoginOutlined } from "@ant-design/icons";
-import { HttpHeader, isDefined, MimeType } from "@mars/common";
-import { Button, Divider, Form, Input, message } from "antd";
-import Layout from "antd/lib/layout/layout";
-import { AxiosError, AxiosResponse } from "axios";
-import { NextPageContext } from "next";
-import { Session } from "next-auth";
-import { getProviders, getSession, signIn } from "next-auth/react";
-import Head from "next/head";
-import Link from "next/link";
-import { NextRouter, useRouter } from "next/router";
-import { MarsIcon } from "_comp/logo/mars-roc";
+import { LoginOutlined } from '@ant-design/icons';
+import { HttpHeader, isDefined, MimeType } from '@mars/common';
+import { Button, Divider, Form, Input, message } from 'antd';
+import Layout from 'antd/lib/layout/layout';
+import { AxiosError, AxiosResponse } from 'axios';
+import { NextPageContext } from 'next';
+import { Session } from 'next-auth';
+import { getProviders, getSession, signIn } from 'next-auth/react';
+import Head from 'next/head';
+import Link from 'next/link';
+import { NextRouter, useRouter } from 'next/router';
+import { useState } from 'react';
+import { MarsIcon } from '_comp/logo/mars-roc';
 
 function LoginPage(props: { session: Session; providers: NextAuthProviders }) {
     const router = useRouter();
-    const callbackUrl = (router.query.callbackUrl as string) || "/";
+    const callbackUrl = (router.query.callbackUrl as string) || '/';
+    const [loading, setLoading] = useState(false);
 
     const logoDimension = 650;
 
@@ -32,14 +34,22 @@ function LoginPage(props: { session: Session; providers: NextAuthProviders }) {
                         </a>
                     </Link>
                     <h5 className="motto text-muted">
-                        <b>M</b>anpower <b>A</b>dministration and <b>R</b>ating <b>S</b>ystem
+                        <b>M</b>anpower <b>A</b>dministration and <b>R</b>ating <b>S</b>
+                        ystem
                     </h5>
                 </div>
 
                 <Form
                     className="login-forms-content"
                     layout="vertical"
-                    onFinish={(v) => login(router, { callbackUrl, ...v })}
+                    onFinish={async (v) => {
+                        setLoading(true);
+                        try {
+                            await login(router, { callbackUrl, ...v });
+                        } finally {
+                            setLoading(false);
+                        }
+                    }}
                 >
                     <Form.Item name="nik">
                         <Input type="text" placeholder="nik" />
@@ -76,7 +86,9 @@ LoginPage.getInitialProps = async function (ctx: NextPageContext) {
 
 export default LoginPage;
 
-type NextAuthProviders = ReturnType<typeof getProviders> extends Promise<infer P> ? P : never;
+type NextAuthProviders = ReturnType<typeof getProviders> extends Promise<infer P>
+    ? P
+    : never;
 interface LoginOpt {
     nik: string;
     password: string;
@@ -88,7 +100,7 @@ async function login(
     { callbackUrl, nik, password }: LoginOpt,
     attempt = 1
 ) {
-    const res = await signIn("mars-roc", {
+    const res = await signIn('mars-roc', {
         callbackUrl,
         redirect: false,
         nik,
@@ -100,18 +112,22 @@ async function login(
     else {
         const msg = res.error;
 
-        const [code, err] = msg.split(": ");
+        const [code, err] = msg.split(': ');
         switch (code) {
-            case "AUTH-02":
-                console.log("[INFO] User not linked, trying self-registration");
+            case 'AUTH-02':
+                console.log('[INFO] User not linked, trying self-registration');
                 const ok = await register(nik, password);
                 if (attempt > 0 && ok) {
-                    return await login(router, { callbackUrl, nik, password }, attempt - 1);
+                    return await login(
+                        router,
+                        { callbackUrl, nik, password },
+                        attempt - 1
+                    );
                 }
                 message.error(msg, 5);
                 break;
             default:
-                console.error("[ERR] Invalid user credential");
+                console.error('[ERR] Invalid user credential');
                 message.error(msg, 5);
                 break;
         }
@@ -120,7 +136,7 @@ async function login(
 
 async function register(nik: string, password: string) {
     return await api
-        .post("/user/auth/register", { nik, password })
+        .post('/user/auth/register', { nik, password })
         .then((res) => {
             return true;
         })
