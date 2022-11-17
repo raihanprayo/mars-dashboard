@@ -20,7 +20,6 @@ const nextConfig = {
   },
 
   webpack(config, context) {
-    console.log(formatWithOptions({ depth: 5 }, config))
     return config;
   }
 }

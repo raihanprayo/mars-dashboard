@@ -96,6 +96,7 @@ export default function DetailOrderPage(props: DetailOrderProps) {
         (s: Mars.Status.CLOSED | Mars.Status.DISPATCH | Mars.Status.PENDING) => () => {
             updateStatus[s](order.id, worklog)
                 .then((res) => window.dispatchEvent(new Event('refresh-badge')))
+                .then(() => window.location.href='/inbox')
                 .catch((err) => {});
         },
         [worklog]

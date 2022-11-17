@@ -12,7 +12,7 @@
     },
     "dependencies": {
         "@ant-design/icons": "^4.7.0",
-        "@mars/common": "*",
+        "@mars/common": "^1.0.0",
         "antd": "^4.23.0",
         "axios": "^0.27.2",
         "date-fns": "^2.29.3",
@@ -20,6 +20,7 @@
         "next": "12.2.5",
         "next-auth": "^4.10.3",
         "next-with-less": "^2.0.5",
+        "qs": "^6.11.0",
         "react": "18.2.0",
         "react-dom": "18.2.0"
     },
