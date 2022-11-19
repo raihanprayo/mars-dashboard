@@ -1,34 +1,34 @@
-import NextAuth, { DefaultUser } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import NextAuth, { DefaultUser } from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
 
-import { HttpHeader, MimeType, upperCase } from "@mars/common";
-import axios, { AxiosResponse } from "axios";
+import { HttpHeader, MimeType, upperCase } from '@mars/common';
+import axios, { AxiosResponse } from 'axios';
 
 const route = NextAuth({
     pages: {
-        signIn: "/auth/login",
+        signIn: '/auth/login',
     },
 
     providers: [
         CredentialsProvider({
-            id: "mars-roc",
-            name: "mars-roc",
-            type: "credentials",
+            id: 'mars-roc',
+            name: 'mars-roc',
+            type: 'credentials',
             credentials: {
                 nik: {
-                    type: "text",
-                    label: "NIK",
+                    type: 'text',
+                    label: 'NIK',
                 },
                 password: {
-                    label: "Password",
-                    type: "password",
+                    label: 'Password',
+                    type: 'password',
                 },
             },
             async authorize(credential, req) {
                 try {
-                    const { data: token } = await api.post<TokenRes>(
-                        "/user/auth/login",
-                        credential,
+                    const resLogin = await api.post<TokenRes>(
+                        '/user/auth/login',
+                        { nik: credential.nik, password: credential.password },
                         {
                             headers: {
                                 [HttpHeader.CONTENT_TYPE]: MimeType.APPLICATION_JSON,
@@ -36,13 +36,16 @@ const route = NextAuth({
                         }
                     );
 
-                    const { data: user } = await api.get<DTO.Users>("/user/info", {
+                    console.log(resLogin);
+                    const { data: token } = resLogin;
+
+                    const { data: user } = await api.get<DTO.Users>('/user/info', {
                         headers: {
-                            [HttpHeader.AUTHORIZATION]: "Bearer " + token.access_token,
+                            [HttpHeader.AUTHORIZATION]: 'Bearer ' + token.access_token,
                         },
                     });
 
-                    console.log("* User Login", {
+                    console.log('* User Login', {
                         token,
                         user,
                     });
@@ -69,7 +72,7 @@ const route = NextAuth({
                             }
 
                             return Promise.reject(
-                                new Error(`${data?.code || "AUTH-99"}: ${data?.message}`)
+                                new Error(`${data?.code || 'AUTH-99'}: ${data?.message}`)
                             );
                         } else return Promise.reject(ex.message);
                     } else console.error(ex);
@@ -105,6 +108,7 @@ const route = NextAuth({
                 session.user.bearer = token.bearer;
             }
 
+            session.bearer = token.bearer;
             return session;
         },
     },
@@ -117,16 +121,17 @@ interface TokenRes extends map {
     expired_at: number;
 }
 
-declare module "next-auth/core/types" {
+declare module 'next-auth/core/types' {
     export interface Session extends map<any>, DefaultSession {
         user: MarsUserSession;
+        bearer: string;
     }
 
     export interface User extends Record<string, unknown>, DefaultUser {
         [x: string]: any;
     }
 }
-declare module "next-auth/jwt/types" {
+declare module 'next-auth/jwt/types' {
     export interface JWT extends Record<string, unknown>, DefaultJWT {
         [x: string]: any;
     }

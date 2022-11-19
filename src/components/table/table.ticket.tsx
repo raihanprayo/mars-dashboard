@@ -1,38 +1,37 @@
-import { HttpHeader, isDefined } from '@mars/common';
-import { Badge, Button, Menu, message, Table, Tag } from 'antd';
-import { ColumnType, TablePaginationConfig } from 'antd/lib/table';
-import { ColumnFilterItem, FilterValue } from 'antd/lib/table/interface';
-import { format } from 'date-fns';
+import { ReloadOutlined } from '@ant-design/icons';
+import { HttpHeader } from '@mars/common';
+import { message, Table } from 'antd';
 import axios, { AxiosError, AxiosResponse } from 'axios';
-import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
+import { useState, useCallback, useEffect } from 'react';
+import { useContextMenu } from '_comp/context-menu';
 import { usePageable } from '_hook/pageable.hook';
 import { RefreshBadgeEvent } from '_utils/events';
-import { Render } from '../value-renderer';
+import { TableTicketColms } from './table.definitions';
+import { THeader } from './table.header';
 
-export default TableTicket;
-function TableTicket(props: TableTicketProps) {
+export {};
+
+export function OrderTable(props: OrderTableProps) {
+    const route = useRouter();
+    const menu = useContextMenu<DTO.Orders>();
     const { pageable, setPageable } = usePageable();
-    const { size, page } = pageable;
-
-    const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [filter, setFilter] = useState<ICriteria<DTO.Orders>>({
-        
-    });
+    const [total, setTotal] = useState(0);
+    const [filter, setFilter] = useState<ICriteria<DTO.Orders>>({});
     const [orders, setOrders] = useState<DTO.OrdersDashboard>({
         counts: {} as any,
         orders: [],
     });
 
-    console.log('Current Filter', filter);
-    const getOrders = (filters = filter) => {
-        console.log(filter);
+    // const [coordinate, setCoordinate] = useState<ContextMenuProps>({ x: 0, y: 0 });
+
+    const getOrders = useCallback((filters: ICriteria<DTO.Orders> = {}) => {
         setLoading(true);
-        return getData(
-            { page: pageable.page, size: pageable.size, ...filters },
-            props.inbox
-        )
+        return api
+            .get(props.url, {
+                params: { page: pageable.page, size: pageable.size, ...filters },
+            })
             .then((res) => {
                 const total =
                     res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.orders.length;
@@ -53,7 +52,8 @@ function TableTicket(props: TableTicketProps) {
                 setLoading(false);
                 RefreshBadgeEvent.emit();
             });
-    };
+    }, []);
+
     const takeOrder = (id: string) => {
         return api
             .post('/order/take/' + id)
@@ -76,103 +76,88 @@ function TableTicket(props: TableTicketProps) {
             });
     };
 
-    const filterFns = useCallback(
-        (t: TablePaginationConfig, f: map<FilterValue>, s: any) => {
-            const nf = { ...filter };
-            if (!isDefined(f.status)) {
-                delete nf.status;
-                delete nf.gaul;
-            } else {
-                if (f.status.includes('GAUL')) {
-                    nf.gaul = { gte: 1 };
-                }
-
-                const inFilter = [...f.status] as string[];
-                if (inFilter.includes('GAUL'))
-                    inFilter.splice(inFilter.indexOf('GAUL'), 1);
-
-                nf.status = { in: inFilter as any };
-            }
-
-            if (!isDefined(f.witel)) delete nf.witel;
-            else nf.witel = { eq: f.witel as any };
-
-            setFilter(nf);
-        },
-        [filter]
-    );
+    useEffect(() => {
+        menu.items = [
+            {
+                title: 'Ambil',
+                onClick(event, item, data: DTO.Orders) {
+                    takeOrder(data.id);
+                },
+                disable(data) {
+                    return (
+                        !!data &&
+                        [Mars.Status.CONFIRMATION, Mars.Status.CLOSED].includes(
+                            data.status
+                        )
+                    );
+                },
+            },
+        ];
+    }, []);
 
     useEffect(() => {
         getOrders(filter);
-    }, [page, size, filter]);
-
-    const columns = useMemo(() => {
-        const cols = TableTicketColms({ takeOrder });
-        if (props.inbox) {
-            cols.pop();
-
-            const orderNoCol = cols.find((e) => e.dataIndex === 'orderno');
-            orderNoCol.render = (v) => (
-                <Link href={'/order/detail/' + v}>
-                    <a>{v}</a>
-                </Link>
-            );
-        } else {
-            const orderNoCol = cols.find((e) => e.dataIndex === 'orderno');
-            delete orderNoCol.render;
-        }
-        return cols;
-    }, []);
+    }, [pageable.page, pageable.size, filter]);
 
     const buttonSelect = (c: boolean) => (c ? 'primary' : 'dashed');
+    const actions = [
+        <THeader.Action
+            type={buttonSelect(!filter.producttype)}
+            onClick={(e) => {
+                const f = { ...filter };
+                delete f.producttype;
+                delete route.query.producttype;
+                setFilter(f);
+
+                route.replace({
+                    pathname: route.asPath,
+                    query: Object.assign(route.query, { ...f }),
+                });
+            }}
+        >
+            All
+        </THeader.Action>,
+        ...Object.values(Mars.Product).map((e, i) => (
+            <THeader.Action
+                key={'category-' + i}
+                style={{ marginLeft: 10 }}
+                badge={orders.counts[e]}
+                title={`Filter Product: ${e}`}
+                type={buttonSelect(filter.producttype && filter.producttype.eq === e)}
+                onClick={() => {
+                    const f = { ...filter };
+                    f.producttype = { eq: e };
+                    setFilter(f);
+                }}
+            >
+                {e[0] + e.slice(1).toLowerCase()}
+            </THeader.Action>
+        )),
+        <THeader.Action
+            pos="right"
+            type="primary"
+            title="Refresh"
+            icon={<ReloadOutlined />}
+            onClick={(e) => getOrders(filter)}
+        />,
+    ];
+
     return (
         <div className="workspace table-view">
-            <div className="workspace-header">
-                <div>
-                    <Button
-                        type={buttonSelect(!filter.producttype)}
-                        onClick={() => {
-                            const f = { ...filter };
-                            delete f.producttype;
-                            setFilter(f);
-                            getOrders(f);
-                        }}
-                    >
-                        All
-                    </Button>
-                    {Object.values(Mars.Product).map((e) => {
-                        return (
-                            <Badge count={orders.counts[e]}>
-                                <Button
-                                    type={buttonSelect(
-                                        filter.producttype && filter.producttype.eq === e
-                                    )}
-                                    key={'button-' + e.toLowerCase()}
-                                    style={{ marginLeft: 10 }}
-                                    onClick={() => {
-                                        const f = { ...filter };
-                                        f.producttype = { eq: e };
-                                        setFilter(f);
-                                        getOrders(f);
-                                    }}
-                                >
-                                    {e[0] + e.slice(1).toLowerCase()}
-                                    {/* ({orders.counts[e]}) */}
-                                </Button>
-                            </Badge>
-                        );
-                    })}
-                </div>
-            </div>
+            <THeader children={actions} />
             <Table
                 size="small"
                 loading={loading}
                 dataSource={orders.orders}
-                columns={columns}
+                columns={TableTicketColms({
+                    takeOrder,
+                    withActionCol: props.withActionCol,
+                    withLinkToDetail: props.withLinkToDetail,
+                })}
                 pagination={{
                     total,
-                    current: page + 1,
-                    pageSize: size,
+                    current: pageable.page + 1,
+                    pageSize: pageable.size,
                     pageSizeOptions: [10, 20, 50, 100, 200],
                     hideOnSinglePage: false,
                     onChange(page, pageSize) {
@@ -182,148 +167,19 @@ function TableTicket(props: TableTicketProps) {
                         if (current !== size) setPageable({ size });
                     },
                 }}
-                onChange={filterFns}
+                onRow={(rec, index) => ({
+                    onContextMenu(event) {
+                        event.preventDefault();
+                        menu.popup(event.clientX, event.clientY, rec);
+                    },
+                })}
             />
         </div>
     );
 }
 
-const TableTicketColms = (props: TableTickerColumnOptions) => {
-    const cols: ColumnType<DTO.Orders>[] = [
-        {
-            title: 'No',
-            width: 40,
-            align: 'center',
-            render: (v, r, i) => <b>{`${i + 1}`}</b>,
-        },
-        {
-            title: 'Order ID',
-            align: 'center',
-            dataIndex: 'orderno',
-            filterSearch: true,
-        },
-        {
-            title: 'Status',
-            dataIndex: 'status',
-            align: 'center',
-            render: (v, r) => {
-                const tag = Render.orderStatus(v, true);
-
-                return (
-                    <>
-                        {tag}
-                        {r.gaul ? <Tag>GAUL</Tag> : null}
-                    </>
-                );
-            },
-            filterMode: 'tree',
-            filters: Object.keys(Mars.Status)
-                .filter((e) => e !== Mars.Status.PROGRESS)
-                .concat('GAUL')
-                .map((e) => {
-                    return {
-                        text: e,
-                        value: e,
-                    };
-                }),
-        },
-        {
-            title: 'Umur Tiket',
-            align: 'center',
-            dataIndex: 'opentime',
-            render(value, record, index) {
-                return <Difference orderno={record.orderno} opentime={value} />;
-            },
-        },
-        {
-            title: 'Service No',
-            align: 'center',
-            dataIndex: 'serviceno',
-        },
-        {
-            title: 'Product',
-            align: 'center',
-            dataIndex: 'producttype',
-            render: Render.product,
-        },
-        {
-            title: 'Source',
-            align: 'center',
-            dataIndex: 'ordersource',
-            render: Render.orderSource,
-        },
-        {
-            title: 'Witel',
-            align: 'center',
-            dataIndex: 'witel',
-            filters: Object.keys(Mars.Witel).map((e) => ({
-                text: e,
-                value: e,
-            })),
-        },
-        {
-            title: 'STO',
-            align: 'center',
-            dataIndex: 'sto',
-        },
-        {
-            title: 'Tgl Masuk',
-            align: 'center',
-            dataIndex: 'opentime',
-            render(value, record, index) {
-                const d = new Date(value);
-                const f = format(d, 'EEEE, dd MMM yyyy - HH:mm:ss aa');
-                return f;
-            },
-        },
-        {
-            title: 'Action',
-            align: 'center',
-            render(v, rec, index) {
-                const disabled = [Mars.Status.CONFIRMATION, Mars.Status.CLOSED].includes(
-                    rec.status
-                );
-                return (
-                    <Button
-                        type="primary"
-                        onClick={() => props.takeOrder(rec.id)}
-                        disabled={disabled}
-                    >
-                        Ambil
-                    </Button>
-                );
-            },
-        },
-    ];
-    return cols;
-};
-
-function getData(params: map = {}, inbox = false) {
-    const url = '/order' + (inbox ? '/inbox' : '/dashboard');
-    return api.get<DTO.OrdersDashboard>(url, {
-        params,
-    });
-}
-
-function Difference(props: { orderno: string | number; opentime: Date | string }) {
-    const getTime = useCallback(() => {
-        const { hour, minute } = Render.calcOrderAge(props.opentime);
-        return `${hour}j ${minute}m`;
-    }, []);
-
-    const [time, setTime] = useState(getTime());
-
-    useEffect(() => {
-        const t = setInterval(() => setTime(getTime()), 60000);
-        return () => clearInterval(t);
-    }, []);
-
-    return <span className="diff-time">{time}</span>;
-}
-
-interface TableTicketProps {
-    inbox?: boolean;
-}
-interface TableTickerColumnOptions {
-    takeOrder(id: string): void | Promise<void>;
+export interface OrderTableProps {
+    url: string;
+    withActionCol?: boolean;
+    withLinkToDetail?: boolean;
 }

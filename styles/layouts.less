@@ -124,7 +124,27 @@
         line-height: 40px;
 
         .workspace-header {
+            display: flex;
             margin-bottom: 10px;
+
+            > ul {
+                list-style-type: none;
+                margin-block-start: 0;
+                margin-block-end: 0;
+                padding-inline-start: 0;
+
+                li {
+                    display: inline-block;
+                }
+            }
+
+            ul.left {
+                flex: 1;
+            }
+
+            ul.right {
+                width: fit-content;
+            }
         }
     }
 }

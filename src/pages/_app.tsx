@@ -1,17 +1,18 @@
-import "_service/api";
-import "_styles/index.less";
+import '_service/api';
+import '_styles/index.less';
 
-import { HttpHeader, isFn } from "@mars/common";
-import { setDefaultOptions } from "date-fns";
-import { id as IdnLocale } from "date-fns/locale";
-import type { AppContext, AppProps } from "next/app";
-import Head from "next/head";
-import { getSession, SessionProvider, signIn, useSession } from "next-auth/react";
-import { Session } from "next-auth";
-import { Page } from "_comp/page";
-import { useEffect } from "react";
+import { HttpHeader, isFn } from '@mars/common';
+import { setDefaultOptions } from 'date-fns';
+import { id as IdnLocale } from 'date-fns/locale';
+import type { AppContext, AppProps } from 'next/app';
+import Head from 'next/head';
+import { getSession, SessionProvider, signIn, useSession } from 'next-auth/react';
+import { Session } from 'next-auth';
+import { Page } from '_comp/page';
+import { useEffect } from 'react';
+import { ContextMenu } from '_comp/context-menu';
 
-const dash = ["/auth/login", "/auth/register", "/_error", "/dashboard"];
+const dash = ['/auth/login', '/auth/register', '/_error', '/dashboard'];
 const isExcluded = (t: string) => dash.findIndex((e) => t.startsWith(e)) !== -1;
 
 setDefaultOptions({
@@ -20,15 +21,12 @@ setDefaultOptions({
 
 function MarsRocApp({ Component, pageProps, router }: AppProps) {
     const session = useSession();
-    const isUnauthenticated = session.status !== "authenticated";
+    const isUnauthenticated = session.status !== 'authenticated';
 
     console.log(session);
 
     useEffect(() => {
-        if (!isUnauthenticated) {
-            api.defaults.headers.common[HttpHeader.AUTHORIZATION] =
-                "Bearer " + session.data.user.bearer;
-        }
+        if (!isUnauthenticated) localStorage.setItem('token', session.data.bearer);
 
         if (isUnauthenticated && !isExcluded(router.pathname)) {
             signIn();
@@ -42,9 +40,11 @@ function MarsRocApp({ Component, pageProps, router }: AppProps) {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             </Head>
 
-            <Page>
-                <Component {...pageProps} />
-            </Page>
+            <ContextMenu>
+                <Page>
+                    <Component {...pageProps} />
+                </Page>
+            </ContextMenu>
         </>
     );
 }
@@ -65,6 +65,7 @@ namespace MarsRocWrapper {
         const session = await getSession(ctx);
 
         if (isFn(Component.getInitialProps)) {
+            (ctx as MarsPageContext).token = session?.bearer;
             Object.assign(pageProps, await Component.getInitialProps(ctx));
         }
 

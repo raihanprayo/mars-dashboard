@@ -1,8 +1,7 @@
-import type { NextPage } from "next";
-import TableTicket from "_comp/table/table.ticket";
+import { OrderTable } from '_comp/table/table.ticket';
 
-const Home: NextPage = () => {
-    return <TableTicket />
-};
+function IndexPage() {
+    return <OrderTable url='/order/dashboard' />
+}
 
-export default Home;
+export default IndexPage;

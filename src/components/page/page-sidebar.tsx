@@ -1,9 +1,14 @@
-import { BarChartOutlined, AuditOutlined, TeamOutlined } from "@ant-design/icons";
-import { Layout, Menu } from "antd";
-import Link from "next/link";
-import { useContext, useState } from "react";
-import { PageContext } from "_ctx/page.ctx";
-import { MarsIcon } from "../logo/mars-roc";
+import {
+    BarChartOutlined,
+    AuditOutlined,
+    TeamOutlined,
+    ScheduleOutlined,
+} from '@ant-design/icons';
+import { Layout, Menu } from 'antd';
+import Link from 'next/link';
+import { useContext, useState } from 'react';
+import { PageContext } from '_ctx/page.ctx';
+import { MarsIcon } from '../logo/mars-roc';
 
 function PageSidebar() {
     const ctx = useContext(PageContext);
@@ -28,22 +33,28 @@ function PageSidebar() {
                 mode="inline"
                 items={[
                     {
-                        key: "tickets",
-                        title: "Tickets",
+                        key: 'tickets',
+                        title: 'Tickets',
                         label: <Link href="/">Tickets</Link>,
                         icon: <AuditOutlined />,
                         onClick(info) {},
                     },
                     {
-                        key: "reports",
-                        title: "Reports",
-                        label: "Reports",
+                        key: 'inbox',
+                        title: 'Inbox',
+                        label: <Link href='/inbox'>Inbox</Link>,
+                        icon: <ScheduleOutlined />,
+                    },
+                    {
+                        key: 'reports',
+                        title: 'Reports',
+                        label: 'Reports',
                         icon: <BarChartOutlined />,
                     },
                     {
-                        key: "leaderboards",
-                        title: "Leaderboards",
-                        label: "Leaderboards",
+                        key: 'leaderboards',
+                        title: 'Leaderboards',
+                        label: 'Leaderboards',
                         icon: <TeamOutlined />,
                     },
                 ]}

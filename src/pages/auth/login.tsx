@@ -43,6 +43,7 @@ function LoginPage(props: { session: Session; providers: NextAuthProviders }) {
                     className="login-forms-content"
                     layout="vertical"
                     onFinish={async (v) => {
+                        console.log(v);
                         setLoading(true);
                         try {
                             await login(router, { callbackUrl, ...v });

@@ -84,6 +84,7 @@ function PageHeader() {
                         icon={<LoginLogoutIcon />}
                         onClick={() => {
                             signOut({ callbackUrl: '/auth/login', redirect: true });
+                            localStorage.removeItem('token');
                         }}
                     >
                         {isLogin ? 'Logout' : 'Login'}
