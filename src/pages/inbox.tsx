@@ -1,4 +1,4 @@
-import { OrderTable } from '_comp/table/table.ticket';
+import { OrderTable } from '_comp/table/order.table';
 
 const url = '/order/inbox';
 function InboxPage() {

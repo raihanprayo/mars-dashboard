@@ -169,8 +169,10 @@ export function OrderTable(props: OrderTableProps) {
                 }}
                 onRow={(rec, index) => ({
                     onContextMenu(event) {
-                        event.preventDefault();
-                        menu.popup(event.clientX, event.clientY, rec);
+                        if (props.customContextMenu) {
+                            event.preventDefault();
+                            menu.popup(event.clientX, event.clientY, rec);
+                        }
                     },
                 })}
             />
@@ -182,4 +184,5 @@ export interface OrderTableProps {
     url: string;
     withActionCol?: boolean;
     withLinkToDetail?: boolean;
+    customContextMenu?: boolean;
 }
