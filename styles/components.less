@@ -26,9 +26,100 @@
             &.disabled {
                 color: fade(black, 35%);
             }
-            
+
             &:hover:not(:disabled) {
                 background-color: fade(black, 10%);
+            }
+        }
+    }
+}
+
+.ant-drawer {
+    &.thumb {
+        // width: 100%
+
+        .ant-drawer-mask {
+            background-color: #000000e4;
+        }
+
+        .ant-drawer-content {
+            background: none;
+
+            .ant-drawer-header {
+                border: none;
+                .ant-drawer-header-title > .ant-drawer-close {
+                    color: #fff;
+                }
+            }
+
+            .ant-drawer-body {
+                padding: 0;
+            }
+        }
+
+        .ant-drawer-body > .slide-container {
+            height: 100%;
+            overflow: hidden;
+
+            .slide {
+                height: inherit;
+                position: relative;
+                width: 80%;
+                overflow: hidden;
+                float: left;
+
+                .ant-carousel {
+                    height: 100%;
+
+                    .slick-slide {
+                        height: 100%;
+                    }
+
+                    .thumbnail {
+                        height: 100%;
+                        display: flex;
+                        align-items: center;
+                        vertical-align: middle;
+                        justify-content: center;
+                    }
+                }
+            }
+
+            .slide-list {
+                width: 20%;
+                height: 100%;
+                float: left;
+                overflow-y: auto;
+                background-color: rgba(255, 255, 255, 0.237);
+
+                > .slide-item {
+                    display: flex;
+                    margin-bottom: 10px;
+                    padding: 0 5px;
+
+                    align-items: center;
+                    vertical-align: middle;
+                    justify-content: center;
+
+                    &.active .slide-item-thumb {
+                        border-color: @primary-color;
+                        border-radius: 5px;
+                    }
+
+                    &:first-child {
+                        margin-top: 5px;
+                    }
+
+                    .slide-item-thumb {
+                        width: 80%;
+                        border: transparent solid 3px;
+                        transition: border-color 100ms;
+                        > img {
+                            width: 100%;
+                            border-radius: 5px;
+                        }
+                    }
+                }
             }
         }
     }

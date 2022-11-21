@@ -4,10 +4,12 @@ import getConfig from 'next/config';
 import { isBrowser, isServer } from '_utils/constants';
 import { HttpHeader, isArr, isDefined } from '@mars/common';
 
-const config = getConfig()[isBrowser ? 'publicRuntimeConfig' : 'serverRuntimeConfig'];
+const config = (getConfig() as NextAppConfiguration)[
+    isBrowser ? 'publicRuntimeConfig' : 'serverRuntimeConfig'
+];
 
 const api = axios.create({
-    baseURL: config.service.url + (config.service.prefix ?? ''),
+    baseURL: config.service.api_url,
     paramsSerializer(params) {
         // const o = inlineKey(params, { separateArray: false });
         // const result: string[] = [];

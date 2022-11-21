@@ -1,14 +1,13 @@
-
 module.exports = {
-    browser: {
-    },
+    browser: {},
 
-    server: {
-    },
+    server: {},
 
     general: {
         service: {
-            url: process.env.SERVICE_URL
-        }
-    }
-}
+            url: process.env.SERVICE_URL,
+            api_url: process.env.SERVICE_URL + (process.env.SERVICE_API_PATH || ''),
+            file_url: process.env.SERVICE_URL + (process.env.SERVICE_FILE_PATH || ''),
+        },
+    },
+};

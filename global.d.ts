@@ -13,6 +13,8 @@ declare global {
     interface AppConfiguration extends map {
         service?: map & {
             url: string;
+            api_url: string;
+            file_url: string;
         };
     }
 

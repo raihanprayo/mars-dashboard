@@ -1,4 +1,4 @@
-import { OrderTable } from '_comp/table/order.table';
+import { OrderTable } from '_comp/orders/order-table.view';
 
 const url = '/order/inbox';
 function InboxPage() {

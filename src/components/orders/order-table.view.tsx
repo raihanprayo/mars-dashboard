@@ -7,8 +7,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { useContextMenu } from '_comp/context-menu';
 import { usePageable } from '_hook/pageable.hook';
 import { RefreshBadgeEvent } from '_utils/events';
-import { TableTicketColms } from './table.definitions';
-import { THeader } from './table.header';
+import { TableTicketColms } from '../table/table.definitions';
+import { THeader } from '../table/table.header';
 
 export {};
 

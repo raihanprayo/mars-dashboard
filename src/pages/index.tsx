@@ -1,4 +1,4 @@
-import { OrderTable } from '_comp/table/order.table';
+import { OrderTable } from '_comp/orders/order-table.view';
 
 function IndexPage() {
     return <OrderTable url='/order/dashboard' customContextMenu />

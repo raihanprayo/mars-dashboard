@@ -1,6 +1,22 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
-import { Menu, Input, Button, Row, Col, Typography, Divider } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import {
+    PaperClipOutlined,
+    ReloadOutlined,
+    DeleteOutlined,
+    FilePdfOutlined,
+    FileImageOutlined,
+    FileTextOutlined,
+    FileUnknownOutlined,
+} from '@ant-design/icons';
+import React, {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
+import { Input, Button, Row, Col, Typography, Divider } from 'antd';
 import { useRouter } from 'next/router';
 import { NextPageContext } from 'next';
 import { Render } from '_comp/value-renderer';
@@ -8,14 +24,45 @@ import { HttpHeader, mergeClassName, MimeType } from '@mars/common';
 import getConfig from 'next/config';
 import { OrderSider } from '_comp/orders/order-sider.info';
 import axios from 'axios';
+import ThumbnailDrawer from '_comp/thumbnail.drawer';
 
 const { TextArea } = Input;
+const AcceptableFileExt = ['.jpg', '.jpeg', '.png', '.webp'];
+const IconMimeType = (mime: string) => {
+    switch (mime) {
+        case MimeType.IMAGE_JPG:
+        case MimeType.IMAGE_JPG:
+        case MimeType.IMAGE_WEBP:
+        case MimeType.IMAGE_PNG:
+            return FileImageOutlined;
+        case MimeType.APPLICATION_PDF:
+            return FilePdfOutlined;
+        case MimeType.TEXT_PLAIN:
+            return FileTextOutlined;
+    }
+    return FileUnknownOutlined;
+};
+
 const DetailSpanCtx = createContext<DetailItemProps['spans']>({});
+
 export default function DetailOrderPage(props: DetailOrderProps) {
     const route = useRouter();
     const config: NextAppConfiguration = getConfig();
     const [worklog, setWorklog] = useState('');
 
+    const [uploads, setUploads] = useState<File[]>([]);
+    const [uploadEl, setUploadEl] = useState<HTMLInputElement>();
+
+    const [resolved, setResolved] = useState(false);
+    const unsaved = useMemo(() => {
+        if (worklog) return true;
+        if (uploads.length) return true;
+        return false;
+    }, [uploads, worklog]);
+
+    const [drawerAssignment, setDrawerAssignment] = useState<DTO.OrderAssignment>();
+
+    console.log(uploads);
     const order = props.data;
     if (props.error) {
         const { status, message, code } = props.error;
@@ -40,67 +87,8 @@ export default function DetailOrderPage(props: DetailOrderProps) {
         );
     }
 
-    const request = (
-        <Menu
-            items={[
-                {
-                    label: (
-                        <div>
-                            Order ID : XXXXXXXXX <br />
-                            Agent : Agent ybs <br />
-                            Actual Solution : abcdefgh <br />
-                            Worklog :abcdefgh
-                        </div>
-                    ),
-                    key: '0',
-                },
-            ]}
-        />
-    );
-    const menu = (
-        <Menu
-            mode="inline"
-            items={[
-                {
-                    label: <a href="https://www.antgroup.com">Actual Solution 1</a>,
-                    key: '0',
-                },
-                {
-                    label: <a href="https://www.aliyun.com">Actual Solution 2</a>,
-                    key: '1',
-                },
-                {
-                    label: <a href="https://www.antgroup.com">Actual Solution 3</a>,
-                    key: '2',
-                },
-                {
-                    label: <a href="https://www.aliyun.com">Actual Solution 4</a>,
-                    key: '3',
-                },
-                {
-                    label: <a href="https://www.antgroup.com">Actual Solution 5</a>,
-                    key: '4',
-                },
-                {
-                    label: <a href="https://www.aliyun.com">Actual Solution 6</a>,
-                    key: '5',
-                },
-            ]}
-        />
-    );
-
     const age = Render.calcOrderAge(order.opentime);
     const problem: DTO.Problem = order.problemtype as any;
-
-    const onDetailBtnClick = useCallback(
-        (s: Mars.Status.CLOSED | Mars.Status.DISPATCH | Mars.Status.PENDING) => () => {
-            updateStatus[s](order.id, worklog)
-                .then((res) => window.dispatchEvent(new Event('refresh-badge')))
-                .then(() => window.location.href='/inbox')
-                .catch((err) => {});
-        },
-        [worklog]
-    );
 
     const expandSpan = !!order.gaul || order.assignments.length > 1;
     const detailSpans: Exclude<DetailItemProps['spans'], undefined> = {
@@ -109,8 +97,63 @@ export default function DetailOrderPage(props: DetailOrderProps) {
         value: expandSpan ? 15 : 17,
     };
 
+    const onDetailBtnClick = useCallback(
+        (s: Mars.Status.CLOSED | Mars.Status.DISPATCH | Mars.Status.PENDING) => () => {
+            const form = new FormData();
+
+            form.append('description', worklog);
+            for (const file of uploads) form.append('files', file, file.name);
+
+            console.log('Uploading', [...form]);
+            updateStatus[s](order.id, form)
+                .then(() => window.dispatchEvent(new Event('refresh-badge')))
+                .then(() => setResolved(true))
+                .then(() => route.push('/inbox'))
+                .catch((err) => console.error(err));
+        },
+        [worklog]
+    );
+
+    const onUploadChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => setUploads([...e.target.files]),
+        [uploadEl]
+    );
+
+    const removeFile = (index: number) => {
+        const u = [...uploads];
+        u.splice(index, 1);
+        setUploads(u);
+
+        const dt = new DataTransfer();
+        for (const file of u) dt.items.add(file);
+        uploadEl.files = dt.files;
+    };
+
+    useEffect(() => {
+        const leaveMessage = `You have unsaved changes, are you sure you wish to leave this page?`;
+
+        const handleWindowClose = (e: BeforeUnloadEvent) => {
+            if (!unsaved || resolved) return;
+            e.preventDefault();
+            return (e.returnValue = leaveMessage);
+        };
+        const handleBrowseAway = () => {
+            if (!unsaved || resolved) return;
+            if (window.confirm(leaveMessage)) return;
+            route.events.emit('routeChangeError');
+            throw 'routeChange aborted';
+        };
+
+        addEventListener('beforeunload', handleWindowClose);
+        route.events.on('routeChangeStart', handleBrowseAway);
+        return () => {
+            removeEventListener('beforeunload', handleWindowClose);
+            route.events.off('routeChangeStart', handleBrowseAway);
+        };
+    }, [resolved]);
+
     return (
-        <>
+        <ThumbnailDrawer.Provider>
             <div style={{ display: 'flex' }}>
                 <div className="detail-left">
                     <DetailSpanCtx.Provider value={detailSpans}>
@@ -167,9 +210,8 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                                     ) : (
                                         <img
                                             src={
-                                                config.publicRuntimeConfig.service.url +
-                                                '/file' +
-                                                order.attachment
+                                                config.publicRuntimeConfig.service
+                                                    .file_url + order.attachment
                                             }
                                             alt={order.attachment || 'no image'}
                                             style={{ width: '80%' }}
@@ -193,57 +235,65 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                 </div>
             </div>
             <Divider />
-            <div className="detail-work">
-                <div className="detail-solution">
-                    <Menu
-                        mode="inline"
-                        items={[
-                            {
-                                label: <span>Actual Solution</span>,
-                                type: 'group',
-                                children: [
-                                    {
-                                        label: (
-                                            <a href="https://www.antgroup.com">
-                                                Actual Solution 1
-                                            </a>
-                                        ),
-                                        key: '0',
-                                    },
-                                    {
-                                        label: (
-                                            <a href="https://www.aliyun.com">
-                                                Actual Solution 2
-                                            </a>
-                                        ),
-                                        key: '1',
-                                    },
-                                    {
-                                        label: (
-                                            <a href="https://www.antgroup.com">
-                                                Actual Solution 3
-                                            </a>
-                                        ),
-                                        key: '2',
-                                    },
-                                    {
-                                        label: (
-                                            <a href="https://www.aliyun.com">
-                                                Actual Solution 4
-                                            </a>
-                                        ),
-                                        key: '3',
-                                    },
-                                ],
-                            },
-                        ]}
+            <form
+                className="detail-work"
+                method="post"
+                onSubmit={(e) => e.preventDefault()}
+            >
+                <div
+                    className={mergeClassName('detail-uploads', {
+                        empty: uploads.length < 1,
+                    })}
+                >
+                    <Button
+                        className="upload-btn"
+                        type="primary"
+                        size={uploads.length > 0 ? 'small' : 'middle'}
+                        icon={<PaperClipOutlined />}
+                        children={uploads.length > 0 ? 'Upload' : undefined}
+                        onClick={() => uploadEl.click()}
                     />
+                    <ul className="upload-list">
+                        {uploads.map((e, i) => {
+                            const Icon = IconMimeType(e.type);
+                            return (
+                                <li
+                                    key={'upload-item:' + i}
+                                    className="upload-item"
+                                    title={e.name}
+                                >
+                                    <div className="upload-detail filename">
+                                        <span className="icon" children={<Icon />} />
+                                        <span className="title">{e.name}</span>
+                                    </div>
+                                    <div className="upload-detail action">
+                                        <Button
+                                            type="text"
+                                            icon={<DeleteOutlined />}
+                                            title="remove upload"
+                                            onClick={() => removeFile(i)}
+                                        />
+                                    </div>
+                                </li>
+                            );
+                        })}
+                    </ul>
                 </div>
                 <div className="detail-worklog">
+                    <input
+                        ref={setUploadEl}
+                        name="files"
+                        type="file"
+                        multiple
+                        accept={AcceptableFileExt.join(', ')}
+                        style={{ display: 'none' }}
+                        onChange={onUploadChange}
+                    />
                     <TextArea
+                        name="description"
+                        placeholder="worklog..."
                         value={worklog}
                         onChange={(e) => setWorklog(e.target.value)}
-                        placeholder="Ini Field untuk agent mengisi history (worklog) pengerjaan"
                     />
                 </div>
                 <div className="detail-button">
@@ -253,14 +303,16 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                             block
                             onClick={onDetailBtnClick(Mars.Status.CLOSED)}
                             className="d-btn close"
+                            // htmlType="submit"
                         >
-                            <b>Close Ticket</b>
+                            <b>Close</b>
                         </Button>
                         <Button
                             type="primary"
                             block
                             onClick={onDetailBtnClick(Mars.Status.DISPATCH)}
                             className="d-btn dispatch"
+                            // htmlType="submit"
                         >
                             <b>Dispatch</b>
                         </Button>
@@ -269,13 +321,14 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                             block
                             onClick={onDetailBtnClick(Mars.Status.PENDING)}
                             className="d-btn pending"
+                            // htmlType="submit"
                         >
                             <b>Pending</b>
                         </Button>
                     </div>
                 </div>
-            </div>
-        </>
+            </form>
+        </ThumbnailDrawer.Provider>
     );
 }
 
@@ -307,11 +360,6 @@ DetailOrderPage.getInitialProps = async (ctx: NextPageContext) => {
     return { error: 'Internal Server Error' };
 };
 
-function getOrder(no: string, params: map = {}) {
-    const url = `/order/by-noorder/${no}`;
-    return api.get<DTO.Orders>(url, { params });
-}
-
 function DetailItem(props: DetailItemProps) {
     const ctx = useContext(DetailSpanCtx);
     const {
@@ -332,6 +380,11 @@ function DetailItem(props: DetailItemProps) {
     );
 }
 
+function getOrder(no: string, params: map = {}) {
+    const url = `/order/by-noorder/${no}`;
+    return api.get<DTO.Orders>(url, { params });
+}
+
 interface DetailOrderProps {
     data: DTO.Orders;
     error?: any;
@@ -348,22 +401,22 @@ interface DetailItemProps {
 
 const updateStatusUrl = '/order/update/status/dashboard';
 const updateStatus = {
-    update(id: string, status: Mars.Status, description: string) {
+    update(id: string, status: Mars.Status, formData: FormData) {
         return api
-            .put<DTO.OrderAssignment>(`${updateStatusUrl}/${id}/${status}`, description, {
+            .put<DTO.OrderAssignment>(`${updateStatusUrl}/${id}/${status}`, formData, {
                 headers: {
-                    [HttpHeader.CONTENT_TYPE]: MimeType.TEXT_PLAIN,
+                    [HttpHeader.CONTENT_TYPE]: MimeType.MUTLIPART_FORM_DATA,
                 },
             })
             .then((res) => res.data);
     },
-    [Mars.Status.CLOSED](id: string, description: string) {
-        return updateStatus.update(id, Mars.Status.CLOSED, description);
+    [Mars.Status.CLOSED](id: string, formData: FormData) {
+        return updateStatus.update(id, Mars.Status.CLOSED, formData);
     },
-    [Mars.Status.DISPATCH](id: string, description: string) {
-        return updateStatus.update(id, Mars.Status.DISPATCH, description);
+    [Mars.Status.DISPATCH](id: string, formData: FormData) {
+        return updateStatus.update(id, Mars.Status.DISPATCH, formData);
     },
-    [Mars.Status.PENDING](id: string, description: string) {
-        return updateStatus.update(id, Mars.Status.PENDING, description);
+    [Mars.Status.PENDING](id: string, formData: FormData) {
+        return updateStatus.update(id, Mars.Status.PENDING, formData);
     },
 } as const;
