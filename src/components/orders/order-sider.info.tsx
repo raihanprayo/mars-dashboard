@@ -99,7 +99,7 @@ function TabHistoryContent(props: { assignments: DTO.OrderAssignment[] }) {
             size="large"
             itemLayout="horizontal"
             dataSource={props.assignments.filter(
-                (e) => e.status !== Mars.AssignStatus.PROGRESS
+                (e) => e.status !== Mars.AgentStatus.PROGRESS
             )}
             renderItem={TabHistoryContent.Item}
         />
