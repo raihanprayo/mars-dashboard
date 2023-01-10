@@ -16,15 +16,18 @@ import React, {
     useRef,
     useState,
 } from 'react';
-import { Input, Button, Row, Col, Typography, Divider } from 'antd';
+import { Input, Button, Row, Col, Typography, Divider, message } from 'antd';
 import { useRouter } from 'next/router';
 import { NextPageContext } from 'next';
 import { Render } from '_comp/value-renderer';
 import { HttpHeader, mergeClassName, MimeType } from '@mars/common';
 import getConfig from 'next/config';
-import { OrderSider } from '_comp/orders/order-sider.info';
-import axios from 'axios';
+import { OrderSider } from '_comp/orders/ticket-sider.info';
+import axios, { AxiosResponse } from 'axios';
 import ThumbnailDrawer from '_comp/thumbnail.drawer';
+import { RefreshBadgeEvent } from '_utils/events';
+import notif from '_service/notif';
+import { getSession } from 'next-auth/react';
 
 const { TextArea } = Input;
 const AcceptableFileExt = ['.jpg', '.jpeg', '.png', '.webp'];
@@ -60,9 +63,8 @@ export default function DetailOrderPage(props: DetailOrderProps) {
         return false;
     }, [uploads, worklog]);
 
-    const [drawerAssignment, setDrawerAssignment] = useState<DTO.OrderAssignment>();
+    const [drawerAssignment, setDrawerAssignment] = useState<DTO.TicketAgent>();
 
-    console.log(uploads);
     const order = props.data;
     if (props.error) {
         const { status, message, code } = props.error;
@@ -87,10 +89,10 @@ export default function DetailOrderPage(props: DetailOrderProps) {
         );
     }
 
-    const age = Render.calcOrderAge(order.opentime);
-    const problem: DTO.Problem = order.problemtype as any;
+    const age = Render.calcOrderAge(order.createdAt);
+    const problem: DTO.Issue = order.issue as any;
 
-    const expandSpan = !!order.gaul || order.assignments.length > 1;
+    const expandSpan = !!order.gaul || order.agentCount > 1;
     const detailSpans: Exclude<DetailItemProps['spans'], undefined> = {
         title: expandSpan ? 8 : 6,
         separator: 1,
@@ -101,15 +103,23 @@ export default function DetailOrderPage(props: DetailOrderProps) {
         (s: Mars.Status.CLOSED | Mars.Status.DISPATCH | Mars.Status.PENDING) => () => {
             const form = new FormData();
 
+            
             form.append('description', worklog);
             for (const file of uploads) form.append('files', file, file.name);
 
             console.log('Uploading', [...form]);
             updateStatus[s](order.id, form)
-                .then(() => window.dispatchEvent(new Event('refresh-badge')))
+                .then(() => RefreshBadgeEvent.emit())
                 .then(() => setResolved(true))
-                .then(() => route.push('/inbox'))
-                .catch((err) => console.error(err));
+                .then(() => (window.location.href = '/inbox'))
+                .catch((err) => {
+                    console.error(err);
+                    if (axios.isAxiosError(err)) {
+                        notif.axiosError(err, 5);
+                    } else {
+                        message.error(err.message ?? err);
+                    }
+                });
         },
         [worklog]
     );
@@ -159,12 +169,12 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                     <DetailSpanCtx.Provider value={detailSpans}>
                         <Row>
                             <Col span={12}>
-                                <DetailItem label="Order No">{order.orderno}</DetailItem>
+                                <DetailItem label="Order No">{order.no}</DetailItem>
                                 <DetailItem label="No Service">
                                     {order.serviceno}
                                 </DetailItem>
                                 <DetailItem label="Tiket NOSSA">
-                                    {order.incidentno}
+                                    {order.incidentNo}
                                 </DetailItem>
                                 <DetailItem label="Status">
                                     {Render.orderStatus(order.status, true)}
@@ -177,9 +187,7 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                                 <DetailItem label="Umur Action">0m</DetailItem>
                                 <DetailItem label="Kendala">{problem.name}</DetailItem>
                                 <DetailItem label="Keterangan">
-                                    <Typography.Text>
-                                        {order.notes || '-'}
-                                    </Typography.Text>
+                                    <Typography.Text>{order.note || '-'}</Typography.Text>
                                 </DetailItem>
                             </Col>
                         </Row>
@@ -187,10 +195,10 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                         <Row>
                             <Col span={12}>
                                 <DetailItem label="Pengirim">
-                                    {order.sendername}
+                                    {order.senderName}
                                 </DetailItem>
                                 <DetailItem label="Service Type">
-                                    {Render.product(order.producttype)}
+                                    {Render.product(order.product)}
                                 </DetailItem>
                                 <DetailItem label="Request Type">
                                     {problem.name}
@@ -202,18 +210,18 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                                 <DetailItem
                                     label="Evidence"
                                     spans={{
-                                        value: order.attachment ? 24 : undefined,
+                                        value: order.assets ? 24 : undefined,
                                     }}
                                 >
-                                    {!order.attachment ? (
+                                    {!order.assets ? (
                                         '-'
                                     ) : (
                                         <img
                                             src={
                                                 config.publicRuntimeConfig.service
-                                                    .file_url + order.attachment
+                                                    .file_url + order.assets?.[0]
                                             }
-                                            alt={order.attachment || 'no image'}
+                                            alt={order.assets?.[0] || 'no image'}
                                             style={{ width: '80%' }}
                                         />
                                     )}
@@ -225,8 +233,8 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                 <div
                     className={mergeClassName('detail-right', {
                         get hide() {
-                            if (order.gaul > 0) return false;
-                            else if (order.assignments.length > 1) return false;
+                            if (order.gaul) return false;
+                            else if (order.assets?.length > 1) return false;
                             return true;
                         },
                     })}
@@ -334,12 +342,17 @@ export default function DetailOrderPage(props: DetailOrderProps) {
 
 DetailOrderPage.getInitialProps = async (ctx: NextPageContext) => {
     const orderno = ctx.query.orderno;
+    const session = await getSession({ req: ctx.req });
+
+    console.log('Detail Session', session);
     try {
-        const res = await getOrder(orderno as string);
+        const res = await getOrder(session.bearer, orderno as string);
         console.log('* Order Detail', res.data);
         return { data: res.data };
     } catch (error) {
         if (axios.isAxiosError(error)) {
+            console.error(error.response?.data);
+
             switch (error.code) {
                 case NodeJS.SystemErr.ECONNREFUSED: {
                     return {
@@ -380,13 +393,18 @@ function DetailItem(props: DetailItemProps) {
     );
 }
 
-function getOrder(no: string, params: map = {}) {
-    const url = `/order/by-noorder/${no}`;
-    return api.get<DTO.Orders>(url, { params });
+function getOrder(token: string, no: string, params: map = {}) {
+    const url = `/ticket/${no}`;
+    return api.get<DTO.Ticket>(url, {
+        headers: {
+            [HttpHeader.AUTHORIZATION]: `Bearer ${token}`,
+        },
+        params,
+    });
 }
 
 interface DetailOrderProps {
-    data: DTO.Orders;
+    data: DTO.Ticket;
     error?: any;
 }
 interface DetailItemProps {
@@ -399,11 +417,17 @@ interface DetailItemProps {
     children: React.ReactNode;
 }
 
-const updateStatusUrl = '/order/update/status/dashboard';
+const updateStatusUrl = '/ticket/wip';
 const updateStatus = {
     update(id: string, status: Mars.Status, formData: FormData) {
+        const stat =
+            status === Mars.Status.CLOSED
+                ? 'close'
+                : status === Mars.Status.DISPATCH
+                ? 'dispatch'
+                : 'pending';
         return api
-            .put<DTO.OrderAssignment>(`${updateStatusUrl}/${id}/${status}`, formData, {
+            .post<DTO.TicketAgent>(`${updateStatusUrl}/${stat}/${id}`, formData, {
                 headers: {
                     [HttpHeader.CONTENT_TYPE]: MimeType.MUTLIPART_FORM_DATA,
                 },

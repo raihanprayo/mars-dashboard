@@ -15,100 +15,99 @@ const route = NextAuth({
             name: 'mars-roc',
             type: 'credentials',
             credentials: {
-                nik: {
-                    type: 'text',
-                    label: 'NIK',
-                },
-                password: {
-                    label: 'Password',
-                    type: 'password',
-                },
+                token: { type: 'input', label: 'Token' },
             },
             async authorize(credential, req) {
-                try {
-                    const resLogin = await api.post<TokenRes>(
-                        '/user/auth/login',
-                        { nik: credential.nik, password: credential.password },
-                        {
-                            headers: {
-                                [HttpHeader.CONTENT_TYPE]: MimeType.APPLICATION_JSON,
-                            },
-                        }
-                    );
-
-                    console.log(resLogin);
-                    const { data: token } = resLogin;
-
-                    const { data: user } = await api.get<DTO.Users>('/user/info', {
+                const bearer = credential.token;
+                const res: AxiosResponse<any> = await api
+                    .get('/auth/whoami', {
                         headers: {
-                            [HttpHeader.AUTHORIZATION]: 'Bearer ' + token.access_token,
+                            [HttpHeader.AUTHORIZATION]: 'Bearer ' + bearer,
                         },
-                    });
+                    })
+                    .catch((err) => err);
 
-                    console.log('* User Login', {
-                        token,
-                        user,
-                    });
-                    return {
-                        id: user.id,
-                        tg: Number(user.tgId),
-                        nik: user.nik,
-                        name: user.name,
-                        group: user.group,
-                        image: user.image,
-                        token: token.access_token,
-                    };
-                } catch (ex) {
-                    if (axios.isAxiosError(ex)) {
-                        console.error(ex.toJSON());
-                        console.error(ex.stack);
-
-                        if (ex.response) {
-                            const { status, data }: AxiosResponse = ex.response;
-
-                            if (status === 401 || status === 400) {
-                                const { code, message } = data;
-                                return Promise.reject(new Error(`${code}: ${message}`));
-                            }
-
-                            return Promise.reject(
-                                new Error(`${data?.code || 'AUTH-99'}: ${data?.message}`)
-                            );
-                        } else return Promise.reject(ex.message);
-                    } else console.error(ex);
-                }
-                return null;
+                if (axios.isAxiosError(res)) return null;
+                const data = res.data;
+                return {
+                    id: data.id,
+                    nik: data.nik,
+                    name: data.name,
+                    tg: data.telegramId,
+                    email: data.email,
+                    username: data.username,
+                    roles: data.roles || [],
+                    group: {
+                        id: data.group.id,
+                        name: data.group.name,
+                        roles: data.group.roles || [],
+                    },
+                    token: bearer,
+                };
             },
         }),
     ],
-
+    jwt: {
+        maxAge: 60 * 60 * 24,
+    },
+    session: {
+        maxAge: 60 * 60 * 24 * 2,
+        strategy: 'jwt',
+    },
+    
     callbacks: {
         jwt({ token, user }) {
-            if (token && user) {
-                token.sub = user.id;
+            if (user) {
+                // console.log('User Login', user);
+
                 token.tg = user.tg;
+                token.name = user.name;
+                token.email = user.email;
+                token.sub = user.id;
+                token.scr = user.token;
+
+                token.roles = user.roles;
                 token.group = user.group;
-                token.bearer = user.token;
             }
             return token;
         },
-
         session({ session, token, user }) {
             if (user) {
-                session.user.id = user.id;
-                session.user.tg = Number(user.tg);
-                session.user.name = user.name;
-                session.user.bearer = user.token;
+                // console.log('Mapping Session From user', user);
+
+                const roles: MarsRole[] = [];
+                for (const role of user.roles) roles.push({ name: role, isGroup: false });
+
+                for (const role of user.group.roles)
+                    roles.push({ name: role, isGroup: true });
+
+                session.roles = roles;
+                session.user = {
+                    name: user.name,
+                    nik: user.nik,
+                    email: user.email,
+                    group: user.group.id,
+                };
+            } else if (token) {
+                // console.log('Mapping Session From Token', token);
+
+                const roles: MarsRole[] = [];
+                for (const role of token.roles)
+                    roles.push({ name: role, isGroup: false });
+
+                for (const role of token.group.roles)
+                    roles.push({ name: role, isGroup: true });
+
+                session.roles = roles;
+                session.user = {
+                    name: token.name,
+                    email: token.email,
+                    nik: token.nik,
+                    group: token.group.id,
+                };
             }
 
-            if (token) {
-                session.user.id = token.sub;
-                session.user.tg = Number(token.tg);
-                session.user.name = token.name;
-                session.user.bearer = token.bearer;
-            }
-
-            session.bearer = token.bearer;
+            session.bearer = token.scr;
             return session;
         },
     },
@@ -125,22 +124,35 @@ declare module 'next-auth/core/types' {
     export interface Session extends map<any>, DefaultSession {
         user: MarsUserSession;
         bearer: string;
+        roles: MarsRole[];
     }
 
-    export interface User extends Record<string, unknown>, DefaultUser {
+    export interface User extends map, DefaultUser {
         [x: string]: any;
+        tg: number;
+        nik: string;
+        name: string;
+        email: string;
+        username: string;
+        roles: string[];
+        group: { id: string; name: string; roles: string[] };
+        token: string;
     }
 }
 declare module 'next-auth/jwt/types' {
-    export interface JWT extends Record<string, unknown>, DefaultJWT {
+    export interface JWT extends map, DefaultJWT {
         [x: string]: any;
     }
 }
 
 interface MarsUserSession {
-    tg: number;
+    nik: string;
     name: string;
+    email: string;
     group: string;
-    bearer: string;
-    id: string;
+}
+
+interface MarsRole {
+    name: string;
+    isGroup: boolean;
 }

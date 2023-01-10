@@ -18,9 +18,8 @@ import DateCounter from '../date-counter';
 function PageHeader() {
     const ctx = useContext(PageContext);
     const session = useSession();
-    const router = useRouter();
     const [badge, setBadge] = useState(0);
-    const isLogin = session.status === 'authenticated';
+    const isLoggedin = session.status === 'authenticated';
 
     const FoldIcon = ctx.collapsed ? MenuUnfoldOutlined : MenuFoldOutlined;
     const IconStyle: CSSProperties = {
@@ -30,23 +29,26 @@ function PageHeader() {
 
     const onFoldClick = () => ctx.setCollapse(!ctx.collapsed);
     const getBadgeCounter = useCallback(() => {
-        api.get('/order/inbox', {
+        api.get('/ticket/inbox', {
             params: { counter: true },
         })
-            .then((res) => setBadge(res.data))
+            .then((res) => {
+                console.log('Badge Response', res.data);
+                setBadge(Number(res.data?.total ?? res.data ?? 0))
+            })
             .catch((err) => console.error('Fetch Badge Counter: ' + err.message));
     }, []);
 
     const LoginLogoutIcon =
         session.status === 'authenticated' ? LogoutOutlined : LoginOutlined;
 
-    useEffect(() => isLogin && getBadgeCounter(), [isLogin]);
+    useEffect(() => isLoggedin && getBadgeCounter(), [isLoggedin]);
     useEffect(() => {
         window.addEventListener('refresh-badge', getBadgeCounter);
         return () => {
             window.removeEventListener('refresh-badge', getBadgeCounter);
         };
-    }, []);
+    }, [badge]);
 
     return (
         <Layout.Header style={{ padding: 0, height: 56 }}>
@@ -85,9 +87,10 @@ function PageHeader() {
                         onClick={() => {
                             signOut({ callbackUrl: '/auth/login', redirect: true });
                             localStorage.removeItem('token');
+                            localStorage.removeItem('MARS-JWT');
                         }}
                     >
-                        {isLogin ? 'Logout' : 'Login'}
+                        {isLoggedin ? 'Logout' : 'Login'}
                     </Menu.Item>
                 </Menu.SubMenu>
             </Menu>

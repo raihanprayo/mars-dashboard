@@ -1,12 +1,13 @@
+import { isArr } from "@mars/common";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-export function usePageable(defaultSort?: string): PageableHook {
+export function usePageable(defaultSort?: PageableSort): PageableHook {
     const router = useRouter();
     const [pageable, setPageable] = useState<Pageable>({
         page: Number(router.query.page || 0),
         size: Number(router.query.size || 50),
-        sort: {}
+        sort: isArr(defaultSort) ? defaultSort : Pageable.Sorts.UNSORT
     });
 
     return {

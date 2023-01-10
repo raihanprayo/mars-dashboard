@@ -1,7 +1,23 @@
-import { OrderTable } from '_comp/orders/order-table.view';
+import { TicketTable } from '_comp/orders/ticket.table.view';
 
 function IndexPage() {
-    return <OrderTable url='/order/dashboard' customContextMenu />
+    return (
+        <TicketTable
+            url="/ticket"
+            customContextMenu
+            defaultFilter={{
+                status: {
+                    in: [
+                        Mars.Status.OPEN,
+                        Mars.Status.CONFIRMATION,
+                        Mars.Status.DISPATCH,
+                        Mars.Status.REOPEN,
+                        Mars.Status.PENDING,
+                    ] as any,
+                },
+            }}
+        />
+    );
 }
 
 export default IndexPage;

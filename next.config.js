@@ -6,6 +6,7 @@ const { format, formatWithOptions } = require('util');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  transpilePackages:['@mars/common'],
   reactStrictMode: true,
   swcMinify: true,
 
@@ -27,4 +28,4 @@ const nextConfig = {
 const TranspilesTarget = NextTranspileModule([
   "@mars/common"
 ]);
-module.exports = TranspilesTarget(NextWithLess(nextConfig));
+module.exports = NextWithLess(nextConfig)

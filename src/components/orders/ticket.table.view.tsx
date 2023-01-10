@@ -2,6 +2,7 @@ import { ReloadOutlined } from '@ant-design/icons';
 import { HttpHeader } from '@mars/common';
 import { message, Table } from 'antd';
 import axios, { AxiosError, AxiosResponse } from 'axios';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { useState, useCallback, useEffect } from 'react';
 import { useContextMenu } from '_comp/context-menu';
@@ -12,37 +13,59 @@ import { THeader } from '../table/table.header';
 
 export {};
 
-export function OrderTable(props: OrderTableProps) {
+const defaultStatusFilter = [
+    Mars.Status.OPEN,
+    Mars.Status.CONFIRMATION,
+    Mars.Status.DISPATCH,
+    Mars.Status.REOPEN,
+    Mars.Status.PENDING,
+];
+export function TicketTable(props: OrderTableProps) {
     const route = useRouter();
-    const menu = useContextMenu<DTO.Orders>();
-    const { pageable, setPageable } = usePageable();
+    const session = useSession();
+
+    const menu = useContextMenu<DTO.Ticket>();
+    const { pageable, setPageable } = usePageable(['createdAt', Pageable.Sorts.DESC]);
     const [loading, setLoading] = useState(false);
+    const [filter, setFilter] = useState<ICriteria<DTO.Ticket>>(
+        props.defaultFilter || {}
+    );
     const [total, setTotal] = useState(0);
-    const [filter, setFilter] = useState<ICriteria<DTO.Orders>>({});
-    const [orders, setOrders] = useState<DTO.OrdersDashboard>({
-        counts: {} as any,
-        orders: [],
-    });
+    const [products, setProducts] = useState<Record<Mars.Product, number>>({} as any);
+    const [tickets, setOrders] = useState<DTO.Ticket[]>([]);
 
     // const [coordinate, setCoordinate] = useState<ContextMenuProps>({ x: 0, y: 0 });
 
-    const getOrders = useCallback((filters: ICriteria<DTO.Orders> = {}) => {
+    const getTickets = useCallback((filters: ICriteria<DTO.Ticket> = {}) => {
         setLoading(true);
+
         return api
-            .get(props.url, {
-                params: { page: pageable.page, size: pageable.size, ...filters },
+            .get<DTO.Ticket[]>(props.url, {
+                params: {
+                    ...pageable,
+                    ...filters,
+                },
             })
             .then((res) => {
-                const total =
-                    res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.orders.length;
+                console.log('Get Ticket Header', res.headers);
+                const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
 
-                console.log(res.data);
-                if (res.data && Array.isArray(res.data.orders)) {
+                const countHeader = (res.headers['tc-count'] || '').split(', ');
+
+                console.log('Response Data', res.data);
+                if (res.data && Array.isArray(res.data)) {
                     setTotal(Number(total));
                     setOrders(res.data);
                 }
+
+                setProducts({
+                    [Mars.Product.INTERNET]: Number(countHeader[0] || 0),
+                    [Mars.Product.IPTV]: Number(countHeader[1] || 0),
+                    [Mars.Product.VOICE]: Number(countHeader[2] || 0),
+                });
             })
-            .catch((err: AxiosError) => {
+            .catch((err) => {
+                console.error(err);
                 if (axios.isAxiosError(err)) {
                     console.error(err);
                     message.error(`${err.code}: ${err.message}`);
@@ -56,15 +79,16 @@ export function OrderTable(props: OrderTableProps) {
 
     const takeOrder = (id: string) => {
         return api
-            .post('/order/take/' + id)
+            .post('/ticket/wip/take/' + id)
             .then((res) => {
                 message.success('Berhasil Mengambil order/tiket');
-                getOrders(filter);
+                getTickets(filter);
             })
             .catch((err) => {
+                console.error(err);
                 if (axios.isAxiosError(err)) {
                     const res = err.response as AxiosResponse<any, any>;
-                    if (res) {
+                    if (res && res.data) {
                         message.error(res.data.message || res.data);
                     } else message.error(err?.message);
                 } else {
@@ -80,7 +104,7 @@ export function OrderTable(props: OrderTableProps) {
         menu.items = [
             {
                 title: 'Ambil',
-                onClick(event, item, data: DTO.Orders) {
+                onClick(event, item, data: DTO.Ticket) {
                     takeOrder(data.id);
                 },
                 disable(data) {
@@ -96,16 +120,18 @@ export function OrderTable(props: OrderTableProps) {
     }, []);
 
     useEffect(() => {
-        getOrders(filter);
-    }, [pageable.page, pageable.size, filter]);
+        if (session.status === 'authenticated') {
+            getTickets(filter);
+        }
+    }, [pageable.page, pageable.size, filter, session.status]);
 
     const buttonSelect = (c: boolean) => (c ? 'primary' : 'dashed');
     const actions = [
         <THeader.Action
-            type={buttonSelect(!filter.producttype)}
+            type={buttonSelect(!filter.product)}
             onClick={(e) => {
                 const f = { ...filter };
-                delete f.producttype;
+                delete f.product;
                 delete route.query.producttype;
                 setFilter(f);
 
@@ -121,12 +147,12 @@ export function OrderTable(props: OrderTableProps) {
             <THeader.Action
                 key={'category-' + i}
                 style={{ marginLeft: 10 }}
-                badge={orders.counts[e]}
+                badge={products[e] ?? 0}
                 title={`Filter Product: ${e}`}
-                type={buttonSelect(filter.producttype && filter.producttype.eq === e)}
+                type={buttonSelect(filter.product && filter.product.eq === e)}
                 onClick={() => {
                     const f = { ...filter };
-                    f.producttype = { eq: e };
+                    f.product = { eq: e };
                     setFilter(f);
                 }}
             >
@@ -138,7 +164,7 @@ export function OrderTable(props: OrderTableProps) {
             type="primary"
             title="Refresh"
             icon={<ReloadOutlined />}
-            onClick={(e) => getOrders(filter)}
+            onClick={(e) => getTickets(filter)}
         />,
     ];
 
@@ -148,7 +174,7 @@ export function OrderTable(props: OrderTableProps) {
             <Table
                 size="small"
                 loading={loading}
-                dataSource={orders.orders}
+                dataSource={tickets}
                 columns={TableTicketColms({
                     takeOrder,
                     withActionCol: props.withActionCol,
@@ -182,7 +208,11 @@ export function OrderTable(props: OrderTableProps) {
 
 export interface OrderTableProps {
     url: string;
+    inbox?: boolean;
+
     withActionCol?: boolean;
     withLinkToDetail?: boolean;
     customContextMenu?: boolean;
+
+    defaultFilter?: ICriteria<DTO.Ticket>;
 }

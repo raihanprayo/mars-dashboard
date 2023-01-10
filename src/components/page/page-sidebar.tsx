@@ -100,12 +100,12 @@ function PageSidebar() {
                         >
                             {route.path && (
                                 <Link href={route.path}>
-                                    <a>
+                                    <i>
                                         <span className="mr-auto">
                                             {capitalize(route.name)}
                                         </span>
                                         {route.badge && badgeTemplate(route.badge)}
-                                    </a>
+                                    </i>
                                 </Link>
                             )}
 
@@ -142,13 +142,13 @@ function PageSidebar() {
                                     }
                                 >
                                     <Link href={`${subitem.path ? subitem.path : ''}`}>
-                                        <a>
+                                        <i>
                                             <span className="mr-auto">
                                                 {capitalize(subitem.name)}
                                             </span>
                                             {subitem.badge &&
                                                 badgeTemplate(subitem.badge)}
-                                        </a>
+                                        </i>
                                     </Link>
                                 </Menu.Item>
                             ))}

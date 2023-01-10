@@ -1,7 +1,7 @@
-import { OrderTable } from '_comp/orders/order-table.view';
+import { TicketTable } from '_comp/orders/ticket.table.view';
 
 const url = '/order/inbox';
 function InboxPage() {
-    return <OrderTable url={url} withActionCol={false} withLinkToDetail />;
+    return <TicketTable url='/ticket/inbox' inbox withActionCol={false} withLinkToDetail />;
 }
 export default InboxPage;

@@ -11,6 +11,7 @@ import { Session } from 'next-auth';
 import { Page } from '_comp/page';
 import { useEffect } from 'react';
 import { ContextMenu } from '_comp/context-menu';
+import { isBrowser } from '_utils/constants';
 
 const dash = ['/auth/login', '/auth/register', '/_error', '/dashboard'];
 const isExcluded = (t: string) => dash.findIndex((e) => t.startsWith(e)) !== -1;
@@ -23,11 +24,10 @@ function MarsRocApp({ Component, pageProps, router }: AppProps) {
     const session = useSession();
     const isUnauthenticated = session.status !== 'authenticated';
 
-    console.log(session);
+    if (!isUnauthenticated && isBrowser)
+        localStorage.setItem('token', session.data.bearer);
 
     useEffect(() => {
-        if (!isUnauthenticated) localStorage.setItem('token', session.data.bearer);
-
         if (isUnauthenticated && !isExcluded(router.pathname)) {
             signIn();
         }

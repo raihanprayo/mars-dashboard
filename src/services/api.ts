@@ -9,14 +9,14 @@ const config = (getConfig() as NextAppConfiguration)[
 ];
 
 const api = axios.create({
-    baseURL: config.service.api_url,
+    baseURL: config.service.url,
     paramsSerializer(params) {
         // const o = inlineKey(params, { separateArray: false });
         // const result: string[] = [];
 
         const result = qs.stringify(params, {
             allowDots: true,
-            arrayFormat: 'repeat',
+            arrayFormat: 'comma',
             charset: 'utf-8',
             skipNulls: false,
             addQueryPrefix: true,
@@ -24,23 +24,22 @@ const api = axios.create({
             indices: true,
         });
 
-        console.log(result);
         return result.slice(1);
     },
 
     transformRequest: [
         (data, header) => {
-            if (isBrowser)
-                header[HttpHeader.AUTHORIZATION] =
-                    'Bearer ' + localStorage.getItem('token');
+            if (isBrowser) {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    header[HttpHeader.AUTHORIZATION] =
+                        'Bearer ' + localStorage.getItem('token');
+                }
+            }
             return data;
         },
         ...transformRequests(),
     ],
-    // validateStatus(status) {
-    //     if (isServer) return true;
-    //     return axios.defaults.validateStatus(status);
-    // },
 });
 
 globalThis.api = api;

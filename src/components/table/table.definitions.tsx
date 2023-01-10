@@ -13,7 +13,7 @@ export interface TableTickerColumnOptions {
 
 export const TableTicketColms = (props: TableTickerColumnOptions) => {
     const { takeOrder, withActionCol = true } = props;
-    const cols: ColumnType<DTO.Orders>[] = [
+    const cols: ColumnType<DTO.Ticket>[] = [
         {
             title: 'No',
             width: 40,
@@ -23,15 +23,11 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
         {
             title: 'Order ID',
             align: 'center',
-            dataIndex: 'orderno',
+            dataIndex: 'no',
             filterSearch: true,
             render(value, record, index) {
                 if (!props.withLinkToDetail) return value;
-                return (
-                    <Link href={'/order/detail/' + value}>
-                        <a>{value}</a>
-                    </Link>
-                );
+                return <Link href={'/order/detail/' + value}>{value}</Link>;
             },
         },
         {
@@ -62,20 +58,20 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
         {
             title: 'Umur Tiket',
             align: 'center',
-            dataIndex: 'opentime',
+            dataIndex: 'createdAt',
             render(value, record, index) {
-                return <Difference orderno={record.orderno} opentime={value} />;
+                return <Difference orderno={record.no} opentime={value} />;
             },
         },
         {
             title: 'Service No',
             align: 'center',
-            dataIndex: 'serviceno',
+            dataIndex: 'serviceNo',
         },
         {
             title: 'Product',
             align: 'center',
-            dataIndex: 'producttype',
+            dataIndex: 'product',
             render: Render.product,
         },
 
@@ -96,7 +92,7 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
         {
             title: 'Tgl Masuk',
             align: 'center',
-            dataIndex: 'opentime',
+            dataIndex: 'createdAt',
             render(value, record, index) {
                 const d = new Date(value);
                 const f = format(d, 'EEEE, dd MMM yyyy - HH:mm:ss aa');

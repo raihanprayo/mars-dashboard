@@ -14,16 +14,17 @@ export function OrderSider(props: OrderSiderProps) {
 
     if (session.status !== 'authenticated') return <></>;
 
-    const [others, setOthers] = useState<DTO.Orders[]>([]);
-    const assigments = order.assignments;
-    const disableGaul = order.gaul === 0;
-    const disableAssigment = assigments.length < 1;
+    const [others, setOthers] = useState<DTO.Ticket[]>([]);
+    const [agents, setAgents] = useState<DTO.TicketAgent[]>([]);
+    const disableGaul = !order.gaul;
+    const disableAssigment = agents.length < 1;
 
     useEffect(() => {
         if (!disableGaul) {
             getOrderByServiNo(order.id, order.serviceno)
                 .then((res) => setOthers(res.data))
-                .catch((err: AxiosError) => {});
+                .catch((err: AxiosError) => {})
+                .finally(() => console.log(others));
         }
     }, []);
 
@@ -37,7 +38,7 @@ export function OrderSider(props: OrderSiderProps) {
     const historyTab = doRender(
         !disableAssigment,
         <Tabs.TabPane tab={<b>History</b>} key="tab:history-2">
-            <TabHistoryContent assignments={order.assignments} />
+            <TabHistoryContent assignments={agents} />
         </Tabs.TabPane>
     );
 
@@ -50,10 +51,10 @@ export function OrderSider(props: OrderSiderProps) {
 }
 
 export interface OrderSiderProps {
-    order: DTO.Orders;
+    order: DTO.Ticket;
 }
 
-function TabContentGaul(props: { orders: DTO.Orders[] }) {
+function TabContentGaul(props: { orders: DTO.Ticket[] }) {
     return (
         <List
             className="order-sider"
@@ -64,20 +65,20 @@ function TabContentGaul(props: { orders: DTO.Orders[] }) {
         />
     );
 }
-TabContentGaul.Item = function (order: DTO.Orders, index: number) {
+TabContentGaul.Item = function (order: DTO.Ticket, index: number) {
     return (
         <List.Item className="order-sider-item">
             <List.Item.Meta
                 title={
-                    <Link href={`/order/detail/${order.orderno}`}>
-                        <a className="item title">Order {order.orderno}</a>
+                    <Link className='item title' href={`/order/detail/${order.no}`}>
+                        Order {order.no}
                     </Link>
                 }
                 description={
                     <>
                         <div className="item update-at">
                             open{' '}
-                            {format(new Date(order.opentime), 'dd/MM/yyyy, HH:mm:ss')}
+                            {format(new Date(order.createdAt), 'dd/MM/yyyy, HH:mm:ss')}
                         </div>
                         <div className="item status right">
                             <span>{order.status}</span>
@@ -92,7 +93,7 @@ TabContentGaul.Item = function (order: DTO.Orders, index: number) {
     );
 };
 
-function TabHistoryContent(props: { assignments: DTO.OrderAssignment[] }) {
+function TabHistoryContent(props: { assignments: DTO.TicketAgent[] }) {
     return (
         <List
             className="order-sider history"
@@ -105,7 +106,7 @@ function TabHistoryContent(props: { assignments: DTO.OrderAssignment[] }) {
         />
     );
 }
-TabHistoryContent.Item = function (agent: DTO.OrderAssignment, index: number) {
+TabHistoryContent.Item = function (agent: DTO.TicketAgent, index: number) {
     const thumbCtx = ThumbnailDrawer.useDrawer();
     return (
         <List.Item
@@ -146,13 +147,11 @@ TabHistoryContent.Item = function (agent: DTO.OrderAssignment, index: number) {
 };
 
 function getOrderByServiNo(currentOrderId: string, serviceno: string) {
-    return api.get<DTO.Orders[]>('/order', {
+    return api.get<DTO.Ticket[]>('/api/ticket', {
         params: {
             id: { negate: true, eq: currentOrderId },
-            serviceno: { eq: serviceno },
-            sort: {
-                opentime: Pageable.Sorts.DESC,
-            },
+            serviceNo: { eq: serviceno },
+            sort: ["createdAt", Pageable.Sorts.DESC],
         },
     });
 }

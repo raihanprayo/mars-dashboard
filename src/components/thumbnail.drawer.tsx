@@ -141,7 +141,7 @@ export interface ThumbnailDrawerProps {
 }
 
 export interface OrderDrawerProps {
-    assignment: DTO.OrderAssignment;
+    assignment: DTO.TicketAgent;
     open?: boolean;
 }
 

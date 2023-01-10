@@ -1,6 +1,6 @@
-import { isNum, mergeClassName } from '@mars/common';
+import { isNum, mergeClassName, randomString } from '@mars/common';
 import { Badge, Button, ButtonProps } from 'antd';
-import { Children, DetailedHTMLProps, isValidElement, LiHTMLAttributes } from 'react';
+import { Children, DetailedHTMLProps, isValidElement, LiHTMLAttributes, useMemo } from 'react';
 
 export function THeader(props: HasChild) {
     const leftComponents: React.ReactNode[] = [];
@@ -29,10 +29,11 @@ export namespace THeader {
 
     export function Action(props: ActionItemProps) {
         const { pos, className, badge, ...rest } = props;
+        const id = useMemo(() => randomString(), [])
 
         const cls = mergeClassName('workspace-act', className);
         return (
-            <li className={cls}>
+            <li key={id} className={cls}>
                 {!isNum(badge) && <Button {...rest} />}
                 {isNum(badge) && (
                     <Badge count={badge}>
