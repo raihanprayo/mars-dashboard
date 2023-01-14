@@ -1,4 +1,5 @@
-import NextAuth, { DefaultUser } from 'next-auth';
+import NextAuth, { type DefaultSession, type DefaultUser } from 'next-auth';
+import type { DefaultJWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 import { HttpHeader, MimeType, upperCase } from '@mars/common';
@@ -118,12 +119,37 @@ const route = NextAuth({
 
 export default route;
 
-interface TokenRes extends map {
-    access_token: string;
-    expired_at: number;
-}
+// interface TokenRes extends map {
+//     access_token: string;
+//     expired_at: number;
+// }
 
-declare module 'next-auth/core/types' {
+// declare module 'next-auth/core/types' {
+//     export interface Session extends map<any>, DefaultSession {
+//         user: MarsUserSession;
+//         bearer: string;
+//         roles: MarsRole[];
+//     }
+
+//     export interface User extends map, DefaultUser {
+//         [x: string]: any;
+//         tg: number;
+//         nik: string;
+//         name: string;
+//         email: string;
+//         username: string;
+//         roles: string[];
+//         group: { id: string; name: string; roles: string[] };
+//         token: string;
+//     }
+// }
+// declare module 'next-auth/jwt/types' {
+// export interface JWT extends map, DefaultJWT {
+//     [x: string]: any;
+// }
+// }
+
+declare module 'next-auth' {
     export interface Session extends map<any>, DefaultSession {
         user: MarsUserSession;
         bearer: string;
@@ -142,7 +168,8 @@ declare module 'next-auth/core/types' {
         token: string;
     }
 }
-declare module 'next-auth/jwt/types' {
+
+declare module 'next-auth/jwt' {
     export interface JWT extends map, DefaultJWT {
         [x: string]: any;
     }

@@ -25,7 +25,7 @@ export function TicketTable(props: OrderTableProps) {
     const route = useRouter();
     const session = useSession();
 
-    const {loading, setLoading} = useContext(PageContext);
+    const { setLoading } = useContext(PageContext);
     const menu = useContextMenu<DTO.Ticket>();
 
     const { pageable, setPageable } = usePageable(['createdAt', Pageable.Sorts.DESC]);

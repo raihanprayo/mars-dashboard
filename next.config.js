@@ -1,8 +1,8 @@
 const NextWithLess = require('next-with-less');
-const NextTranspileModule = require('next-transpile-modules');
+// const NextTranspileModule = require('next-transpile-modules');
 const config = require('./configs/app.config');
 const merged = require('merge-deep');
-const { format, formatWithOptions } = require('util');
+// const { format, formatWithOptions } = require('util');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -25,7 +25,7 @@ const nextConfig = {
   }
 }
 
-const TranspilesTarget = NextTranspileModule([
-  "@mars/common"
-]);
+// const TranspilesTarget = NextTranspileModule([
+//   "@mars/common"
+// ]);
 module.exports = NextWithLess(nextConfig)

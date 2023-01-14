@@ -1,9 +1,10 @@
-import { upperCase } from '@mars/common';
+import { isDefined, upperCase } from '@mars/common';
 import { Badge, Layout, Menu } from 'antd';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useState } from 'react';
-import PageRoutes from '_comp/routes';
+import PageRoutes, { filterRoute, PageRoute } from '_comp/routes';
 import { PageContext } from '_ctx/page.ctx';
 import { MarsIcon } from '../logo/mars-roc';
 
@@ -22,12 +23,17 @@ function PageSidebar() {
     const { pathname } = useRouter();
     const { collapsed } = useContext<PageContext>(PageContext);
 
+    const session = useSession();
     const [openKeys, setOpenKeys] = useState([]);
-    const [appRoutes] = useState(PageRoutes);
+    const [appRoutes, setAppRoutes] = useState(PageRoutes);
 
-    const badgeTemplate = (badge: { value: number }) => (
-        <Badge count={badge.value} className="left" />
-    );
+    useEffect(() => {
+        const filtered = PageRoutes.map((route) =>
+            filterRoute(route, session.data)
+        ).filter(isDefined);
+
+        setAppRoutes(filtered);
+    }, []);
 
     useEffect(() => {
         appRoutes.forEach((route, index) => {
@@ -47,90 +53,6 @@ function PageSidebar() {
         }
     };
 
-    const menu = (
-        <Menu
-            theme="light"
-            className="border-0 scroll-y sidebar"
-            style={{ flex: 1, height: '100%' }}
-            mode="inline"
-            openKeys={openKeys}
-            onOpenChange={onOpenChange}
-            multiple={false}
-        >
-            {appRoutes.map((route, index) => {
-                const hasChildren = route.children ? true : false;
-                if (!hasChildren)
-                    return (
-                        <Menu.Item
-                            key={getKey(route.name, index)}
-                            className={
-                                pathname === route.path ? 'ant-menu-item-selected' : ''
-                            }
-                            onClick={() => {
-                                setOpenKeys([getKey(route.name, index)]);
-                            }}
-                            icon={route.icon}
-                        >
-                            {route.path && (
-                                <Link href={route.path}>
-                                    <i>
-                                        <span className="mr-auto">
-                                            {capitalize(route.name)}
-                                        </span>
-                                        {route.badge && badgeTemplate(route.badge)}
-                                    </i>
-                                </Link>
-                            )}
-
-                            {!route.path && (
-                                <>
-                                    <span className="mr-auto">
-                                        {capitalize(route.name)}
-                                    </span>
-                                    {route.badge && badgeTemplate(route.badge)}
-                                </>
-                            )}
-                        </Menu.Item>
-                    );
-
-                if (hasChildren)
-                    return (
-                        <SubMenu
-                            key={getKey(route.name, index)}
-                            icon={route.icon}
-                            title={
-                                <>
-                                    <span>{capitalize(route.name)}</span>
-                                    {route.badge && badgeTemplate(route.badge)}
-                                </>
-                            }
-                        >
-                            {route.children.map((subitem, index) => (
-                                <Menu.Item
-                                    key={getKey(subitem.name, index)}
-                                    className={
-                                        pathname === subitem.path
-                                            ? 'ant-menu-item-selected'
-                                            : ''
-                                    }
-                                >
-                                    <Link href={`${subitem.path ? subitem.path : ''}`}>
-                                        <i>
-                                            <span className="mr-auto">
-                                                {capitalize(subitem.name)}
-                                            </span>
-                                            {subitem.badge &&
-                                                badgeTemplate(subitem.badge)}
-                                        </i>
-                                    </Link>
-                                </Menu.Item>
-                            ))}
-                        </SubMenu>
-                    );
-            })}
-        </Menu>
-    );
-
     return (
         <Layout.Sider width={220} theme="light" collapsed={collapsed}>
             <div className="logo">
@@ -138,9 +60,54 @@ function PageSidebar() {
                     <MarsIcon />
                 </Link>
             </div>
-            {menu}
+            {
+                <Menu
+                    theme="light"
+                    className="border-0 scroll-y sidebar"
+                    style={{ flex: 1, height: '100%' }}
+                    mode="inline"
+                    openKeys={openKeys}
+                    onOpenChange={onOpenChange}
+                    multiple={false}
+                >
+                    {appRoutes.map((route, i) => renderMenu(pathname, route, i))}
+                </Menu>
+            }
         </Layout.Sider>
     );
 }
 
 export default PageSidebar;
+
+function renderMenu(selectedPath: string, route: PageRoute, index?: number) {
+    if (route.type === 'page') {
+        return (
+            <Menu.Item
+                key={getKey(route.name, index)}
+                icon={route.icon}
+                className={selectedPath === route.path ? 'ant-menu-item-selected' : ''}
+            >
+                <Link href={`${route.path ? route.path : '#'}`}>
+                    <span>
+                        <span className="mr-auto">{capitalize(route.name)}</span>
+                        {route.badge && badgeTemplate(route.badge)}
+                    </span>
+                </Link>
+            </Menu.Item>
+        );
+    }
+
+    return (
+        <SubMenu
+            key={getKey(route.name, index)}
+            icon={route.icon}
+            title={<span>{capitalize(route.name)}</span>}
+        >
+            {route.children.map((subroute, i) => renderMenu(selectedPath, subroute, i))}
+        </SubMenu>
+    );
+}
+
+function badgeTemplate(badge: { value: number }) {
+    return <Badge count={badge.value} className="left" />;
+}

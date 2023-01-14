@@ -1,26 +1,36 @@
 import { AuditOutlined } from '@ant-design/icons';
-import { Card, Col, Row, Statistic, Typography } from 'antd';
-import { Pie } from '@ant-design/plots';
+import { Col, Row, Statistic, Typography } from 'antd';
 import axios from 'axios';
 import { format, startOfToday } from 'date-fns';
-import { NextComponentType, NextPageContext } from 'next';
+import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
 import { createContext, ReactNode, useContext } from 'react';
+import dynamic from 'next/dynamic';
+import { isBrowser, isServer } from '_utils/constants';
+
+const Pie = dynamic(
+    async () => {
+        const mod = await import('@ant-design/plots');
+        return mod.Pie;
+    },
+    { ssr: false }
+);
 
 const ReportContext = createContext<ReportContext>(null);
 interface ReportContext {
     cardSpan: number;
 }
-let a: NextComponentType;
+
 function ReportsPage(props: ReportsPageProps) {
     const hGutter = 10;
+
+    if (isServer) return <></>;
 
     if (props.error) {
         return <>Fail to fetch data</>;
     }
 
     const data = props.data;
-    console.log(props.data);
     return (
         <ReportContext.Provider value={{ cardSpan: 3 }}>
             <div className="mars-report">
@@ -68,28 +78,34 @@ function CardInfo(props: CardInfoProps) {
 function ChartView(props: { data: PieChartData[]; title?: string; span?: number }) {
     const data = props.data;
     return (
-        <Col className='mars-chart-view' span={props.span ?? 7}>
+        <Col className="mars-chart-view" span={props.span ?? 7}>
             <Typography.Title level={5}>
                 <span>{props.title}</span>
             </Typography.Title>
-            <Pie
-                className="mars-chart"
-                angleField="value"
-                colorField="type"
-                data={data}
-                radius={0.9}
-                label={{
-                    type: 'inner',
-                    offset: '-30%',
-                    // content: ({ percent }) => `${(percent * 100).toFixed(0)}%`,
-                    // content: ({ percent }) => `${percent}`,
-                    style: {
-                        fontSize: 14,
-                        textAlign: 'center',
-                    },
-                }}
-                interactions={[{ type: 'pie-legend-active' }, { type: 'element-active' }]}
-            />
+
+            {isBrowser && (
+                <Pie
+                    className="mars-chart"
+                    angleField="value"
+                    colorField="type"
+                    data={data}
+                    radius={0.9}
+                    label={{
+                        type: 'inner',
+                        offset: '-30%',
+                        // content: ({ percent }) => `${(percent * 100).toFixed(0)}%`,
+                        // content: ({ percent }) => `${percent}`,
+                        style: {
+                            fontSize: 14,
+                            textAlign: 'center',
+                        },
+                    }}
+                    interactions={[
+                        { type: 'pie-legend-active' },
+                        { type: 'element-active' },
+                    ]}
+                />
+            )}
         </Col>
     );
 }

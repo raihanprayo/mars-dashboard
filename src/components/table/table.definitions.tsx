@@ -45,16 +45,6 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
                     </>
                 );
             },
-            filterMode: 'tree',
-            filters: Object.keys(Mars.Status)
-                .filter((e) => e !== Mars.Status.PROGRESS)
-                .concat('GAUL')
-                .map((e) => {
-                    return {
-                        text: e,
-                        value: e,
-                    };
-                }),
         },
         {
             title: 'Umur Tiket',
@@ -80,10 +70,6 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
             title: 'Witel',
             align: 'center',
             dataIndex: 'witel',
-            filters: Object.keys(Mars.Witel).map((e) => ({
-                text: e,
-                value: e,
-            })),
         },
         {
             title: 'STO',
@@ -107,13 +93,16 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
             title: 'Action',
             align: 'center',
             render(v, rec, index) {
-                const disabled = [Mars.Status.CONFIRMATION, Mars.Status.CLOSED].includes(
-                    rec.status
-                );
+                const disabled = [
+                    Mars.Status.CONFIRMATION,
+                    Mars.Status.CLOSED,
+                    Mars.Status.PENDING,
+                ].includes(rec.status);
+
                 return (
                     <Button
                         type="primary"
-                        onClick={() => props.takeOrder(rec.id)}
+                        onClick={() => takeOrder(rec.id)}
                         disabled={disabled}
                     >
                         Ambil
