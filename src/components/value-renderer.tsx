@@ -25,7 +25,7 @@ export namespace Render {
         [Mars.Witel.JAKBAR]: 'purple',
         [Mars.Witel.JAKPUS]: 'green',
         [Mars.Witel.JAKSEL]: 'lemon',
-        [Mars.Witel.JAKTIM]: 'cyan',
+        [Mars.Witel.JAKTIM]: 'geekblue',
         [Mars.Witel.JAKUT]: 'lime',
         [Mars.Witel.TANGERANG]: 'volcano',
     };

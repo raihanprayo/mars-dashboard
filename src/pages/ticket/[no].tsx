@@ -10,6 +10,7 @@ import {
     Descriptions,
     Divider,
     Form,
+    Image,
     Input,
     Radio,
     Tabs,
@@ -24,10 +25,12 @@ import { NextPageContext } from 'next';
 import { getSession, useSession } from 'next-auth/react';
 import { Render } from '_comp/value-renderer';
 import Card from 'antd/lib/card/Card';
-import { useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import type { RcFile, UploadFile } from 'antd/lib/upload';
 import { RefreshBadgeEvent } from '_utils/events';
 import { useRouter } from 'next/router';
+import { PageContext } from '_ctx/page.ctx';
+import getConfig from 'next/config';
 
 const AcceptableFileExt = ['.jpg', '.jpeg', '.png', '.webp'];
 
@@ -35,13 +38,14 @@ function TicketDetail(props: TicketDetailProps) {
     const ticket = props.data;
     const route = useRouter();
     const session = useSession();
-    const [submission] = Form.useForm();
 
+    const pageCtx = useContext(PageContext);
+    const [submission] = Form.useForm();
     const [resolved, setResolved] = useState(false);
     const [files, setFiles] = useState<UploadFile[]>([]);
+
     const description = Form.useWatch('description', submission);
     const status = Form.useWatch('status', submission);
-
     const unsaved = useMemo(() => {
         if (description) return true;
         if (files.length) return true;
@@ -49,9 +53,6 @@ function TicketDetail(props: TicketDetailProps) {
     }, [files, description]);
 
     const onSubmit = async () => {
-        // console.log(files);
-        // console.log('Description:', description);
-        // console.log('Status:', updateTo);
         try {
             await submission.validateFields();
         } catch (err) {
@@ -70,6 +71,8 @@ function TicketDetail(props: TicketDetailProps) {
                 : 'pending';
 
         const url = `/ticket/wip/${statusLink}/${ticket.id}`;
+
+        pageCtx.setLoading(true);
         api.postForm(url, form)
             .then(() => RefreshBadgeEvent.emit())
             .then(() => setResolved(true))
@@ -126,23 +129,17 @@ function TicketDetail(props: TicketDetailProps) {
         },
         {
             key: 'dt-gaul',
-            label: 'Gaul Related',
+            label: 'Gaul Relation',
             disabled: !ticket.gaul,
         },
     ];
+
+    const disableSubmit = !ticket.wip;
+
+    console.log(props.relation);
     return (
         <div className="tc-detail-container">
             <div className="tc-detail-content">
-                {/* <Typography.Title level={3}>Tiket {ticket.no}</Typography.Title>
-                <Divider /> */}
-                {/* <Form>
-                    <Form.Item colon label="Service">
-                        <Input defaultValue={ticket.serviceNo} disabled />
-                    </Form.Item>
-                    <Form.Item colon label="Tiket NOSSA">
-                        <Input defaultValue={ticket.incidentNo} disabled />
-                    </Form.Item>
-                </Form> */}
                 <Descriptions
                     bordered
                     size="small"
@@ -184,10 +181,11 @@ function TicketDetail(props: TicketDetailProps) {
                     <Descriptions.Item label="Note" span={5}>
                         {ticket.note ?? <i>*Empty*</i>}
                     </Descriptions.Item>
-                    <Descriptions.Item label="Evidence" span={5}>
-                        {ticket.assets ? null : <i>*Empty*</i>}
+                    <Descriptions.Item label="Attachments" span={5}>
+                        <SharedImage assets={ticket.assets} />
                     </Descriptions.Item>
                 </Descriptions>
+                <Divider />
                 <Tabs type="line" items={tabItems} />
             </div>
             <div className="tc-detail-info">
@@ -201,6 +199,7 @@ function TicketDetail(props: TicketDetailProps) {
                             title="Submit work log"
                             icon={<CheckOutlined />}
                             onClick={onSubmit}
+                            disabled={disableSubmit}
                         >
                             Submit
                         </Button>,
@@ -309,17 +308,36 @@ export async function getServerSideProps(ctx: NextPageContext) {
                 `/ticket/agents/${ticketNo}`,
                 config
             );
+            const relatedRes = await api.get<DTO.Ticket[]>(
+                `/ticket/${ticketNo}/relation`,
+                config
+            );
 
             return {
                 props: {
                     data,
                     logs: logRes.data,
                     agents: agentRes.data,
+                    relation: relatedRes.data.filter((e) => e.id !== data.id),
                     error: false,
                 },
             };
         }
     }
+}
+
+function SharedImage(props: SharedImageProps) {
+    const { assets } = props;
+    if (!assets) return <i>*Empty</i>;
+
+    return (
+        <>
+            {assets.map((path) => {
+                const src = '/api/shared' + path;
+                return <Image key={path} alt={path} width={200} src={src} />;
+            })}
+        </>
+    );
 }
 
 export default TicketDetail;
@@ -328,5 +346,10 @@ interface TicketDetailProps {
     data: DTO.Ticket;
     logs: DTO.TicketLog[];
     agents: DTO.TicketAgent[];
+    relation: DTO.Ticket[];
     error: boolean;
+}
+
+interface SharedImageProps {
+    assets?: string[];
 }

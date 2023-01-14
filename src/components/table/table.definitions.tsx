@@ -21,7 +21,7 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
             render: (v, r, i) => <b>{`${i + 1}`}</b>,
         },
         {
-            title: 'Order ID',
+            title: 'Order No',
             align: 'center',
             dataIndex: 'no',
             filterSearch: true,
@@ -35,16 +35,13 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
             title: 'Status',
             dataIndex: 'status',
             align: 'center',
-            render: (v, r) => {
-                const tag = Render.orderStatus(v, true);
-
-                return (
-                    <>
-                        {tag}
-                        {r.gaul ? <Tag>GAUL</Tag> : null}
-                    </>
-                );
-            },
+            render: (v, r) => Render.orderStatus(v, true),
+        },
+        {
+            title: 'Ga Ul',
+            dataIndex: 'gaul',
+            align: 'center',
+            render: (v) => Render.bool(v),
         },
         {
             title: 'Umur Tiket',
@@ -60,6 +57,11 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
             dataIndex: 'serviceNo',
         },
         {
+            title: 'Tiket NOSSA',
+            align: 'center',
+            dataIndex: 'incidentNo',
+        },
+        {
             title: 'Product',
             align: 'center',
             dataIndex: 'product',
@@ -70,6 +72,7 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
             title: 'Witel',
             align: 'center',
             dataIndex: 'witel',
+            render: Render.witel,
         },
         {
             title: 'STO',

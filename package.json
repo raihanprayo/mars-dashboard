@@ -26,6 +26,9 @@
         "react": "^18.2.0",
         "react-dom": "^18.2.0"
     },
+    "tempDependencies": {
+        "@mars/common": "^2.0.2-0"
+    },
     "devDependencies": {
         "@types/node": "18.7.14",
         "@types/react": "18.0.18",

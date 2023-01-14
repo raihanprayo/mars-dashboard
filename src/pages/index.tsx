@@ -5,6 +5,7 @@ function IndexPage() {
         <TicketTable
             url="/ticket"
             customContextMenu
+            withLinkToDetail
             defaultFilter={{
                 status: {
                     in: [
