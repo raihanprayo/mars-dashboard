@@ -4,8 +4,9 @@ import { message, Table } from 'antd';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useContext } from 'react';
 import { useContextMenu } from '_comp/context-menu';
+import { PageContext } from '_ctx/page.ctx';
 import { usePageable } from '_hook/pageable.hook';
 import { RefreshBadgeEvent } from '_utils/events';
 import { TableTicketColms } from '../table/table.definitions';
@@ -24,9 +25,10 @@ export function TicketTable(props: OrderTableProps) {
     const route = useRouter();
     const session = useSession();
 
+    const {loading, setLoading} = useContext(PageContext);
     const menu = useContextMenu<DTO.Ticket>();
+
     const { pageable, setPageable } = usePageable(['createdAt', Pageable.Sorts.DESC]);
-    const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState<ICriteria<DTO.Ticket>>(
         props.defaultFilter || {}
     );
@@ -173,7 +175,6 @@ export function TicketTable(props: OrderTableProps) {
             <THeader children={actions} />
             <Table
                 size="small"
-                loading={loading}
                 dataSource={tickets}
                 columns={TableTicketColms({
                     takeOrder,

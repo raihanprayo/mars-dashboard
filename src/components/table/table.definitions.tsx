@@ -27,7 +27,8 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
             filterSearch: true,
             render(value, record, index) {
                 if (!props.withLinkToDetail) return value;
-                return <Link href={'/order/detail/' + value}>{value}</Link>;
+                // return <Link href={'/order/detail/' + value}>{value}</Link>;
+                return <Link href={'/ticket/' + value}>{value}</Link>;
             },
         },
         {

@@ -21,7 +21,7 @@ export function OrderSider(props: OrderSiderProps) {
 
     useEffect(() => {
         if (!disableGaul) {
-            getOrderByServiNo(order.id, order.serviceno)
+            getOrderByServiNo(order.id, order.serviceNo)
                 .then((res) => setOthers(res.data))
                 .catch((err: AxiosError) => {})
                 .finally(() => console.log(others));

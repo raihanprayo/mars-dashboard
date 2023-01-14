@@ -11,8 +11,10 @@
         "lint": "next lint"
     },
     "dependencies": {
+        "@ant-design/charts": "^1.4.2",
         "@ant-design/icons": "^4.7.0",
         "@mars/common": "^2.0.2-0",
+        "@types/sockjs-client": "^1.5.1",
         "antd": "^4.23.0",
         "axios": "^0.27.2",
         "date-fns": "^2.29.3",

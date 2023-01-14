@@ -1,6 +1,6 @@
 import { isStr } from '@mars/common';
 import { Tag } from 'antd';
-import { differenceInSeconds } from 'date-fns';
+import { differenceInSeconds, format } from 'date-fns';
 
 export namespace Render {
     const orderStatusTagColor = {
@@ -17,6 +17,17 @@ export namespace Render {
         [Mars.Source.GROUP]: 'red',
         [Mars.Source.PRIVATE]: 'cyan',
         [Mars.Source.OTHER]: 'yellow',
+    };
+    const witelTagColor = {
+        [Mars.Witel.BANTEN]: 'red',
+        [Mars.Witel.BEKASI]: 'cyan',
+        [Mars.Witel.BOGOR]: 'yellow',
+        [Mars.Witel.JAKBAR]: 'purple',
+        [Mars.Witel.JAKPUS]: 'green',
+        [Mars.Witel.JAKSEL]: 'lemon',
+        [Mars.Witel.JAKTIM]: 'cyan',
+        [Mars.Witel.JAKUT]: 'lime',
+        [Mars.Witel.TANGERANG]: 'volcano',
     };
 
     export const DATE_WITH_TIMESTAMP = 'EEEE, dd MMMM yyyy - HH:mm';
@@ -38,12 +49,33 @@ export namespace Render {
         );
     }
 
+    export function witel(v: Mars.Witel) {
+        return (
+            <Tag className="tag-status" color={witelTagColor[v]}>
+                <b>{v}</b>
+            </Tag>
+        );
+    }
+
+    export function bool(v: boolean, trueText = 'Ya', falseText = 'Tidak') {
+        return (
+            <Tag className="tag-status" color={v ? 'red' : 'blue'}>
+                <b>{(v ? trueText : falseText).toUpperCase()}</b>
+            </Tag>
+        );
+    }
+
     export function orderSource(v: Mars.Source) {
         return (
             <Tag className="tag-status" color={orderSourceTagColor[v]}>
                 <b>{Mars.Source[v]}</b>
             </Tag>
         );
+    }
+
+    export function date(v: string | Date, dateFormat: string) {
+        if (isStr(v)) v = new Date(v);
+        return format(v, dateFormat);
     }
 
     export function calcOrderAge(opentime: Date | string, from?: Date) {

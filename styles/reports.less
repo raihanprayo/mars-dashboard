@@ -1,0 +1,36 @@
+.mars-report {
+    position: relative;
+    height: inherit;
+    margin: 0 2rem;
+
+    .mars-stat-card {
+        background-color: @primary-color;
+        color: #fff;
+        padding: 0.25rem;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+
+        border-radius: 5px;
+
+        &:hover {
+            background-color: @primary-7;
+        }
+
+        .ant-statistic-title,
+        .ant-statistic-content {
+            color: inherit;
+        }
+    }
+
+    .mars-chart-container {
+        margin-top: 3rem;
+
+        .mars-chart-view {
+            height: 400px;
+
+            .mars-chart {
+                height: 300px !important;
+            }
+        }
+    }
+}

@@ -2,8 +2,9 @@ import { upperCase } from '@mars/common';
 import { Badge, Layout, Menu } from 'antd';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import PageRoutes from '_comp/routes';
+import { PageContext } from '_ctx/page.ctx';
 import { MarsIcon } from '../logo/mars-roc';
 
 const { SubMenu } = Menu;
@@ -18,39 +19,11 @@ const getKey = (name: string, index: number) => {
 let rootSubMenuKeys: string[] = [];
 
 function PageSidebar() {
-    // const route = useRouter();
-    // console.log('Current path:', route.asPath);
-    // const ctx = useContext(PageContext);
-
-    // const [collapsed, setCollapse] = useState(false);
-    // const [openKeys, setOpenKeys] = useState<string[]>([]);
-    // const [routes, setRoutes] = useState(PageRoutes.map(toMenuItem));
-
-    // return (
-    //     <Layout.Sider
-    //         trigger={null}
-    //         theme="light"
-    //         width={220}
-    //         collapsible
-    //         collapsed={ctx.collapsed}
-    //         collapsedWidth={70}
-    //     >
-    //         <div className="logo">
-    //             <Link href="/">
-    //                 <MarsIcon />
-    //             </Link>
-    //         </div>
-    //         <Menu
-    //             mode="inline"
-    //             selectable
-    //             openKeys={openKeys}
-    //             items={PageRoutes.map(toMenuItem)} />
-    //     </Layout.Sider>
-    // );
+    const { pathname } = useRouter();
+    const { collapsed } = useContext<PageContext>(PageContext);
 
     const [openKeys, setOpenKeys] = useState([]);
     const [appRoutes] = useState(PageRoutes);
-    const { pathname } = useRouter();
 
     const badgeTemplate = (badge: { value: number }) => (
         <Badge count={badge.value} className="left" />
@@ -159,7 +132,7 @@ function PageSidebar() {
     );
 
     return (
-        <Layout.Sider width={220} theme="light" collapsed={false}>
+        <Layout.Sider width={220} theme="light" collapsed={collapsed}>
             <div className="logo">
                 <Link href="/">
                     <MarsIcon />

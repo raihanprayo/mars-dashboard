@@ -1,14 +1,16 @@
 @primary-color: #d7433e;
 
 @secondary-color: #ffa36a;
-@secondary-color-hover: color(~`colorPalette("@{secondary-color}", 5) `);
-@secondary-color-active: color(~`colorPalette("@{secondary-color}", 7) `);
+@secondary-color-hover: color(~`colorPalette('@{secondary-color}', 5) `);
+@secondary-color-active: color(~`colorPalette('@{secondary-color}', 7) `);
 @secondary-color-outline: fade(@secondary-color, @outline-fade);
 
 @third-color: #ffce80;
-@third-color-hover: color(~`colorPalette("@{third-color}", 5) `);
-@third-color-active: color(~`colorPalette("@{third-color}", 7) `);
+@third-color-hover: color(~`colorPalette('@{third-color}', 5) `);
+@third-color-active: color(~`colorPalette('@{third-color}', 7) `);
 @third-color-outline: fade(@third-color, @outline-fade);
+
+// quaternary = ke 4
 
 @body-background: #f0f2f5;
 
@@ -18,3 +20,32 @@
 // @layout-sider-background-light-collapsed: #bbbec0;
 @layout-sider-background-light-collapsed: @third-color;
 
+.bg-primary {
+    background-color: @primary-color;
+}
+.text-primary {
+    color: @primary-color;
+}
+.border-primary {
+    border-color: @primary-color;
+}
+
+.bg-secondary {
+    background-color: @secondary-color;
+}
+.text-secondary {
+    color: @secondary-color;
+}
+.border-secondary {
+    border-color: @secondary-color;
+}
+
+.bg-tertiary-color {
+    background-color: @third-color;
+}
+.text-tertiary-color {
+    color: @third-color;
+}
+.border-tertiary-color {
+    border-color: @third-color;
+}

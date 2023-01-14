@@ -1,9 +1,11 @@
 @import "~antd/dist/antd.less";
 @import "./antd-vars.less";
 @import "./layouts.less";
+@import "./reports.less";
 @import "./tables.less";
 @import "./utilities.less";
 @import "./order/detail.less";
+@import "./ticket/detail.less";
 @import "./components.less";
 
 body {
@@ -20,6 +22,17 @@ body {
     }
 }
 
+.ant-spin-nested-loading {
+    height: 100%;
+    >.ant-spin-container {
+        height: inherit;
+    }
+}
+
 .tag-status {
     letter-spacing: 2px;
+    user-select: none;
+    &:hover {
+        filter: brightness(85%);
+    }
 }

@@ -171,7 +171,7 @@ export default function DetailOrderPage(props: DetailOrderProps) {
                             <Col span={12}>
                                 <DetailItem label="Order No">{order.no}</DetailItem>
                                 <DetailItem label="No Service">
-                                    {order.serviceno}
+                                    {order.serviceNo}
                                 </DetailItem>
                                 <DetailItem label="Tiket NOSSA">
                                     {order.incidentNo}
@@ -344,7 +344,6 @@ DetailOrderPage.getInitialProps = async (ctx: NextPageContext) => {
     const orderno = ctx.query.orderno;
     const session = await getSession({ req: ctx.req });
 
-    console.log('Detail Session', session);
     try {
         const res = await getOrder(session.bearer, orderno as string);
         console.log('* Order Detail', res.data);

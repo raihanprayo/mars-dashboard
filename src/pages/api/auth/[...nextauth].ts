@@ -27,7 +27,11 @@ const route = NextAuth({
                     })
                     .catch((err) => err);
 
-                if (axios.isAxiosError(res)) return null;
+                if (axios.isAxiosError(res)) {
+                    return Promise.reject(
+                        Error((res.response?.data as any)?.detail ?? res.message)
+                    );
+                }
                 const data = res.data;
                 return {
                     id: data.id,
@@ -51,23 +55,22 @@ const route = NextAuth({
         maxAge: 60 * 60 * 24,
     },
     session: {
-        maxAge: 60 * 60 * 24 * 2,
+        maxAge: 60 * 60 * 24,
         strategy: 'jwt',
     },
-    
+
     callbacks: {
         jwt({ token, user }) {
             if (user) {
                 // console.log('User Login', user);
-
                 token.tg = user.tg;
                 token.name = user.name;
                 token.email = user.email;
                 token.sub = user.id;
-                token.scr = user.token;
-
                 token.roles = user.roles;
                 token.group = user.group;
+
+                token.bearer = user.token;
             }
             return token;
         },
@@ -107,7 +110,7 @@ const route = NextAuth({
                 };
             }
 
-            session.bearer = token.scr;
+            session.bearer = token.bearer;
             return session;
         },
     },
@@ -145,14 +148,16 @@ declare module 'next-auth/jwt/types' {
     }
 }
 
-interface MarsUserSession {
-    nik: string;
-    name: string;
-    email: string;
-    group: string;
-}
+declare global {
+    interface MarsUserSession {
+        nik: string;
+        name: string;
+        email: string;
+        group: string;
+    }
 
-interface MarsRole {
-    name: string;
-    isGroup: boolean;
+    interface MarsRole {
+        name: string;
+        isGroup: boolean;
+    }
 }

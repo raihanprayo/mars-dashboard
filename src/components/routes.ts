@@ -19,6 +19,7 @@ const PageRoutes: PageRoute[] = [
     },
     {
         name: 'Reports',
+        path: '/reports',
         icon: createElement(BarChartOutlined),
     },
     {
@@ -28,7 +29,6 @@ const PageRoutes: PageRoute[] = [
 ];
 
 export default PageRoutes;
-
 
 
 export interface PageRoute extends PageRouteChild {
