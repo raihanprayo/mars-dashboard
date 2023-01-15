@@ -3,6 +3,9 @@ import Icon, {
     CheckCircleOutlined,
     CheckOutlined,
     InboxOutlined,
+    InfoCircleOutlined,
+    LoginOutlined,
+    UserOutlined,
 } from '@ant-design/icons';
 import { isDefined } from '@mars/common';
 import {
@@ -12,7 +15,9 @@ import {
     Form,
     Image,
     Input,
+    List,
     Radio,
+    Space,
     Tabs,
     Tag,
     Timeline,
@@ -30,12 +35,14 @@ import type { RcFile, UploadFile } from 'antd/lib/upload';
 import { RefreshBadgeEvent } from '_utils/events';
 import { useRouter } from 'next/router';
 import { PageContext } from '_ctx/page.ctx';
-import getConfig from 'next/config';
+import Link from 'next/link';
+import { format } from 'date-fns';
+import { Session } from 'next-auth';
 
 const AcceptableFileExt = ['.jpg', '.jpeg', '.png', '.webp'];
 
 function TicketDetail(props: TicketDetailProps) {
-    const ticket = props.data;
+    const ticket: DTO.Ticket = props.data || ({} as any);
     const route = useRouter();
     const session = useSession();
 
@@ -51,6 +58,20 @@ function TicketDetail(props: TicketDetailProps) {
         if (files.length) return true;
         return false;
     }, [files, description]);
+
+    const disableSubmit = useMemo(() => {
+        const invalidStat = [
+            Mars.Status.CLOSED,
+            Mars.Status.PENDING,
+            Mars.Status.CONFIRMATION,
+        ].includes(ticket.status);
+
+        const invalidProgress =
+            session.status === 'authenticated' &&
+            ticket.wipBy?.nik !== session.data?.user?.nik;
+
+        return invalidStat || invalidProgress;
+    }, [ticket]);
 
     const onSubmit = async () => {
         try {
@@ -81,6 +102,8 @@ function TicketDetail(props: TicketDetailProps) {
     };
 
     useEffect(() => {
+        if (disableSubmit) return;
+
         const leaveMessage = `You have unsaved changes, are you sure you want to leave this page?`;
 
         const handleWindowClose = (e: BeforeUnloadEvent) => {
@@ -108,6 +131,8 @@ function TicketDetail(props: TicketDetailProps) {
     }
 
     const logs = [...props.logs].reverse();
+    const agents = props.agents.filter((agent) => {});
+
     const tabItems: Tab[] = [
         {
             key: 'dt-timeline',
@@ -131,12 +156,17 @@ function TicketDetail(props: TicketDetailProps) {
             key: 'dt-gaul',
             label: 'Gaul Relation',
             disabled: !ticket.gaul,
+            children: <GaulRelation relations={props.relation} />,
+        },
+        {
+            key: 'dt-agent',
+            label: 'Agents',
+            disabled: props.agents.length === 0,
         },
     ];
 
-    const disableSubmit = !ticket.wip;
-
-    console.log(props.relation);
+    console.log(session?.data);
+    console.log(props.agents);
     return (
         <div className="tc-detail-container">
             <div className="tc-detail-content">
@@ -284,9 +314,11 @@ export async function getServerSideProps(ctx: NextPageContext) {
     if (!isDefined(session)) {
         return {
             props: {
-                data: null,
-                logs: [],
-                error: true,
+                error: {
+                    status: 401,
+                    title: 'Unauthorized',
+                    detail: 'Full authentication required to access this resource',
+                },
             },
         };
     } else {
@@ -294,14 +326,20 @@ export async function getServerSideProps(ctx: NextPageContext) {
         const res = await api.get(`/ticket/${ticketNo}`, config).catch((err) => err);
 
         if (axios.isAxiosError(res)) {
+            const errorData = res.response?.data ?? {
+                status: res.status,
+                title: 'Internal Error',
+                detail: res.message,
+            };
             return {
                 props: {
-                    data: null,
-                    logs: [],
-                    error: true,
+                    error: errorData,
                 },
             };
         } else {
+            const nextRes = ctx.res;
+            nextRes.setHeader('Cache-Control', 'public, s-maxage');
+
             const data: DTO.Ticket = res.data;
             const logRes = await api.get(`/ticket/logs/${ticketNo}`, config);
             const agentRes = await api.get<DTO.TicketAgent[]>(
@@ -319,7 +357,6 @@ export async function getServerSideProps(ctx: NextPageContext) {
                     logs: logRes.data,
                     agents: agentRes.data,
                     relation: relatedRes.data.filter((e) => e.id !== data.id),
-                    error: false,
                 },
             };
         }
@@ -340,6 +377,63 @@ function SharedImage(props: SharedImageProps) {
     );
 }
 
+function GaulRelation(props: { relations: DTO.Ticket[] }) {
+    const { relations = [] } = props;
+
+    return (
+        <List
+            className="tc-detail-relations"
+            itemLayout="vertical"
+            dataSource={relations}
+            renderItem={(item) => {
+                const title = <Link href={`/ticket/${item.no}`}>Tiket - {item.no}</Link>;
+
+                const description = (
+                    <p className="text-primary">
+                        Created:{' '}
+                        {format(new Date(item.createdAt), Render.DATE_WITH_TIMESTAMP)},
+                        By: {item.createdBy}
+                    </p>
+                );
+                const actionStatus = (
+                    <span
+                        key={`action-stat:${item.no}`}
+                        title={`Tiket status: ${item.status}`}
+                    >
+                        {Render.orderStatus(item.status)}
+                    </span>
+                );
+                return (
+                    <List.Item
+                        className="tc-detail-relations-item"
+                        actions={[
+                            <Space title='Tiket Status'>
+                                <InfoCircleOutlined />
+                                {item.status}
+                            </Space>,
+                            <Space title='Tanggal Dibuat'>
+                                <LoginOutlined />
+                                {format(
+                                    new Date(item.createdAt),
+                                    Render.DATE_WITH_TIMESTAMP
+                                )}
+                            </Space>,
+                            <Space title='Dibuat Oleh'>
+                                <UserOutlined />
+                                {item.createdBy}
+                            </Space>,
+                        ]}
+                    >
+                        <List.Item.Meta title={title} description={item.note} />
+                        {/* <div className="tc-detail-relations-content">{item.note}</div> */}
+                    </List.Item>
+                );
+            }}
+        />
+    );
+}
+function AgentList(props: { session: Session; agents: DTO.TicketAgent[] }) {}
+
 export default TicketDetail;
 
 interface TicketDetailProps {
@@ -347,7 +441,7 @@ interface TicketDetailProps {
     logs: DTO.TicketLog[];
     agents: DTO.TicketAgent[];
     relation: DTO.Ticket[];
-    error: boolean;
+    error: any;
 }
 
 interface SharedImageProps {

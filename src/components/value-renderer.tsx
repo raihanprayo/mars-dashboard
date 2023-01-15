@@ -57,9 +57,15 @@ export namespace Render {
         );
     }
 
-    export function bool(v: boolean, trueText = 'Ya', falseText = 'Tidak') {
+    export function bool(v: boolean, opt: BoolRenderOpt = {}) {
+        const { trueText = 'Ya', falseText = 'Tidak', reverseColor = false } = opt;
+        const tColor = 'red';
+        const fColor = 'blue';
+
+        const color = reverseColor ? (v ? fColor : tColor) : v ? tColor : fColor;
+
         return (
-            <Tag className="tag-status" color={v ? 'red' : 'blue'}>
+            <Tag className="tag-status" color={color}>
                 <b>{(v ? trueText : falseText).toUpperCase()}</b>
             </Tag>
         );
@@ -86,4 +92,10 @@ export namespace Render {
         const diffMin = Math.floor((diffSec - diffHour * 3600) / 60);
         return { hour: diffHour, minute: diffMin };
     }
+}
+
+interface BoolRenderOpt {
+    trueText?: string;
+    falseText?: string;
+    reverseColor?: boolean;
 }

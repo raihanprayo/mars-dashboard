@@ -7,13 +7,13 @@
     "scripts": {
         "dev": "next dev -p 9011",
         "build": "next build --no-lint",
-        "start": "next start",
+        "start": "next start -p 9011",
         "lint": "next lint"
     },
     "dependencies": {
         "@ant-design/icons": "^4.7.0",
         "@ant-design/plots": "^1.2.3",
-        "@mars/common": "^2.0.2-0",
+        "@mars/common": "^2.1.1",
         "@types/sockjs-client": "^1.5.1",
         "antd": "^4.23.0",
         "axios": "^0.27.2",

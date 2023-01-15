@@ -2,12 +2,12 @@
     display: flex;
     position: relative;
     height: inherit;
-    margin: 0 2rem;
+    // margin: 0 2rem;
+    overflow-y: auto;
 
     > .tc-detail-content {
         flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
+        margin-bottom: 2rem;
 
         .tc-desc-title-icon {
             color: @secondary-color;
@@ -21,13 +21,15 @@
 
     > .tc-detail-info {
         position: sticky;
+        top: 0;
+        right: 0;
         min-width: 30%;
 
         padding: 1rem;
         > .ant-card {
             border-radius: 4px;
 
-            >.ant-card-head {
+            > .ant-card-head {
                 background-color: @secondary-color-hover;
             }
         }
@@ -54,6 +56,24 @@
             // background-color: @third-color;
             font-weight: 600;
             font-size: 1.234em;
+        }
+    }
+
+    .tc-detail-relations {
+        margin-right: 2rem;
+
+        .tc-detail-relations-item {
+            border-radius: 6px;
+            background-color: @body-background-darker;
+            transition: background-color 200ms;
+            &:hover {
+                background-color: @body-background;
+            }
+            > .tc-detail-relations-content,
+            > .ant-list-item-action,
+            > .ant-list-item-meta {
+                padding-left: 1rem;
+            }
         }
     }
 }

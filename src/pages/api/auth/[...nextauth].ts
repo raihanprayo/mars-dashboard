@@ -65,6 +65,7 @@ const route = NextAuth({
             if (user) {
                 // console.log('User Login', user);
                 token.tg = user.tg;
+                token.nik = user.nik;
                 token.name = user.name;
                 token.email = user.email;
                 token.sub = user.id;
@@ -82,9 +83,6 @@ const route = NextAuth({
                 const roles: MarsRole[] = [];
                 for (const role of user.roles) roles.push({ name: role, isGroup: false });
 
-                for (const role of user.group.roles)
-                    roles.push({ name: role, isGroup: true });
-
                 session.roles = roles;
                 session.user = {
                     name: user.name,
@@ -98,9 +96,6 @@ const route = NextAuth({
                 const roles: MarsRole[] = [];
                 for (const role of token.roles)
                     roles.push({ name: role, isGroup: false });
-
-                for (const role of token.group.roles)
-                    roles.push({ name: role, isGroup: true });
 
                 session.roles = roles;
                 session.user = {
@@ -118,36 +113,6 @@ const route = NextAuth({
 });
 
 export default route;
-
-// interface TokenRes extends map {
-//     access_token: string;
-//     expired_at: number;
-// }
-
-// declare module 'next-auth/core/types' {
-//     export interface Session extends map<any>, DefaultSession {
-//         user: MarsUserSession;
-//         bearer: string;
-//         roles: MarsRole[];
-//     }
-
-//     export interface User extends map, DefaultUser {
-//         [x: string]: any;
-//         tg: number;
-//         nik: string;
-//         name: string;
-//         email: string;
-//         username: string;
-//         roles: string[];
-//         group: { id: string; name: string; roles: string[] };
-//         token: string;
-//     }
-// }
-// declare module 'next-auth/jwt/types' {
-// export interface JWT extends map, DefaultJWT {
-//     [x: string]: any;
-// }
-// }
 
 declare module 'next-auth' {
     export interface Session extends map<any>, DefaultSession {

@@ -12,15 +12,6 @@ import { RefreshBadgeEvent } from '_utils/events';
 import { TableTicketColms } from '../table/table.definitions';
 import { THeader } from '../table/table.header';
 
-export {};
-
-const defaultStatusFilter = [
-    Mars.Status.OPEN,
-    Mars.Status.CONFIRMATION,
-    Mars.Status.DISPATCH,
-    Mars.Status.REOPEN,
-    Mars.Status.PENDING,
-];
 export function TicketTable(props: OrderTableProps) {
     const route = useRouter();
     const session = useSession();

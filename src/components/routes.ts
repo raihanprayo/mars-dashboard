@@ -3,45 +3,38 @@ import {
     ScheduleOutlined,
     BarChartOutlined,
     TeamOutlined,
-    BookOutlined,
     ApartmentOutlined,
-    SettingOutlined
+    UserOutlined,
+    GroupOutlined,
+    SolutionOutlined,
 } from '@ant-design/icons';
 import { isDefined } from '@mars/common';
 import { Session } from 'next-auth';
 import { createElement } from 'react';
 
-const Groups = [];
 const PageRoutes: PageRoute[] = [
     {
-        type: 'group',
-        name: 'General',
-        icon: createElement(BookOutlined),
-        children: [
-            {
-                type: 'page',
-                name: 'Tickets',
-                path: '/',
-                icon: createElement(AuditOutlined),
-            },
-            {
-                type: 'page',
-                name: 'Inbox',
-                path: '/inbox',
-                icon: createElement(ScheduleOutlined),
-            },
-            {
-                type: 'page',
-                name: 'Reports',
-                path: '/reports',
-                icon: createElement(BarChartOutlined),
-            },
-            {
-                type: 'page',
-                name: 'Leaderboards',
-                icon: createElement(TeamOutlined),
-            },
-        ],
+        type: 'page',
+        name: 'Tickets',
+        path: '/',
+        icon: createElement(AuditOutlined),
+    },
+    {
+        type: 'page',
+        name: 'Inbox',
+        path: '/inbox',
+        icon: createElement(ScheduleOutlined),
+    },
+    {
+        type: 'page',
+        name: 'Reports',
+        path: '/reports',
+        icon: createElement(BarChartOutlined),
+    },
+    {
+        type: 'page',
+        name: 'Leaderboards',
+        icon: createElement(TeamOutlined),
     },
     {
         type: 'group',
@@ -50,9 +43,31 @@ const PageRoutes: PageRoute[] = [
         children: [
             {
                 type: 'page',
-                name: 'Setting',
-                icon: createElement(SettingOutlined)
-            }
+                name: 'Users',
+                path: '/admin/users',
+                icon: createElement(UserOutlined),
+                access: {
+                    hasRole: ['admin'],
+                },
+            },
+            {
+                type: 'page',
+                name: 'Groups',
+                path: '/admin/groups',
+                icon: createElement(GroupOutlined),
+                access: {
+                    hasRole: ['admin'],
+                },
+            },
+            {
+                type: 'page',
+                name: 'Roles',
+                path: '/admin/roles',
+                icon: createElement(SolutionOutlined),
+                access: {
+                    hasRole: ['admin'],
+                },
+            },
         ],
     },
 ];
@@ -99,9 +114,7 @@ export interface GroupRoute extends BaseRoute {
     type: 'group';
     children: SingleRoute[];
 }
-export interface ChildRoute extends BaseRoute {
-
-}
+export interface ChildRoute extends BaseRoute {}
 export interface SingleRoute extends BaseRoute {
     type: 'page';
     path?: string;

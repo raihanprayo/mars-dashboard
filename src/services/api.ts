@@ -1,33 +1,29 @@
 import axios, { Axios, AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import qs from 'qs';
-import getConfig from 'next/config';
 import { isBrowser, isServer } from '_utils/constants';
-import { HttpHeader, isArr, isDefined } from '@mars/common';
+import { HttpHeader } from '@mars/common';
 import { getSession } from 'next-auth/react';
-import { NextPageContext } from 'next';
 import { Session } from 'next-auth';
 
-const config = (getConfig() as NextAppConfiguration)[
-    isBrowser ? 'publicRuntimeConfig' : 'serverRuntimeConfig'
-];
-
+const baseUrl = process.env.NEXT_PUBLIC_SERVICE_URL;
 const api: CoreService = axios.create({
-    baseURL: config.service.url,
+    baseURL: baseUrl,
     paramsSerializer(params) {
         // const o = inlineKey(params, { separateArray: false });
         // const result: string[] = [];
 
-        const result = qs.stringify(params, {
-            allowDots: true,
-            arrayFormat: 'comma',
-            charset: 'utf-8',
-            skipNulls: false,
-            addQueryPrefix: true,
-            serializeDate: (d) => d.toJSON(),
-            indices: true,
-        });
+        // const result = qs.stringify(params, {
+        //     allowDots: true,
+        //     arrayFormat: 'comma',
+        //     charset: 'utf-8',
+        //     skipNulls: false,
+        //     addQueryPrefix: true,
+        //     serializeDate: (d) => d.toJSON(),
+        //     indices: true,
+        // });
 
-        return result.slice(1);
+        // return result.slice(1);
+        return api.serializeParam(params);
     },
 }) as any;
 
@@ -58,6 +54,32 @@ api.auhtHeader = (session, config = {}) => {
     }
     return config;
 };
+api.manage = <T = any>(respon: Promise<AxiosResponse<T>>) => {
+    return respon.catch((err) => err);
+};
+api.serverSideError = (err, status) => {
+    const data = err.response?.data;
+    return {
+        props: {
+            error: {
+                status: data?.status ?? status ?? err.status,
+                title: data?.title ?? err.code,
+                message: data?.detail ?? err.message,
+            },
+        },
+    };
+};
+api.serializeParam = (params = {}) => {
+    return qs.stringify(params, {
+        allowDots: true,
+        arrayFormat: 'comma',
+        charset: 'utf-8',
+        skipNulls: false,
+        addQueryPrefix: true,
+        serializeDate: (d) => d.toJSON(),
+        indices: true,
+    }).slice(1);
+};
 
 globalThis.api = api;
 
@@ -65,9 +87,25 @@ declare global {
     var api: CoreService;
 }
 
-interface CoreService extends Axios {
+export interface CoreService extends Axios {
     auhtHeader<D = any>(
         session: Session,
         config?: AxiosRequestConfig<D>
     ): AxiosRequestConfig<D>;
+
+    manage<T = any>(
+        respon: Promise<AxiosResponse<T>> | AxiosResponse<T>
+    ): Promise<AxiosResponse<T> | AxiosError<any>>;
+    serverSideError(err: AxiosError<any>, status?: number): any;
+
+    serializeParam(o?: map): string;
+}
+export namespace CoreService {
+    export interface ErrorDTO {
+        error?: {
+            status: number;
+            title?: string;
+            message: string;
+        };
+    }
 }

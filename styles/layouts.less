@@ -133,8 +133,12 @@
                 margin-block-end: 0;
                 padding-inline-start: 0;
 
-                li {
+                > li.workspace-act {
                     display: inline-block;
+
+                    &:not(:last-child) {
+                        margin-right: 0.25rem;
+                    }
                 }
             }
 

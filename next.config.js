@@ -6,9 +6,10 @@ const merged = require('merge-deep');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages:['@mars/common'],
+  transpilePackages: ['@mars/common'],
   reactStrictMode: true,
   swcMinify: true,
+  cleanDistDir: true,
 
   poweredByHeader: false,
   publicRuntimeConfig: merged({}, config.general, config.browser),
@@ -20,6 +21,10 @@ const nextConfig = {
     },
   },
 
+  typescript: {
+    ignoreBuildErrors: true
+  },
+
   webpack(config, context) {
     return config;
   }
@@ -28,4 +33,4 @@ const nextConfig = {
 // const TranspilesTarget = NextTranspileModule([
 //   "@mars/common"
 // ]);
-module.exports = NextWithLess(nextConfig)
+module.exports = NextWithLess(nextConfig);

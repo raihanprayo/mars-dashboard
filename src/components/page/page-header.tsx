@@ -18,6 +18,7 @@ import DateCounter from '../date-counter';
 function PageHeader() {
     const ctx = useContext(PageContext);
     const session = useSession();
+    const router = useRouter();
     const [badge, setBadge] = useState(0);
     const isLoggedin = session.status === 'authenticated';
 
@@ -34,7 +35,7 @@ function PageHeader() {
         })
             .then((res) => {
                 console.log('Badge Response', res.data);
-                setBadge(Number(res.data?.total ?? res.data ?? 0))
+                setBadge(Number(res.data?.total ?? res.data ?? 0));
             })
             .catch((err) => console.error('Fetch Badge Counter: ' + err.message));
     }, []);
@@ -81,7 +82,12 @@ function PageHeader() {
                     className="text-center"
                     // onTitleClick={(d) => router.push("/inbox")}
                 >
-                    <Menu.Item icon={<UserOutlined />}>Profile</Menu.Item>
+                    <Menu.Item
+                        icon={<UserOutlined />}
+                        onClick={() => router.push('/whoami')}
+                    >
+                        Profile
+                    </Menu.Item>
                     <Menu.Item
                         icon={<LoginLogoutIcon />}
                         onClick={() => {

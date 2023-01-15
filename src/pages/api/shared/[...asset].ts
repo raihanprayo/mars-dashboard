@@ -1,18 +1,13 @@
 import { HttpHeader, isArr } from '@mars/common';
 import { existsSync, readFileSync } from 'fs';
 import { NextApiHandler } from 'next';
-import getConfig from 'next/config';
 import { detectContentType } from 'next/dist/server/image-optimizer';
 import { join } from 'path';
 
+const SHARED_DIR = process.env.NEXT_PUBLIC_SHARED_DIRECTORY;
 const SharedAssetRoute: NextApiHandler = (req, res) => {
-    const publicConfig = getConfig().publicRuntimeConfig;
-    const sharedAssetDir: string = publicConfig.directory.shared;
-
+    const sharedAssetDir: string = SHARED_DIR;
     const reqPath = isArr(req.query.asset) ? req.query.asset.join('/') : req.query.asset;
-
-    console.log(req.query);
-
     const filePath = join(sharedAssetDir, reqPath);
     if (!existsSync(filePath)) {
         res.status(400).json({
