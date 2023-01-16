@@ -1,3 +1,4 @@
+import { EditOutlined } from '@ant-design/icons';
 import { isDefined, isFalsy } from '@mars/common';
 import { Button, Tag } from 'antd';
 import { ColumnType } from 'antd/lib/table';
@@ -10,6 +11,9 @@ export interface TableTickerColumnOptions {
     withActionCol?: boolean;
     withLinkToDetail?: boolean;
     takeOrder(id: string): void | Promise<void>;
+}
+export interface TableUserColumnOptions {
+    editUser?(user: DTO.Users): void;
 }
 
 export const TableTicketColms = (props: TableTickerColumnOptions) => {
@@ -105,7 +109,7 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
     return cols;
 };
 
-export const TableUserColms = () => {
+export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
     const cols: ColumnType<DTO.Users>[] = [
         DefaulCol.NO_COL,
         {
@@ -140,8 +144,28 @@ export const TableUserColms = () => {
                 }),
         },
         DefaulCol.CREATION_DATE_COL,
-        DefaulCol.UPDATE_DATE_COL,
     ];
+
+    const actions: JSX.Element[] = [];
+
+    if (opt.editUser) {
+        cols.push({
+            title: 'Action',
+            align: 'center',
+            render(value, record, index) {
+                return (
+                    <>
+                        <Button
+                            icon={<EditOutlined />}
+                            onClick={() => opt.editUser(record)}
+                        >
+                            Edit
+                        </Button>
+                    </>
+                );
+            },
+        });
+    }
 
     return cols;
 };
