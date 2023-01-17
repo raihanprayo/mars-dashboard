@@ -1,8 +1,8 @@
 import NextAuth, { type DefaultSession, type DefaultUser } from 'next-auth';
-import type { DefaultJWT } from 'next-auth/jwt';
+import type { DefaultJWT, JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
-import { HttpHeader, MimeType, upperCase } from '@mars/common';
+import { HttpHeader, isDefined, MimeType, upperCase } from '@mars/common';
 import axios, { AxiosResponse } from 'axios';
 
 const route = NextAuth({
@@ -17,6 +17,7 @@ const route = NextAuth({
             type: 'credentials',
             credentials: {
                 token: { type: 'input', label: 'Token' },
+                refreshToken: { type: 'input', label: 'Refresh Token' },
             },
             async authorize(credential, req) {
                 const bearer = credential.token;
@@ -48,20 +49,21 @@ const route = NextAuth({
                         roles: data.group.roles || [],
                     },
                     token: bearer,
+                    refreshToken: credential.refreshToken,
                 };
             },
         }),
     ],
     jwt: {
-        maxAge: 60 * 60 * 24,
+        maxAge: 60 * 60 * 18,
     },
     session: {
-        maxAge: 60 * 60 * 24,
+        maxAge: 60 * 60 * 18,
         strategy: 'jwt',
     },
 
     callbacks: {
-        jwt({ token, user }) {
+        async jwt({ token, user }) {
             if (user) {
                 // console.log('User Login', user);
                 token.tg = user.tg;
@@ -73,24 +75,34 @@ const route = NextAuth({
                 token.group = user.group;
 
                 token.bearer = user.token;
+                token.refresher = user.refreshToken;
             }
+
+            const authorize = await api
+                .get('/auth/authorize', {
+                    headers: {
+                        [HttpHeader.AUTHORIZATION]: `Bearer ${token.bearer}`,
+                    },
+                })
+                .catch((err) => err);
+
+            if (axios.isAxiosError(authorize)) {
+                const status = authorize.response?.status;
+                if (status === 400 || status === 401) {
+                    const { code } = (authorize.response.data || {}) as any;
+                    if (code === 'refresh-required')
+                        await refreshToken(token, token.refresher);
+                    else {
+                        token.bearer = null;
+                        token.refresher = null;
+                    }
+                }
+            }
+
             return token;
         },
         session({ session, token, user }) {
-            if (user) {
-                // console.log('Mapping Session From user', user);
-
-                const roles: MarsRole[] = [];
-                for (const role of user.roles) roles.push({ name: role, isGroup: false });
-
-                session.roles = roles;
-                session.user = {
-                    name: user.name,
-                    nik: user.nik,
-                    email: user.email,
-                    group: user.group.id,
-                };
-            } else if (token) {
+            if (token) {
                 // console.log('Mapping Session From Token', token);
 
                 const roles: MarsRole[] = [];
@@ -107,10 +119,26 @@ const route = NextAuth({
             }
 
             session.bearer = token.bearer;
-            return session;
+            if (isDefined(session.bearer)) return session;
+            return Promise.reject(Error('Unauthorized'));
         },
     },
 });
+
+async function refreshToken(token: JWT, refresher: string) {
+    const res = await api
+        .post('/auth/refresh', { refreshToken: refresher })
+        .catch((err) => err);
+
+    if (!axios.isAxiosError(res)) {
+        const { accessToken, refreshToken } = res.data;
+        token.bearer = accessToken;
+        token.refresher = refreshToken;
+    } else {
+        token.bearer = null;
+        token.refresher = null;
+    }
+}
 
 export default route;
 
@@ -131,12 +159,15 @@ declare module 'next-auth' {
         roles: string[];
         group: { id: string; name: string; roles: string[] };
         token: string;
+        refreshToken: string;
     }
 }
 
 declare module 'next-auth/jwt' {
     export interface JWT extends map, DefaultJWT {
         [x: string]: any;
+        bearer: string;
+        refresher: string;
     }
 }
 

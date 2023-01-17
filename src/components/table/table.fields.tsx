@@ -48,6 +48,8 @@ export interface DateFilterProps extends BaseInputProps {
 }
 
 export function RoleTransfer(props: RoleTransferProps) {
+    const { indexSelectedField = 'selected', indexUnselectedField = 'removed' } = props;
+
     const [roles, setRoles] = useState<RoleSelectionItem[]>([]);
     const [checked, setChecked] = useState<string[]>([]);
     const [picked, setPicked] = useState<string[]>([]);
@@ -95,8 +97,8 @@ export function RoleTransfer(props: RoleTransferProps) {
     ) => {
         setPicked(nextTargetKeys);
         props.onChange?.({
-            removed: roles.filter((e) => !nextTargetKeys.includes(e.id)).map((e) => e.id),
-            selected: nextTargetKeys,
+            [indexUnselectedField]: roles.filter((e) => !nextTargetKeys.includes(e.id)).map((e) => e.id),
+            [indexSelectedField]: nextTargetKeys,
         });
     };
 
@@ -114,6 +116,9 @@ export function RoleTransfer(props: RoleTransferProps) {
 }
 export interface RoleTransferProps extends BaseInputProps {
     userId?: string;
+
+    indexUnselectedField?: string;
+    indexSelectedField?: string;
 }
 interface RoleSelectionItem extends TransferItem {
     id: string;

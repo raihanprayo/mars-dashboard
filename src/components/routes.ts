@@ -7,6 +7,8 @@ import {
     UserOutlined,
     GroupOutlined,
     SolutionOutlined,
+    InboxOutlined,
+    StarOutlined,
 } from '@ant-design/icons';
 import { isDefined } from '@mars/common';
 import { Session } from 'next-auth';
@@ -23,7 +25,7 @@ const PageRoutes: PageRoute[] = [
         type: 'page',
         name: 'Inbox',
         path: '/inbox',
-        icon: createElement(ScheduleOutlined),
+        icon: createElement(InboxOutlined),
     },
     {
         type: 'page',
@@ -34,7 +36,7 @@ const PageRoutes: PageRoute[] = [
     {
         type: 'page',
         name: 'Leaderboards',
-        icon: createElement(TeamOutlined),
+        icon: createElement(StarOutlined),
     },
     {
         type: 'group',
@@ -56,6 +58,7 @@ const PageRoutes: PageRoute[] = [
                 path: '/admin/groups',
                 icon: createElement(GroupOutlined),
                 access: {
+                    disable: true,
                     hasRole: ['admin'],
                 },
             },
@@ -65,6 +68,7 @@ const PageRoutes: PageRoute[] = [
                 path: '/admin/roles',
                 icon: createElement(SolutionOutlined),
                 access: {
+                    disable: true,
                     hasRole: ['admin'],
                 },
             },
@@ -77,11 +81,15 @@ export default PageRoutes;
 export function filterRoute(route: PageRoute, session: Session): PageRoute | null {
     if (route.type === 'group') {
         if (!accessible(session, route.access)) return null;
+
+        const childs = route.children
+            .map((subroute) => filterRoute(subroute, session) as SingleRoute)
+            .filter(isDefined);
+
+        if (childs.length === 0) return null;
         return {
             ...route,
-            children: route.children
-                .map((subroute) => filterRoute(subroute, session) as SingleRoute)
-                .filter(isDefined),
+            children: childs,
         };
     } else {
         if (!accessible(session, route.access)) return null;
@@ -93,7 +101,7 @@ export function filterRoute(route: PageRoute, session: Session): PageRoute | nul
 
 function accessible(session: Session, opt?: RouteAccessOpt) {
     if (!opt) return true;
-    if (opt.disabled) return false;
+    if (opt.disable) return false;
 
     const appRoles = session.roles.map((e) => e.name);
     const checkRole =
@@ -121,7 +129,7 @@ export interface SingleRoute extends BaseRoute {
     badge?: { value: number };
 }
 export interface RouteAccessOpt {
-    disabled?: boolean;
+    disable?: boolean;
     hasRole?: string[];
     groupOnly?: boolean;
 }

@@ -34,8 +34,8 @@ function LoginPage(props: { session: Session; providers: NextAuthProviders }) {
             <div className="login-forms">
                 <div className="login-forms-header text-center">
                     <Link href="/auth/login">
-                            <LoginOutlined />
-                            <h1>Login</h1>
+                        <LoginOutlined />
+                        <h1>Login</h1>
                     </Link>
                     <h5 className="motto text-muted">
                         <b>M</b>anpower <b>A</b>dministration and <b>R</b>ating <b>S</b>
@@ -48,7 +48,6 @@ function LoginPage(props: { session: Session; providers: NextAuthProviders }) {
                     className="login-forms-content"
                     layout="vertical"
                     onFinish={async (v) => {
-                        console.log(v);
                         setLoading(true);
                         try {
                             await login(
@@ -260,12 +259,11 @@ async function login(
     openPasswordConfirmation?: (open: boolean) => void
 ) {
     const res: AxiosResponse<any> = await api
-        .post('/auth/authorize', login, {
+        .post('/auth/token', login, {
             withCredentials: true,
         })
         .catch((err) => err);
 
-    console.log(res);
     if (axios.isAxiosError(res)) {
         if (res.response?.status === 400) {
             const data: any = res.response.data;
@@ -277,33 +275,15 @@ async function login(
             else message.error(`[${res.code}] ${res.message}`);
         }
     } else {
-        localStorage.setItem('MARS-JWT', res.data.accessToken);
         await signIn('mars-roc', {
             callbackUrl: login.callbackUrl,
             redirect: true,
             token: res.data.accessToken,
+            refreshToken: res.data.refreshToken,
         }).catch((err) => {
             console.error(err);
             if (err instanceof Error) message.error(`[${err.name}] - ${err.message}`, 5);
             else message.error(typeof err == 'object' ? err?.message : 'Unknown', 5);
         });
     }
-}
-
-async function register(nik: string, password: string) {
-    return await api
-        .post('/user/auth/register', { nik, password })
-        .then((res) => {
-            return true;
-        })
-        .catch((err: AxiosError) => {
-            console.error(err);
-            const res: AxiosResponse = err.response;
-            if (res && isDefined(res.data)) {
-                message.error(`${res.data.code}: ${res.data.message}`);
-            } else {
-                message.error(`AUTH-99 (${err.name}): ${err.message}`);
-            }
-            return false;
-        });
 }

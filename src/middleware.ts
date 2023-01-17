@@ -1,3 +1,5 @@
+import { HttpHeader } from '@mars/common';
+import axios from 'axios';
 import NextAuthMiddleware, {
     NextAuthMiddlewareOptions,
     withAuth,
@@ -10,7 +12,7 @@ const rootMiddleware: NextMiddleware = async (req, event) => {
 
     if (isIgnored) return;
     const authMiddeware: any = withAuth(
-        function (req) {
+        function (req, event) {
             console.log('INCOMING REQUEST TO', req.nextUrl.pathname);
         },
         {

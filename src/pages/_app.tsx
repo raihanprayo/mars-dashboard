@@ -24,8 +24,8 @@ function MarsRocApp({ Component, pageProps, router }: AppProps) {
     const session = useSession();
     const isUnauthenticated = session.status !== 'authenticated';
 
-    if (!isUnauthenticated && isBrowser)
-        localStorage.setItem('token', session.data.bearer);
+    if (isBrowser && !isUnauthenticated)
+        api.defaults.headers.common[HttpHeader.AUTHORIZATION] = `Bearer ${session.data.bearer}`;
 
     useEffect(() => {
         if (isUnauthenticated && !isExcluded(router.pathname)) {
