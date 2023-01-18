@@ -1,6 +1,6 @@
 import { Form, message, Drawer, Space, Button, Input, Radio } from 'antd';
 import { useState, useEffect } from 'react';
-import { RoleTransfer } from '_comp/table/table.fields';
+import { RoleTransfer } from '_comp/table/input.fields';
 import notif from '_service/notif';
 
 export function EditUserDrawer(props: UserDetailDrawerProps) {

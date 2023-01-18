@@ -2,6 +2,7 @@ import { FilterOutlined } from '@ant-design/icons';
 import { isDefined, isNum, mergeClassName, randomString } from '@mars/common';
 import { Badge, Button, ButtonProps } from 'antd';
 import { Children, isValidElement, useMemo } from 'react';
+import { MarsButton, MarsButtonProps } from '_comp/base/Button';
 import { useMarsTable } from '_ctx/table.ctx';
 
 export function THeader(props: HasChild) {
@@ -24,7 +25,7 @@ export function THeader(props: HasChild) {
 }
 
 export namespace THeader {
-    interface ActionItemProps extends ButtonProps {
+    interface ActionItemProps extends MarsButtonProps {
         pos?: 'left' | 'right';
         badge?: number;
     }
@@ -34,14 +35,11 @@ export namespace THeader {
         const id = useMemo(() => randomString(), []);
 
         const cls = mergeClassName('workspace-act', className);
+        const btn = <MarsButton {...rest} />;
         return (
             <li key={id} className={cls}>
-                {!isNum(badge) && <Button {...rest} />}
-                {isNum(badge) && (
-                    <Badge count={badge}>
-                        <Button {...rest} />
-                    </Badge>
-                )}
+                {!isNum(badge) && btn}
+                {isNum(badge) && <Badge count={badge}>{btn}</Badge>}
             </li>
         );
     }

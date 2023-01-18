@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 import { useCallback, useContext, useState } from 'react';
 import { AddUserDrawer, EditUserDrawer } from '_comp/admin/index';
 import { TableUserColms } from '_comp/table/table.definitions';
-import { DateRangeFilter } from '_comp/table/table.fields';
+import { DateRangeFilter } from '_comp/table/input.fields';
 import { TFilter } from '_comp/table/table.filter';
 import { THeader } from '_comp/table/table.header';
 import { PageContext } from '_ctx/page.ctx';
@@ -56,11 +56,11 @@ export default function UsersPage(props: UsersPageProps) {
                 <THeader>
                     <THeader.Action
                         type="primary"
-                        title="Add User"
+                        title="Tambah User"
                         icon={<UserAddOutlined />}
                         onClick={() => setOpenRegister(true)}
                     >
-                        Add User
+                        Tambah User
                     </THeader.Action>
 
                     <THeader.Action
@@ -75,7 +75,7 @@ export default function UsersPage(props: UsersPageProps) {
                 </THeader>
                 <Table
                     size="small"
-                    columns={TableUserColms({ editUser })}
+                    columns={TableUserColms({ editUser, pageable })}
                     dataSource={props.users ?? []}
                     pagination={{
                         total: props.total,

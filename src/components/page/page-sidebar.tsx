@@ -1,5 +1,5 @@
 import { isDefined, upperCase } from '@mars/common';
-import { Badge, Layout, Menu } from 'antd';
+import { Badge, Layout, Menu, Typography } from 'antd';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -33,10 +33,8 @@ function PageSidebar() {
         ).filter(isDefined);
 
         setAppRoutes(filtered);
-    }, []);
 
-    useEffect(() => {
-        appRoutes.forEach((route, index) => {
+        filtered.forEach((route, index) => {
             const isCurrentPath = pathname.indexOf(lowercase(route.name)) > -1;
             const key = getKey(route.name, index);
             rootSubMenuKeys.push(key);
@@ -53,12 +51,16 @@ function PageSidebar() {
         }
     };
 
+    const username = session.data?.user.name || 'User';
+
     return (
         <Layout.Sider width={220} theme="light" collapsed={collapsed}>
             <div className="logo">
                 <Link href="/">
                     <MarsIcon />
                 </Link>
+                <br />
+                <Typography.Title level={4}>{username}</Typography.Title>
             </div>
             {
                 <Menu

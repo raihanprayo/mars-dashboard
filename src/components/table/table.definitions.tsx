@@ -1,25 +1,30 @@
-import { EditOutlined } from '@ant-design/icons';
+import { CopyOutlined, EditOutlined } from '@ant-design/icons';
 import { isDefined, isFalsy } from '@mars/common';
-import { Button, Tag } from 'antd';
+import { Button, Space, Tag } from 'antd';
 import { ColumnType } from 'antd/lib/table';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { useCallback, useState, useEffect } from 'react';
+import { MarsButton } from '_comp/base/Button';
 import { Render } from '_comp/value-renderer';
+import { CopyAsGaulTicketEvent } from '_utils/events';
 
 export interface TableTickerColumnOptions {
     withActionCol?: boolean;
     withLinkToDetail?: boolean;
-    takeOrder(id: string): void | Promise<void>;
+    withCopyToDrawer?: boolean;
+    takeOrder(ticket: DTO.Ticket): void | Promise<void>;
+    pageable: Pageable;
 }
 export interface TableUserColumnOptions {
+    pageable?: Pageable;
     editUser?(user: DTO.Users): void;
 }
 
 export const TableTicketColms = (props: TableTickerColumnOptions) => {
-    const { takeOrder, withActionCol = true } = props;
+    const { takeOrder, withActionCol = true, withCopyToDrawer = false } = props;
     const cols: ColumnType<DTO.Ticket>[] = [
-        DefaulCol.NO_COL,
+        DefaulCol.INCREMENTAL_NO_COL(props.pageable),
         {
             title: 'Order No',
             align: 'center',
@@ -94,13 +99,25 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
                 ].includes(rec.status);
 
                 return (
-                    <Button
-                        type="primary"
-                        onClick={() => takeOrder(rec.id)}
-                        disabled={disabled}
-                    >
-                        Ambil
-                    </Button>
+                    <Space>
+                        {withCopyToDrawer && (
+                            <MarsButton
+                                type="primary"
+                                title="Buat Gangguan Ulang"
+                                icon={<CopyOutlined />}
+                                onClick={() => CopyAsGaulTicketEvent.emit(rec)}
+                                disabledOnRole={MarsButton.disableIfAdmin}
+                            />
+                        )}
+                        <MarsButton
+                            type="primary"
+                            onClick={() => takeOrder(rec)}
+                            icon={<EditOutlined />}
+                            title="Ambil tiket"
+                            disabled={disabled}
+                            disabledOnRole={MarsButton.disableIfAdmin}
+                        />
+                    </Space>
                 );
             },
         });
@@ -110,8 +127,12 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
 };
 
 export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
+    const noCol = !opt.pageable
+        ? DefaulCol.NO_COL
+        : DefaulCol.INCREMENTAL_NO_COL(opt.pageable);
+
     const cols: ColumnType<DTO.Users>[] = [
-        DefaulCol.NO_COL,
+        noCol,
         {
             title: 'Nama',
             align: 'center',
@@ -193,6 +214,18 @@ namespace DefaulCol {
         align: 'center',
         render: (v, r, i) => <b>{`${i + 1}`}</b>,
     };
+    export const INCREMENTAL_NO_COL: (pageable: Pageable) => ColumnType<any> = (
+        pageable
+    ) => ({
+        title: 'No',
+        width: 40,
+        align: 'center',
+        render: (v, r, i) => {
+            const { page, size } = pageable;
+            const index = page * size + i;
+            return <b>{`${index + 1}`}</b>;
+        },
+    });
 
     export const CREATION_DATE_COL: ColumnType<any> = {
         title: 'Tgl Masuk',

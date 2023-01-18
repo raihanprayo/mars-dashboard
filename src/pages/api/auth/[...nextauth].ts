@@ -105,9 +105,8 @@ const route = NextAuth({
             if (token) {
                 // console.log('Mapping Session From Token', token);
 
-                const roles: MarsRole[] = [];
-                for (const role of token.roles)
-                    roles.push({ name: role, isGroup: false });
+                const roles: string[] = [];
+                for (const role of token.roles) roles.push(role);
 
                 session.roles = roles;
                 session.user = {
@@ -146,7 +145,7 @@ declare module 'next-auth' {
     export interface Session extends map<any>, DefaultSession {
         user: MarsUserSession;
         bearer: string;
-        roles: MarsRole[];
+        roles: string[];
     }
 
     export interface User extends map, DefaultUser {
@@ -177,10 +176,5 @@ declare global {
         name: string;
         email: string;
         group: string;
-    }
-
-    interface MarsRole {
-        name: string;
-        isGroup: boolean;
     }
 }

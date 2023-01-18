@@ -12,7 +12,7 @@ export function TFilter<T = any>(props: TFilterProps<T>) {
         else tableCtx?.toggleFilter(false);
     };
     const onSearch = () => {
-        const res = refresh();
+        const res = refresh?.();
         if (res instanceof Promise) res.finally(() => onClose());
         else onClose();
     };
@@ -47,8 +47,8 @@ export function TFilter<T = any>(props: TFilterProps<T>) {
 }
 
 interface TFilterProps<T = any> extends HasChild {
-    form: FormInstance<ICriteria<T>>;
-    refresh(): any;
+    form?: FormInstance<ICriteria<T>>;
+    refresh?(): any;
 
     title?: string;
     open?: boolean;

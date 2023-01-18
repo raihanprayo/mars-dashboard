@@ -1,9 +1,8 @@
 import { AutoComplete, Button, Drawer, Form, Input, Radio, Space } from 'antd';
-import type { Rule } from 'antd/lib/form/index';
 import { DefaultOptionType } from 'antd/lib/select/index';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { RoleTransfer } from '_comp/table/table.fields';
+import { RoleTransfer } from '_comp/table/input.fields';
 import { FormRules } from '../rules';
 
 export function AddUserDrawer(props: AddUserDrawerProps) {
@@ -71,14 +70,14 @@ export function AddUserDrawer(props: AddUserDrawerProps) {
     const action = (
         <Space>
             <Button type="primary" loading={loading} onClick={onSubmit}>
-                Add
+                Tambah
             </Button>
         </Space>
     );
 
     return (
         <Drawer
-            title="Add User"
+            title="Tambah User"
             open={props.open}
             onClose={onClose}
             extra={action}
@@ -87,10 +86,10 @@ export function AddUserDrawer(props: AddUserDrawerProps) {
             <Form
                 form={form}
                 layout="vertical"
-                onKeyDownCapture={(e) => {
-                    const key = e.key.toLowerCase();
-                    if (key === 'enter') onSubmit();
-                }}
+                // onKeyDownCapture={(e) => {
+                //     const key = e.key.toLowerCase();
+                //     if (key === 'enter') onSubmit();
+                // }}
             >
                 <Form.Item label="Nama" name="name" rules={[FormRules.REQUIRED]}>
                     <Input placeholder="nama lengkap" />

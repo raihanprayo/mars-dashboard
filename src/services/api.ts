@@ -26,23 +26,18 @@ const api: CoreService = axios.create({
     },
 }) as any;
 
-api.interceptors.response.use(
-    (v) => {
-        if (isServer) return v;
+// api.interceptors.response.use(
+//     (v) => {
+//         if (isServer) return v;
 
-        if (v.status === 401) {
-            const path = qs.stringify({ callbackUrl: window.location.pathname });
-            window.location.href = '/auth/login?' + path;
-        }
-        return v
-    },
-    (err) => err,
-    {
-        runWhen(config) {
-            return true;
-        },
-    }
-);
+//         if (v.status === 401) {
+//             const path = qs.stringify({ callbackUrl: window.location.pathname });
+//             window.location.href = '/auth/login?' + path;
+//         }
+//         return v
+//     },
+//     (err) => err,
+// );
 // api.interceptors.request.use(async (c) => {
 //     console.log('intercept request');
 

@@ -60,6 +60,7 @@
 .ant-layout-sider {
     div.logo {
         display: flex;
+        flex-direction: column;
         width: 100%;
         overflow: hidden;
         align-items: center;
@@ -69,13 +70,19 @@
         padding: 15px 0;
         // margin-bottom: 10px;
 
-        .anticon {
-            width: 75%;
-            height: auto;
-            transition: width 300ms;
-            > svg {
-                width: 100%;
-                height: 100%;
+        > a {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+
+            .anticon {
+                width: 70%;
+                height: auto;
+                transition: width 300ms;
+                > svg {
+                    width: 100%;
+                    height: 100%;
+                }
             }
         }
     }

@@ -37,7 +37,7 @@ import { useRouter } from 'next/router';
 import { PageContext } from '_ctx/page.ctx';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { Session } from 'next-auth';
+import { MarsButton } from '_comp/base';
 
 const AcceptableFileExt = ['.jpg', '.jpeg', '.png', '.webp'];
 
@@ -165,8 +165,6 @@ function TicketDetail(props: TicketDetailProps) {
         },
     ];
 
-    console.log(session?.data);
-    console.log(props.agents);
     return (
         <div className="tc-detail-container">
             <div className="tc-detail-content">
@@ -223,19 +221,20 @@ function TicketDetail(props: TicketDetailProps) {
                     title="Update Submission"
                     size="small"
                     actions={[
-                        <Button
+                        <MarsButton
                             type="primary"
                             key="submit-btn"
                             title="Submit work log"
                             icon={<CheckOutlined />}
                             onClick={onSubmit}
+                            disabledOnRole={MarsButton.disableIfAdmin}
                             disabled={disableSubmit}
                         >
                             Submit
-                        </Button>,
+                        </MarsButton>,
                     ]}
                 >
-                    <Form form={submission} layout="vertical">
+                    <Form form={submission} layout="vertical" disabled>
                         <Form.Item
                             name="status"
                             label={<b>Status</b>}
@@ -368,12 +367,12 @@ function SharedImage(props: SharedImageProps) {
     if (!assets) return <i>*Empty</i>;
 
     return (
-        <>
+        <Image.PreviewGroup>
             {assets.map((path) => {
                 const src = '/api/shared' + path;
                 return <Image key={path} alt={path} width={200} src={src} />;
             })}
-        </>
+        </Image.PreviewGroup>
     );
 }
 
@@ -432,8 +431,6 @@ function GaulRelation(props: { relations: DTO.Ticket[] }) {
         />
     );
 }
-function AgentList(props: { session: Session; agents: DTO.TicketAgent[] }) {}
-
 export default TicketDetail;
 
 interface TicketDetailProps {

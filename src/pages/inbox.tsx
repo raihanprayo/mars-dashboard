@@ -1,7 +1,8 @@
-import { TicketTable } from '_comp/orders/ticket.table.view';
+import { TicketPageMetadata, TicketTable } from '_comp/orders/ticket.table.view';
 
-const url = '/order/inbox';
-function InboxPage() {
-    return <TicketTable url='/ticket/inbox' inbox withActionCol={false} withLinkToDetail />;
+function InboxPage(props: TicketPageMetadata) {
+    return <TicketTable metadata={props} inbox withActionCol={false} withLinkToDetail />;
 }
 export default InboxPage;
+
+export const getServerSideProps = TicketTable.getServerSideProps('/ticket/inbox');

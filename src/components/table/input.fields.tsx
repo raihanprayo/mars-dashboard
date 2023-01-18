@@ -1,9 +1,9 @@
-import { DatePicker, Transfer } from 'antd';
+import { DatePicker, Radio, Transfer } from 'antd';
 import type { TransferDirection, TransferItem } from 'antd/lib/transfer/index';
 import type { Moment } from 'moment';
 import { useEffect, useState } from 'react';
 
-interface BaseInputProps {
+export interface BaseInputProps {
     id?: string;
     value?: any;
     onChange?(value: any): void;
@@ -32,6 +32,7 @@ export function DateRangeFilter(props: DateFilterProps) {
     };
     return (
         <DatePicker.RangePicker
+            id={props.id}
             allowClear={allowClear}
             showTime={withTime}
             allowEmpty={[true, true]}
@@ -97,7 +98,9 @@ export function RoleTransfer(props: RoleTransferProps) {
     ) => {
         setPicked(nextTargetKeys);
         props.onChange?.({
-            [indexUnselectedField]: roles.filter((e) => !nextTargetKeys.includes(e.id)).map((e) => e.id),
+            [indexUnselectedField]: roles
+                .filter((e) => !nextTargetKeys.includes(e.id))
+                .map((e) => e.id),
             [indexSelectedField]: nextTargetKeys,
         });
     };
@@ -122,4 +125,17 @@ export interface RoleTransferProps extends BaseInputProps {
 }
 interface RoleSelectionItem extends TransferItem {
     id: string;
+}
+
+export function BooleanInput(props: BooleanInputProps) {
+    return (
+        <Radio.Group id={props.id} value={props.value} onChange={props.onChange} buttonStyle='solid'>
+            <Radio.Button value={true}>{props.trueText || 'Ya'}</Radio.Button>
+            <Radio.Button value={false}>{props.falseText || 'Tidak'}</Radio.Button>
+        </Radio.Group>
+    );
+}
+export interface BooleanInputProps extends BaseInputProps {
+    trueText?: React.ReactNode;
+    falseText?: React.ReactNode;
 }
