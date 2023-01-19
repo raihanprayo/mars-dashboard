@@ -1,6 +1,6 @@
 import { Form, message, Drawer, Space, Button, Input, Radio } from 'antd';
 import { useState, useEffect } from 'react';
-import { RoleTransfer } from '_comp/table/input.fields';
+import { EnumSelect, RoleTransfer } from '_comp/table/input.fields';
 import notif from '_service/notif';
 
 export function EditUserDrawer(props: UserDetailDrawerProps) {
@@ -59,6 +59,12 @@ export function EditUserDrawer(props: UserDetailDrawerProps) {
                     <Input />
                 </Form.Item>
                 <Form.Item label="No HP" name="phone">
+                    <Input />
+                </Form.Item>
+                <Form.Item label="Witel" name="witel">
+                    <EnumSelect enums={Mars.Witel} />
+                </Form.Item>
+                <Form.Item label="STO" name="sto">
                     <Input />
                 </Form.Item>
                 <Form.Item label="Aktif" name="active">

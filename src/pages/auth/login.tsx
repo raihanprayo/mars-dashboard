@@ -10,7 +10,7 @@ import { getProviders, getSession, signIn } from 'next-auth/react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { NextRouter, useRouter } from 'next/router';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MarsIcon } from '_comp/logo/mars-roc';
 
 const EMAIL_PATTERN = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/i;
@@ -153,6 +153,10 @@ function ConfirmPassword(props: ConfirmPasswordProps) {
                 props.setLoading(false);
             });
     };
+    
+    useEffect(() => {
+        
+    }, [])
 
     return (
         <Modal
@@ -196,9 +200,10 @@ function ConfirmPassword(props: ConfirmPasswordProps) {
                 <Form.Item
                     label="Re-Type Password"
                     name="confirm-password"
+                    required
                     rules={[ConfirmPassValidator]}
                 >
-                    <Input.Password placeholder="retype-password" />
+                    <Input.Password placeholder="retype your password" />
                 </Form.Item>
                 <Form.Item
                     label="Email"
@@ -207,14 +212,6 @@ function ConfirmPassword(props: ConfirmPasswordProps) {
                     rules={[EmailValidator]}
                 >
                     <Input placeholder="email" />
-                </Form.Item>
-                <Form.Item
-                    label="Username"
-                    name="username"
-                    help="Preferred Username (Optional)"
-                    rules={[{ max: 100, message: 'only accept 100 characters' }]}
-                >
-                    <Input placeholder="username" />
                 </Form.Item>
             </Form>
         </Modal>

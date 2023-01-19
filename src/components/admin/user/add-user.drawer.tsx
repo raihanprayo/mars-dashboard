@@ -2,11 +2,13 @@ import { AutoComplete, Button, Drawer, Form, Input, Radio, Space } from 'antd';
 import { DefaultOptionType } from 'antd/lib/select/index';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { RoleTransfer } from '_comp/table/input.fields';
+import { EnumSelect, RoleTransfer } from '_comp/table/input.fields';
+import { useApp } from '_ctx/app.ctx';
 import { FormRules } from '../rules';
 
 export function AddUserDrawer(props: AddUserDrawerProps) {
     const router = useRouter();
+    const app = useApp();
     const [form] = Form.useForm();
 
     const [groups, setGroups] = useState<DefaultOptionType[]>([]);
@@ -29,10 +31,12 @@ export function AddUserDrawer(props: AddUserDrawerProps) {
             username,
             active,
             group,
+            witel,
+            sto,
             roles: { selected },
         } = result;
 
-        const groupId: string = groups.find((e) => e.value === group).id;
+        const groupId: string = groups.find((e) => e.value === group)?.id;
         const json = {
             name,
             nik,
@@ -42,6 +46,8 @@ export function AddUserDrawer(props: AddUserDrawerProps) {
             active,
             group: groupId,
             roles: selected,
+            witel,
+            sto,
         };
 
         setLoading(true);
@@ -52,6 +58,11 @@ export function AddUserDrawer(props: AddUserDrawerProps) {
     };
 
     useEffect(() => {
+        form.setFieldsValue({
+            active: false,
+            witel: app.witel,
+        });
+
         api.get<DTO.Group[]>('/group')
             .then((res) => {
                 setGroups(
@@ -97,17 +108,20 @@ export function AddUserDrawer(props: AddUserDrawerProps) {
                 <Form.Item label="NIK" name="nik" rules={[FormRules.REQUIRED]}>
                     <Input placeholder="nik" />
                 </Form.Item>
-                <Form.Item label="No HP" name="phone" rules={[FormRules.REQUIRED]}>
+                <Form.Item label="Witel" name="witel" required>
+                    <EnumSelect enums={Mars.Witel} allowClear />
+                </Form.Item>
+                <Form.Item label="No HP" name="phone">
                     <Input placeholder="no hp" />
                 </Form.Item>
                 <Form.Item label="Email" name="email" rules={[{ type: 'email' }]}>
                     <Input placeholder="email (optional)" />
                 </Form.Item>
-                <Form.Item label="Username" name="username">
-                    <Input placeholder="preferred username (optional)" />
+                <Form.Item label="STO" name="sto">
+                    <Input placeholder="sto" />
                 </Form.Item>
-                <Form.Item label="Witel" name="group">
-                    <AutoComplete options={groups} />
+                <Form.Item label="Group" name="group">
+                    <AutoComplete options={groups} placeholder="(auto complete)" />
                 </Form.Item>
                 <Form.Item label="Aktif" name="active" rules={[FormRules.REQUIRED]}>
                     <Radio.Group buttonStyle="solid">
@@ -118,6 +132,7 @@ export function AddUserDrawer(props: AddUserDrawerProps) {
                 <Form.Item
                     label="Roles"
                     name="roles"
+                    tooltip="Minimal 1 role terpilih"
                     required
                     rules={[FormRules.ROLE_RULE]}
                 >

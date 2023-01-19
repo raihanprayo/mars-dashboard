@@ -1,4 +1,4 @@
-import { DatePicker, Radio, Transfer } from 'antd';
+import { DatePicker, Radio, Select, SelectProps, Transfer } from 'antd';
 import type { TransferDirection, TransferItem } from 'antd/lib/transfer/index';
 import type { Moment } from 'moment';
 import { useEffect, useState } from 'react';
@@ -129,7 +129,12 @@ interface RoleSelectionItem extends TransferItem {
 
 export function BooleanInput(props: BooleanInputProps) {
     return (
-        <Radio.Group id={props.id} value={props.value} onChange={props.onChange} buttonStyle='solid'>
+        <Radio.Group
+            id={props.id}
+            value={props.value}
+            onChange={props.onChange}
+            buttonStyle="solid"
+        >
             <Radio.Button value={true}>{props.trueText || 'Ya'}</Radio.Button>
             <Radio.Button value={false}>{props.falseText || 'Tidak'}</Radio.Button>
         </Radio.Group>
@@ -138,4 +143,23 @@ export function BooleanInput(props: BooleanInputProps) {
 export interface BooleanInputProps extends BaseInputProps {
     trueText?: React.ReactNode;
     falseText?: React.ReactNode;
+}
+
+export function EnumSelect(props: EnumSelectProps) {
+    return (
+        <Select
+            {...props}
+            options={Object.values(props.enums)
+                .filter((e) => {
+                    if (/^(\d+)$/i.test(e.toString())) return false;
+                    return true;
+                })
+                .map((en) => ({ label: en, value: en }))}
+        />
+    );
+}
+export interface EnumSelectProps
+    extends BaseInputProps,
+        Omit<SelectProps, 'onChange' | 'options'> {
+    enums: Record<string, string | number>;
 }

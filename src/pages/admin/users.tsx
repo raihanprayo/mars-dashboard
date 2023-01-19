@@ -20,7 +20,7 @@ export default function UsersPage(props: UsersPageProps) {
     const router = useRouter();
     const pageCtx = useContext(PageContext);
     const { pageable, setPageable } = usePageable();
-    const [filter] = Form.useForm();
+    const [filter] = Form.useForm<ICriteria<DTO.Users>>();
 
     const [openRegister, setOpenRegister] = useState(false);
     const [editor, setEditor] = useState<{ open: bool; user: DTO.Users }>({
@@ -41,6 +41,7 @@ export default function UsersPage(props: UsersPageProps) {
                             ? undefined
                             : pageable.sort,
                     ...filter.getFieldsValue(),
+                    roles: {}
                 }),
             })
             .finally(() => pageCtx.setLoading(false));
@@ -107,6 +108,9 @@ export default function UsersPage(props: UsersPageProps) {
                         <Input />
                     </Form.Item>
                     <Form.Item label="No HP" name={['phone', 'eq']} colon>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="Email" name={['email', 'like']} colon>
                         <Input />
                     </Form.Item>
                     <Form.Item label="Aktif" name={['active', 'eq']} colon>
