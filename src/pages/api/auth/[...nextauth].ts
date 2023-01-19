@@ -42,6 +42,8 @@ const route = NextAuth({
                     tg: data.telegramId,
                     email: data.email,
                     username: data.username,
+                    witel: data.witel,
+                    sto: data.sto,
                     roles: data.roles || [],
                     group: {
                         id: data.group.id,
@@ -71,6 +73,8 @@ const route = NextAuth({
                 token.name = user.name;
                 token.email = user.email;
                 token.sub = user.id;
+                token.witel = user.witel;
+                token.sto = user.sto;
                 token.roles = user.roles;
                 token.group = user.group;
 
@@ -113,6 +117,8 @@ const route = NextAuth({
                     name: token.name,
                     email: token.email,
                     nik: token.nik,
+                    witel: token.witel,
+                    sto: token.sto,
                     group: token.group.id,
                 };
             }
@@ -176,5 +182,7 @@ declare global {
         name: string;
         email: string;
         group: string;
+        sto: string;
+        witel: Mars.Witel;
     }
 }

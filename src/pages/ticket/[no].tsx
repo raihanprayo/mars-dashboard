@@ -38,6 +38,7 @@ import { PageContext } from '_ctx/page.ctx';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { MarsButton } from '_comp/base';
+import notif from '_service/notif';
 
 const AcceptableFileExt = ['.jpg', '.jpeg', '.png', '.webp'];
 
@@ -98,7 +99,8 @@ function TicketDetail(props: TicketDetailProps) {
             .then(() => RefreshBadgeEvent.emit())
             .then(() => setResolved(true))
             .then(() => (window.location.href = '/inbox'))
-            .catch((err) => {});
+            .catch((err) => notif.error(err))
+            .finally(() => pageCtx.setLoading(false));
     };
 
     useEffect(() => {
@@ -131,7 +133,6 @@ function TicketDetail(props: TicketDetailProps) {
     }
 
     const logs = [...props.logs].reverse();
-    const agents = props.agents.filter((agent) => {});
 
     const tabItems: Tab[] = [
         {
@@ -234,7 +235,7 @@ function TicketDetail(props: TicketDetailProps) {
                         </MarsButton>,
                     ]}
                 >
-                    <Form form={submission} layout="vertical" disabled>
+                    <Form form={submission} layout="vertical">
                         <Form.Item
                             name="status"
                             label={<b>Status</b>}

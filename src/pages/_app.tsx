@@ -12,6 +12,7 @@ import { Page } from '_comp/page';
 import { useEffect } from 'react';
 import { ContextMenu } from '_comp/context-menu';
 import { isBrowser } from '_utils/constants';
+import { AppProvider } from '_ctx/app.ctx';
 
 const dash = ['/auth/login', '/auth/register', '/_error', '/dashboard'];
 const isExcluded = (t: string) => dash.findIndex((e) => t.startsWith(e)) !== -1;
@@ -25,7 +26,9 @@ function MarsRocApp({ Component, pageProps, router }: AppProps) {
     const isUnauthenticated = session.status !== 'authenticated';
 
     if (isBrowser && !isUnauthenticated)
-        api.defaults.headers.common[HttpHeader.AUTHORIZATION] = `Bearer ${session.data.bearer}`;
+        api.defaults.headers.common[
+            HttpHeader.AUTHORIZATION
+        ] = `Bearer ${session.data.bearer}`;
 
     useEffect(() => {
         if (isUnauthenticated && !isExcluded(router.pathname)) {
@@ -34,7 +37,7 @@ function MarsRocApp({ Component, pageProps, router }: AppProps) {
     }, [isUnauthenticated]);
 
     return (
-        <>
+        <AppProvider>
             <Head>
                 <meta charSet="UTF-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -45,7 +48,7 @@ function MarsRocApp({ Component, pageProps, router }: AppProps) {
                     <Component {...pageProps} />
                 </Page>
             </ContextMenu>
-        </>
+        </AppProvider>
     );
 }
 

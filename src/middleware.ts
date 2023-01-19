@@ -1,9 +1,4 @@
-import { HttpHeader } from '@mars/common';
-import axios from 'axios';
-import NextAuthMiddleware, {
-    NextAuthMiddlewareOptions,
-    withAuth,
-} from 'next-auth/middleware';
+import { NextAuthMiddlewareOptions, withAuth } from 'next-auth/middleware';
 import { NextMiddleware } from 'next/server';
 
 const rootMiddleware: NextMiddleware = async (req, event) => {
@@ -25,5 +20,5 @@ const rootMiddleware: NextMiddleware = async (req, event) => {
 };
 export default rootMiddleware;
 
-const IGNORED = ['/api/shared'];
+const IGNORED = ['/api/shared', '/api/info'];
 // export default NextAuthMiddleware;

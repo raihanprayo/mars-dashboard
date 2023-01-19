@@ -1,7 +1,7 @@
 const NextWithLess = require('next-with-less');
 // const NextTranspileModule = require('next-transpile-modules');
-const config = require('./configs/app.config');
-const merged = require('merge-deep');
+// const config = require('./src/configs/app.config');
+// const merged = require('merge-deep');
 // const { format, formatWithOptions } = require('util');
 
 /** @type {import('next').NextConfig} */
@@ -12,8 +12,6 @@ const nextConfig = {
   cleanDistDir: true,
 
   poweredByHeader: false,
-  publicRuntimeConfig: merged({}, config.general, config.browser),
-  serverRuntimeConfig: Object.assign({}, config.general, config.server),
 
   lessLoaderOptions: {
     lessOptions: {

@@ -19,6 +19,7 @@ import { AxiosError } from 'axios';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import type { BaseInputProps } from '_comp/table/input.fields';
+import { useApp } from '_ctx/app.ctx';
 import notif from '_service/notif';
 import { CopyAsGaulTicketEvent } from '_utils/events';
 
@@ -26,6 +27,7 @@ const AcceptableFileExt = ['.jpg', '.jpeg', '.png', '.webp'];
 
 export function AddTicketDrawer(props: AddOrderDrawerProps) {
     const router = useRouter();
+    const app = useApp();
     const [form] = Form.useForm();
     const watchIssueId = Form.useWatch(['issue'], form);
 
@@ -152,22 +154,6 @@ export function AddTicketDrawer(props: AddOrderDrawerProps) {
             extra={action}
         >
             <Form form={form} layout="vertical">
-                <Form.Item
-                    label="Witel"
-                    name="witel"
-                    required
-                    rules={[VALIDATOR.required('Witel')]}
-                >
-                    <Select options={mapEnum(Mars.Witel)} />
-                </Form.Item>
-                <Form.Item
-                    label="STO"
-                    name="sto"
-                    required
-                    rules={[VALIDATOR.required('STO')]}
-                >
-                    <Input />
-                </Form.Item>
 
                 <Form.Item
                     label="Problem"
@@ -198,6 +184,20 @@ export function AddTicketDrawer(props: AddOrderDrawerProps) {
                 >
                     <Input />
                 </Form.Item>
+                <Form.Item
+                    label="Witel"
+                    name="witel"
+                    initialValue={app.witel}
+                >
+                    <Select options={mapEnum(Mars.Witel)} />
+                </Form.Item>
+                <Form.Item
+                    label="STO"
+                    name="sto"
+                >
+                    <Input />
+                </Form.Item>
+
                 <Form.Item label="Deskripsi" name="note">
                     <Input.TextArea />
                 </Form.Item>

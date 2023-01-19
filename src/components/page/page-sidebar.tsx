@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useContext, useEffect, useState } from 'react';
 import PageRoutes, { filterRoute, PageRoute } from '_comp/routes';
+import { useApp } from '_ctx/app.ctx';
 import { PageContext } from '_ctx/page.ctx';
 import { MarsIcon } from '../logo/mars-roc';
 
@@ -21,6 +22,7 @@ let rootSubMenuKeys: string[] = [];
 
 function PageSidebar() {
     const { pathname } = useRouter();
+    const appCtx = useApp();
     const { collapsed } = useContext<PageContext>(PageContext);
 
     const session = useSession();
@@ -60,7 +62,8 @@ function PageSidebar() {
                     <MarsIcon />
                 </Link>
                 <br />
-                <Typography.Title level={4}>{username}</Typography.Title>
+                <Typography.Title level={5}>{appCtx.witel}</Typography.Title>
+                <Typography.Text>{username}</Typography.Text>
             </div>
             {
                 <Menu

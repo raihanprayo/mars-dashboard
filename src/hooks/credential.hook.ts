@@ -11,11 +11,7 @@ export function useRole(session?: NextAuthClientSession): RoleHook {
         () => ({
             roles,
             hasRole(name, group = false) {
-                return (
-                    roles.findIndex(
-                        (role) => role.name === name && role.isGroup === group
-                    ) !== -1
-                );
+                return roles.findIndex((role) => role === name) !== -1;
             },
             isAdmin() {
                 return hook.hasRole('admin');
@@ -31,7 +27,7 @@ export function useRole(session?: NextAuthClientSession): RoleHook {
 }
 
 export interface RoleHook {
-    readonly roles: MarsRole[];
+    readonly roles: string[];
     hasRole(name: string, group?: boolean): boolean;
     isAdmin(): boolean;
     isUser(): boolean;
