@@ -9,6 +9,7 @@ import {
     SolutionOutlined,
     InboxOutlined,
     StarOutlined,
+    SettingOutlined,
 } from '@ant-design/icons';
 import { isDefined } from '@mars/common';
 import { Session } from 'next-auth';
@@ -45,9 +46,27 @@ const PageRoutes: PageRoute[] = [
         children: [
             {
                 type: 'page',
+                name: 'Settings',
+                path: '/admin/settings',
+                icon: createElement(SettingOutlined),
+                access: {
+                    hasRole: ['admin'],
+                },
+            },
+            {
+                type: 'page',
                 name: 'Users',
                 path: '/admin/users',
                 icon: createElement(UserOutlined),
+                access: {
+                    hasRole: ['admin'],
+                },
+            },
+            {
+                type: 'page',
+                name: 'User Approvals',
+                path: '/admin/approvals',
+                icon: createElement(AuditOutlined),
                 access: {
                     hasRole: ['admin'],
                 },
@@ -122,7 +141,9 @@ export interface GroupRoute extends BaseRoute {
     type: 'group';
     children: SingleRoute[];
 }
-export interface ChildRoute extends BaseRoute {}
+export interface ChildRoute extends BaseRoute {
+    
+}
 export interface SingleRoute extends BaseRoute {
     type: 'page';
     path?: string;

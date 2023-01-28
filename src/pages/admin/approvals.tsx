@@ -1,32 +1,30 @@
-import { AuditOutlined, ReloadOutlined, UserAddOutlined } from '@ant-design/icons';
+import { CheckOutlined, CloseOutlined, ReloadOutlined } from '@ant-design/icons';
 import { HttpHeader } from '@mars/common';
 import { Form, Input, Radio, Table } from 'antd';
 import axios from 'axios';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { useCallback, useContext, useState } from 'react';
-import { AddUserDrawer, EditUserDrawer } from '_comp/admin/index';
-import { TableUserColms } from '_comp/table/table.definitions';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { DateRangeFilter } from '_comp/table/input.fields';
+import { TableApprovalColms } from '_comp/table/table.definitions';
 import { TFilter } from '_comp/table/table.filter';
 import { THeader } from '_comp/table/table.header';
 import { PageContext } from '_ctx/page.ctx';
 import { MarsTableProvider } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
-import type { CoreService } from '_service/api';
+import { CoreService } from '_service/api';
 
-export default function UsersPage(props: UsersPageProps) {
+export default function UserApprovalPage(props: UserApprovalPageProps) {
     const router = useRouter();
     const pageCtx = useContext(PageContext);
     const { pageable, setPageable } = usePageable();
-    const [filter] = Form.useForm<ICriteria<DTO.Users>>();
 
-    const [openRegister, setOpenRegister] = useState(false);
-    const [editor, setEditor] = useState<{ open: bool; user: DTO.Users }>({
-        open: false,
-        user: null,
-    });
+    const [filter] = Form.useForm<ICriteria<DTO.UserApproval>>();
+    const [selected, setSelected] = useState<boolean[]>(
+        Array(props.data?.length).fill(false)
+    );
+    const [hasSelected, setHasSelected] = useState(false);
 
     const refresh = useCallback(() => {
         pageCtx.setLoading(true);
@@ -41,47 +39,96 @@ export default function UsersPage(props: UsersPageProps) {
                             ? undefined
                             : pageable.sort,
                     ...filter.getFieldsValue(),
-                    roles: {}
+                    roles: {},
                 }),
             })
             .finally(() => pageCtx.setLoading(false));
     }, [pageable.page, pageable.size, pageable.sort]);
 
-    const editUser = useCallback((user: DTO.Users) => {
-        setEditor({ open: true, user });
+    const onSelectedChanged = (
+        selectedRowKeys: React.Key[],
+        selectedRows: DTO.UserApproval[]
+    ) => {
+        const bools = [...selected];
+        for (let index = 0; index < props.data.length; index++) {
+            const dto = props.data[index];
+
+            const isSelected = selectedRows.findIndex((e) => e.id === dto.id) !== -1;
+            bools[index] = isSelected;
+        }
+
+        setSelected(bools);
+        setHasSelected(selectedRows.length !== 0);
+    };
+
+    const onAcceptClick = useCallback((r: DTO.UserApproval, approved: boolean) => {
+        approvalBulkAccept(approved, [r.id]);
     }, []);
 
+    const approvalBulkAccept = useCallback((approved: boolean, ids?: string[]) => {
+        ids ||= selected
+            .filter((e) => e)
+            .map((e, i) => props.data[i])
+            .map((e) => e.id);
+
+        pageCtx.setLoading(true);
+        api.post('/user/approvals', ids, { params: { approved } })
+            .then(() => refresh())
+            .catch((err) => {})
+            .finally(() => pageCtx.setLoading(false));
+    }, []);
+
+    if (props.error) {
+        return <>{props.error.message}</>;
+    }
+
+    // const noSelectedItem =  selected.filter((e) => e).length === 0;
+    console.log('Has Selected Item', hasSelected);
     return (
         <MarsTableProvider>
             <div className="workspace table-view">
                 <THeader>
-                    {/* <THeader.Action
-                        type="primary"
-                        title="Registration Approvals"
-                        icon={<AuditOutlined />}
-                    /> */}
                     <THeader.Action
-                        title="Tambah User"
-                        icon={<UserAddOutlined />}
-                        onClick={() => setOpenRegister(true)}
+                        icon={<CheckOutlined />}
+                        disabled={!hasSelected}
+                        title={
+                            hasSelected
+                                ? 'Terima Permintaan'
+                                : 'Check salah 1 terlebih dahulu'
+                        }
                     >
-                        Tambah User
+                        Terima
                     </THeader.Action>
-
+                    <THeader.Action
+                        icon={<CloseOutlined />}
+                        disabled={!hasSelected}
+                        title={
+                            hasSelected
+                                ? 'Tolak Permintaan'
+                                : 'Check salah 1 terlebih dahulu'
+                        }
+                    >
+                        Tolak
+                    </THeader.Action>
                     <THeader.Action
                         pos="right"
+                        type="primary"
                         title="Refresh"
                         icon={<ReloadOutlined />}
                         onClick={refresh}
                     />
-                    <THeader.FilterAction pos="right" title="Filter">
-                        Filter
-                    </THeader.FilterAction>
                 </THeader>
                 <Table
                     size="small"
-                    columns={TableUserColms({ editUser, pageable })}
-                    dataSource={props.users ?? []}
+                    columns={TableApprovalColms({
+                        pageable,
+                        onAcceptClick,
+                    })}
+                    dataSource={props.data}
+                    rowSelection={{
+                        type: 'checkbox',
+                        onChange: onSelectedChanged,
+                    }}
                     pagination={{
                         total: props.total,
                         current: pageable.page + 1,
@@ -101,7 +148,7 @@ export default function UsersPage(props: UsersPageProps) {
                         },
                     }}
                 />
-                <TFilter form={filter} refresh={refresh} title="User Filter">
+                <TFilter form={filter} refresh={refresh} title="Approval Filter">
                     <Form.Item label="ID" name={['id', 'eq']} colon>
                         <Input />
                     </Form.Item>
@@ -127,18 +174,6 @@ export default function UsersPage(props: UsersPageProps) {
                         <DateRangeFilter allowClear withTime />
                     </Form.Item>
                 </TFilter>
-                <EditUserDrawer
-                    user={editor.user}
-                    open={editor.open}
-                    onClose={(v, afterUpdate) => {
-                        setEditor({ open: v, user: null });
-                        if (afterUpdate) refresh();
-                    }}
-                />
-                <AddUserDrawer
-                    open={openRegister}
-                    onClose={() => setOpenRegister(false)}
-                />
             </div>
         </MarsTableProvider>
     );
@@ -146,24 +181,21 @@ export default function UsersPage(props: UsersPageProps) {
 
 export async function getServerSideProps(ctx: NextPageContext) {
     const session = await getSession(ctx);
+    const config = api.auhtHeader(session);
 
-    const config = api.auhtHeader(session, {
-        params: ctx.query,
-    });
-
-    const res = await api.manage(api.get<DTO.Users[]>('/user', config));
+    const res = await api.manage(api.get('/user/approvals', config));
     if (axios.isAxiosError(res)) return api.serverSideError(res);
 
     const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
     return {
         props: {
             total,
-            users: res.data,
+            data: res.data,
         },
     };
 }
 
-interface UsersPageProps extends CoreService.ErrorDTO {
-    users: DTO.Users[];
+interface UserApprovalPageProps extends CoreService.ErrorDTO {
     total: number;
+    data: DTO.UserApproval[];
 }

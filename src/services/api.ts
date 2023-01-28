@@ -10,10 +10,9 @@ const api: CoreService = axios.create({
     paramsSerializer(params) {
         // const o = inlineKey(params, { separateArray: false });
         // const result: string[] = [];
-
         // const result = qs.stringify(params, {
         //     allowDots: true,
-        //     arrayFormat: 'comma',
+        //     arrayFormat: 'brackets',
         //     charset: 'utf-8',
         //     skipNulls: false,
         //     addQueryPrefix: true,

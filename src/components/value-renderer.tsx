@@ -33,6 +33,10 @@ export namespace Render {
     export const DATE_WITH_TIMESTAMP = 'EEEE, dd MMMM yyyy - HH:mm';
     export const DATE_WITHOUT_TIMESTAMP = 'EEEE, dd MMMM yyyy';
 
+    export function tags() {
+        return (v: any) => (v ? <Tag>{v}</Tag> : '-');
+    }
+
     export function ifEmptyValue(v: any) {
         return v ?? '-';
     }

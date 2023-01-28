@@ -198,7 +198,7 @@ function ConfirmPassword(props: ConfirmPasswordProps) {
                     <Input.Password disabled placeholder="password" />
                 </Form.Item>
                 <Form.Item
-                    label="Re-Type Password"
+                    label="Konfirmasi Password"
                     name="confirm-password"
                     required
                     rules={[ConfirmPassValidator]}

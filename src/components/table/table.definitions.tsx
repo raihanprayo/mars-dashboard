@@ -1,4 +1,9 @@
-import { CopyOutlined, EditOutlined } from '@ant-design/icons';
+import {
+    CheckOutlined,
+    CloseOutlined,
+    CopyOutlined,
+    EditOutlined,
+} from '@ant-design/icons';
 import { isDefined, isFalsy } from '@mars/common';
 import { Button, Space, Tag } from 'antd';
 import { ColumnType } from 'antd/lib/table';
@@ -19,6 +24,10 @@ export interface TableTickerColumnOptions {
 export interface TableUserColumnOptions {
     pageable?: Pageable;
     editUser?(user: DTO.Users): void;
+}
+export interface TableApprovalColumnOptions {
+    pageable?: Pageable;
+    onAcceptClick(record: DTO.UserApproval, accepted: boolean): void;
 }
 
 export const TableTicketColms = (props: TableTickerColumnOptions) => {
@@ -187,6 +196,77 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
             },
         });
     }
+
+    return cols;
+};
+
+export const TableApprovalColms = (opt: TableApprovalColumnOptions) => {
+    const noCol = !opt.pageable
+        ? DefaulCol.NO_COL
+        : DefaulCol.INCREMENTAL_NO_COL(opt.pageable);
+
+    const cols: ColumnType<DTO.UserApproval>[] = [
+        noCol,
+        {
+            title: 'Reg No',
+            align: 'center',
+            dataIndex: 'no',
+        },
+        {
+            title: 'Nama',
+            align: 'center',
+            dataIndex: 'name',
+        },
+        {
+            title: 'NIK',
+            align: 'center',
+            dataIndex: 'nik',
+        },
+        {
+            title: 'Status',
+            align: 'center',
+            dataIndex: 'status',
+            render: Render.tags(),
+        },
+        {
+            title: 'Witel',
+            align: 'center',
+            dataIndex: 'witel',
+            render: Render.witel,
+        },
+        {
+            title: 'STO',
+            align: 'center',
+            dataIndex: 'sto',
+            render: Render.tags(),
+        },
+        DefaulCol.CREATION_DATE_COL,
+        {
+            title: 'Action',
+            align: 'center',
+            render(v, r, i) {
+                return (
+                    <>
+                        <Button
+                            size="small"
+                            type="primary"
+                            icon={<CheckOutlined />}
+                            style={{ marginRight: '0.5rem' }}
+                            title="Terima Approval"
+                            onClick={() => opt.onAcceptClick(r, true)}
+                        />
+                        <Button
+                            size="small"
+                            type="primary"
+                            icon={<CloseOutlined />}
+                            title="Tolak Approval"
+                            onClick={() => opt.onAcceptClick(r, false)}
+                        />
+                    </>
+                );
+            },
+        },
+    ];
 
     return cols;
 };

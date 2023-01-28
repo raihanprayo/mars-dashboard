@@ -3,6 +3,7 @@ import { useSession } from 'next-auth/react';
 import { useMemo } from 'react';
 
 const defaultDisabledOnRole = () => false;
+
 export function MarsButton(props: MarsButtonProps) {
     const session = useSession();
     const { disabled = false, disabledOnRole = defaultDisabledOnRole, ...others } = props;
@@ -12,7 +13,7 @@ export function MarsButton(props: MarsButtonProps) {
 
         const roles = session.data.roles;
         return roleCheck(roles, disabledOnRole) || disabled;
-    }, [session]);
+    }, [session, disabled]);
 
     return <Button {...others} disabled={shouldBeDisabled} />;
 }

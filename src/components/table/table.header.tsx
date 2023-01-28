@@ -1,25 +1,35 @@
 import { FilterOutlined } from '@ant-design/icons';
-import { isDefined, isNum, mergeClassName, randomString } from '@mars/common';
+import { isDefined, isFalsy, isNum, mergeClassName, randomString } from '@mars/common';
 import { Badge, Button, ButtonProps } from 'antd';
-import { Children, isValidElement, useMemo } from 'react';
+import { Children, isValidElement, ReactElement, useMemo } from 'react';
 import { MarsButton, MarsButtonProps } from '_comp/base/Button';
 import { useMarsTable } from '_ctx/table.ctx';
 
+function rerender(index: number, element: ReactElement) {
+    const Type = element.type;
+    return <Type {...element.props} />;
+}
+
 export function THeader(props: HasChild) {
-    const leftComponents: React.ReactNode[] = [];
-    const rightComponents: React.ReactNode[] = [];
-
-    Children.forEach(props.children, (elm) => {
-        if (!isValidElement(elm)) return;
-        else if (!THeader.VALID_ELM.includes(elm.type as any)) return;
-        const pos = elm.props && elm.props.pos === 'right' ? 'right' : 'left';
-        (pos === 'left' ? leftComponents : rightComponents).push(elm);
-    });
-
     return (
         <div className="workspace-header">
-            <ul className="left">{leftComponents}</ul>
-            <ul className="right">{rightComponents.reverse()}</ul>
+            <ul
+                className="menu left"
+                children={Children.map(props.children, (node, index) => {
+                    if (!isValidElement(node)) return null;
+                    else if (node.props.pos === 'right') return null;
+                    return rerender(index, node);
+                })}
+            />
+            <ul
+                className="menu right"
+                children={Children.map(props.children, (node, index) => {
+                    if (!isValidElement(node)) return null;
+                    else if (isFalsy(node.props.pos) || node.props.pos === 'left')
+                        return null;
+                    return rerender(index, node);
+                })}
+            />
         </div>
     );
 }
@@ -61,3 +71,11 @@ export namespace THeader {
 
     export const VALID_ELM = [Action, FilterAction];
 }
+
+// export interface THeaderProps {
+//     children: ActionItem[];
+// }
+
+// export class ActionItem {
+//     abc: string;
+// }
