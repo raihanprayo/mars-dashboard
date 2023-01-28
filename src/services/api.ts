@@ -3,8 +3,10 @@ import qs from 'qs';
 import { HttpHeader } from '@mars/common';
 import { Session } from 'next-auth';
 import { isServer } from '_utils/constants';
+import config from '_config';
 
 const api: CoreService = axios.create({
+    baseURL: isServer ? config.service.url : null,
     paramsSerializer(params) {
         // const o = inlineKey(params, { separateArray: false });
         // const result: string[] = [];
@@ -23,7 +25,10 @@ const api: CoreService = axios.create({
     },
 }) as any;
 
-if (isServer) api.defaults.baseURL = process.env.SERVICE_URL;
+if (isServer) {
+    
+    api.defaults.baseURL = config.service.url;
+}
 
 api.auhtHeader = (session, config = {}) => {
     if (session) {
@@ -46,6 +51,10 @@ api.serverSideError = (err, status) => {
             },
         },
     };
+};
+api.serverSideErrorLog = (err) => {
+    console.error(err);
+    return err;
 };
 api.serializeParam = (params = {}) => {
     return qs
@@ -77,6 +86,7 @@ export interface CoreService extends Axios {
         respon: Promise<AxiosResponse<T>> | AxiosResponse<T>
     ): Promise<AxiosResponse<T> | AxiosError<any>>;
     serverSideError(err: AxiosError<any>, status?: number): any;
+    serverSideErrorLog(err: any): any;
 
     serializeParam(o?: map): string;
 }

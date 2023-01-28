@@ -13,6 +13,8 @@ import { useEffect } from 'react';
 import { ContextMenu } from '_comp/context-menu';
 import { isBrowser } from '_utils/constants';
 import { AppProvider } from '_ctx/app.ctx';
+import axios from 'axios';
+import config from '_config';
 
 const dash = ['/auth/login', '/auth/register', '/_error', '/dashboard'];
 const isExcluded = (t: string) => dash.findIndex((e) => t.startsWith(e)) !== -1;
@@ -37,7 +39,7 @@ function MarsRocApp({ Component, pageProps, router }: AppProps) {
     }, [isUnauthenticated]);
 
     return (
-        <AppProvider>
+        <>
             <Head>
                 <meta charSet="UTF-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -48,17 +50,19 @@ function MarsRocApp({ Component, pageProps, router }: AppProps) {
                     <Component {...pageProps} />
                 </Page>
             </ContextMenu>
-        </AppProvider>
+        </>
     );
 }
 
 function MarsRocWrapper(props: AppProps & CustomAppProps) {
-    const { session, ...others } = props;
+    const { session, info, ...others } = props;
 
     return (
-        <SessionProvider session={session} refetchInterval={60 * 5}>
-            <MarsRocApp {...others} />
-        </SessionProvider>
+        <AppProvider info={info}>
+            <SessionProvider session={session} refetchInterval={60 * 5}>
+                <MarsRocApp {...others} />
+            </SessionProvider>
+        </AppProvider>
     );
 }
 
@@ -75,6 +79,7 @@ namespace MarsRocWrapper {
         return {
             session,
             pageProps,
+            info: config,
         };
     }
 }
@@ -83,4 +88,5 @@ export default MarsRocWrapper;
 
 interface CustomAppProps {
     session: Session;
+    info: MarsApplicationInfo;
 }

@@ -323,7 +323,7 @@ export async function getServerSideProps(ctx: NextPageContext) {
         };
     } else {
         const config = api.auhtHeader(session);
-        const res = await api.get(`/ticket/${ticketNo}`, config).catch((err) => err);
+        const res = await api.get(`/ticket/detail/${ticketNo}`, config).catch((err) => err);
 
         if (axios.isAxiosError(res)) {
             const errorData = res.response?.data ?? {
@@ -347,7 +347,7 @@ export async function getServerSideProps(ctx: NextPageContext) {
                 config
             );
             const relatedRes = await api.get<DTO.Ticket[]>(
-                `/ticket/${ticketNo}/relation`,
+                `/ticket/detail/${ticketNo}/relation`,
                 config
             );
 

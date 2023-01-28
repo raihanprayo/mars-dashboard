@@ -20,6 +20,8 @@ const route = NextAuth({
                 refreshToken: { type: 'input', label: 'Refresh Token' },
             },
             async authorize(credential, req) {
+                console.log('Whoami', credential);
+
                 const bearer = credential.token;
                 const res: AxiosResponse<any> = await api
                     .get('/auth/whoami', {
@@ -27,7 +29,7 @@ const route = NextAuth({
                             [HttpHeader.AUTHORIZATION]: 'Bearer ' + bearer,
                         },
                     })
-                    .catch((err) => err);
+                    .catch(api.serverSideErrorLog);
 
                 if (axios.isAxiosError(res)) {
                     return Promise.reject(
@@ -35,6 +37,9 @@ const route = NextAuth({
                     );
                 }
                 const data = res.data;
+
+
+                console.log('Whoami', data);
                 return {
                     id: data.id,
                     nik: data.nik,
@@ -88,7 +93,7 @@ const route = NextAuth({
                         [HttpHeader.AUTHORIZATION]: `Bearer ${token.bearer}`,
                     },
                 })
-                .catch((err) => err);
+                .catch(api.serverSideErrorLog);
 
             if (axios.isAxiosError(authorize)) {
                 const status = authorize.response?.status;
@@ -133,7 +138,7 @@ const route = NextAuth({
 async function refreshToken(token: JWT, refresher: string) {
     const res = await api
         .post('/auth/refresh', { refreshToken: refresher })
-        .catch((err) => err);
+        .catch(api.serverSideErrorLog);
 
     if (!axios.isAxiosError(res)) {
         const { accessToken, refreshToken } = res.data;

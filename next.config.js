@@ -1,8 +1,4 @@
 const NextWithLess = require('next-with-less');
-// const NextTranspileModule = require('next-transpile-modules');
-// const config = require('./src/configs/app.config');
-// const merged = require('merge-deep');
-// const { format, formatWithOptions } = require('util');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -13,6 +9,7 @@ const nextConfig = {
 
   poweredByHeader: false,
 
+  output: 'standalone',
   lessLoaderOptions: {
     lessOptions: {
       javascriptEnabled: true,
@@ -20,15 +17,12 @@ const nextConfig = {
   },
 
   typescript: {
-    ignoreBuildErrors: true
+    ignoreBuildErrors: true,
   },
 
-  webpack(config, context) {
-    return config;
-  }
+  // webpack(config, context) {
+  //   return config;
+  // }
 }
 
-// const TranspilesTarget = NextTranspileModule([
-//   "@mars/common"
-// ]);
 module.exports = NextWithLess(nextConfig);
