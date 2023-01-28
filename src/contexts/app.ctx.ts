@@ -18,13 +18,16 @@ export function AppProvider(props: HasChild) {
     const [info, setInfo] = useState<MarsApplicationInfo>();
 
     useEffect(() => {
-        axios.get<MarsApplicationInfo>('/api/info').then((res) => setInfo(res.data));
+        axios.get<MarsApplicationInfo>('/api/info').then((res) => {
+            setInfo(res.data);
+            api.defaults.baseURL = res.data.service.url;
+        });
     }, []);
 
     return createElement(AppContext.Provider, {
         children: props.children,
         value: {
-            ...info
+            ...info,
         },
     });
 }

@@ -3,10 +3,10 @@ import { existsSync, readFileSync } from 'fs';
 import { NextApiHandler } from 'next';
 import { detectContentType } from 'next/dist/server/image-optimizer';
 import { join } from 'path';
+import config from '_config';
 
-const SHARED_DIR = process.env.NEXT_PUBLIC_SHARED_DIRECTORY;
+const sharedAssetDir = config.directory.shared;
 const SharedAssetRoute: NextApiHandler = (req, res) => {
-    const sharedAssetDir: string = SHARED_DIR;
     const reqPath = isArr(req.query.asset) ? req.query.asset.join('/') : req.query.asset;
     const filePath = join(sharedAssetDir, reqPath);
     if (!existsSync(filePath)) {
@@ -19,10 +19,6 @@ const SharedAssetRoute: NextApiHandler = (req, res) => {
 
     // const ext = filePath.slice(filePath.lastIndexOf('.'));
     const buff = readFileSync(filePath);
-    // res.setHeader(200, {
-    //     [HttpHeader.CONTENT_TYPE]: detectContentType(buff),
-    //     'Content-Length': buff.length,
-    // });
     res.setHeader(HttpHeader.CONTENT_TYPE, detectContentType(buff));
     res.setHeader(HttpHeader.CONTENT_LENGTH, buff.length);
     res.send(buff);

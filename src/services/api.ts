@@ -4,9 +4,7 @@ import { HttpHeader } from '@mars/common';
 import { Session } from 'next-auth';
 import { isServer } from '_utils/constants';
 
-const baseUrl = process.env.NEXT_PUBLIC_SERVICE_URL;
 const api: CoreService = axios.create({
-    baseURL: baseUrl,
     paramsSerializer(params) {
         // const o = inlineKey(params, { separateArray: false });
         // const result: string[] = [];
@@ -25,37 +23,7 @@ const api: CoreService = axios.create({
     },
 }) as any;
 
-// api.interceptors.response.use(
-//     (v) => {
-//         if (isServer) return v;
-
-//         if (v.status === 401) {
-//             const path = qs.stringify({ callbackUrl: window.location.pathname });
-//             window.location.href = '/auth/login?' + path;
-//         }
-//         return v
-//     },
-//     (err) => err,
-// );
-// api.interceptors.request.use(async (c) => {
-//     console.log('intercept request');
-
-//     if (isBrowser) {
-//         const session = await getSession();
-//         if (session && session.bearer) {
-//             c.headers[HttpHeader.AUTHORIZATION] = `Bearer ${session.bearer}`;
-//         }
-//     }
-//     if (isServer) {
-//         if (c.url?.startsWith('/auth/whoami')) return c;
-
-//         const session = await getSession();
-//         if (session && session.bearer)
-//             c.headers[HttpHeader.AUTHORIZATION] = `Bearer ${session.bearer}`;
-//     }
-
-//     return c;
-// });
+if (isServer) api.defaults.baseURL = process.env.SERVICE_URL;
 
 api.auhtHeader = (session, config = {}) => {
     if (session) {
