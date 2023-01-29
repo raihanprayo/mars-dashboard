@@ -40,3 +40,4 @@ next-env.d.ts
 /server/package-lock.json
 /server/node_modules
 .env
+.next.zip
