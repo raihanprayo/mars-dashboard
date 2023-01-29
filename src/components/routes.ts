@@ -10,6 +10,7 @@ import {
     InboxOutlined,
     StarOutlined,
     SettingOutlined,
+    BulbOutlined,
 } from '@ant-design/icons';
 import { isDefined } from '@mars/common';
 import { Session } from 'next-auth';
@@ -38,6 +39,22 @@ const PageRoutes: PageRoute[] = [
         type: 'page',
         name: 'Leaderboards',
         icon: createElement(StarOutlined),
+    },
+    {
+        type: 'group',
+        name: 'Miscellaneous',
+        icon: createElement(ApartmentOutlined),
+        children: [
+            {
+                type: 'page',
+                name: 'Solution',
+                path: '/admin/solutions',
+                icon: createElement(BulbOutlined),
+                access: {
+                    hasRole: ['admin']
+                }
+            }
+        ]
     },
     {
         type: 'group',

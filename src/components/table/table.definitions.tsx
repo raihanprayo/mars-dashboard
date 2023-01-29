@@ -304,6 +304,10 @@ export const TableSolutionColms = (opt: TableSolutionColumnOptions = {}) => {
 
     const cols: ColumnType<DTO.Solution>[] = [
         noCol,
+        {
+            title: 'Nama',
+            
+        },
         DefaultCol.CREATION_DATE_COL,
         {
             title: 'Aksi',

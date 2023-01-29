@@ -63,7 +63,7 @@ function PageSidebar() {
                 </Link>
                 <br />
                 <Typography.Title level={5}>{appCtx.witel}</Typography.Title>
-                <Typography.Text>{username}</Typography.Text>
+                {!collapsed && <Typography.Text>{username}</Typography.Text>}
             </div>
             {
                 <Menu

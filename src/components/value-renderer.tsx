@@ -1,4 +1,4 @@
-import { isStr } from '@mars/common';
+import { isStr, mergeClassName } from '@mars/common';
 import { Tag } from 'antd';
 import { differenceInSeconds, format } from 'date-fns';
 
@@ -24,7 +24,7 @@ export namespace Render {
         [Mars.Witel.BOGOR]: 'yellow',
         [Mars.Witel.JAKBAR]: 'purple',
         [Mars.Witel.JAKPUS]: 'green',
-        [Mars.Witel.JAKSEL]: 'lemon',
+        [Mars.Witel.JAKSEL]: 'magenta',
         [Mars.Witel.JAKTIM]: 'geekblue',
         [Mars.Witel.JAKUT]: 'lime',
         [Mars.Witel.TANGERANG]: 'volcano',
@@ -33,8 +33,14 @@ export namespace Render {
     export const DATE_WITH_TIMESTAMP = 'EEEE, dd MMMM yyyy - HH:mm';
     export const DATE_WITHOUT_TIMESTAMP = 'EEEE, dd MMMM yyyy';
 
-    export function tags() {
-        return (v: any) => (v ? <Tag>{v}</Tag> : '-');
+    export function tags(opt: TagRenderOpt = {}) {
+        return (v: any) => {
+            const text = opt.bold ? <b>{v}</b> : v;
+            const cls = mergeClassName({
+                'tag-status': opt.statusDisplay,
+            });
+            return v ? <Tag className={cls}>{text}</Tag> : '-';
+        };
     }
 
     export function ifEmptyValue(v: any) {
@@ -106,4 +112,8 @@ interface BoolRenderOpt {
     trueText?: string;
     falseText?: string;
     reverseColor?: boolean;
+}
+interface TagRenderOpt {
+    bold?: boolean;
+    statusDisplay?: boolean;
 }

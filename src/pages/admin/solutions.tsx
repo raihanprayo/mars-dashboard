@@ -1,5 +1,5 @@
 import { FileAddOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
-import { Form, Input, Table } from 'antd';
+import { Form, Input, List, Table } from 'antd';
 import { useRouter } from 'next/router';
 import { useCallback, useContext } from 'react';
 import { DateRangeFilter } from '_comp/table/input.fields';
@@ -41,20 +41,11 @@ export default function SolutionsPage(props: SolutionsPageProps) {
 
     return (
         <MarsTableProvider refresh={refresh}>
-            <div className="workspace table-view">
+            <div className="workspace solution">
                 <THeader>
-                    <THeader.Action
-                        icon={<FileAddOutlined />}
-                        title="Buat Solusi Baru"
-                    >
+                    <THeader.Action icon={<FileAddOutlined />} title="Buat Solusi Baru">
                         Buat
                     </THeader.Action>
-                    <THeader.Action
-                        pos="right"
-                        title="Refresh"
-                        icon={<ReloadOutlined />}
-                        onClick={(e) => refresh()}
-                    />
                     <THeader.FilterAction
                         pos="right"
                         title="Data Filter"
@@ -62,8 +53,14 @@ export default function SolutionsPage(props: SolutionsPageProps) {
                     >
                         Filter
                     </THeader.FilterAction>
+                    <THeader.Action
+                        pos="right"
+                        title="Refresh"
+                        icon={<ReloadOutlined />}
+                        onClick={(e) => refresh()}
+                    />
                 </THeader>
-                <Table
+                {/* <Table
                     dataSource={props.solutions}
                     columns={TableSolutionColms({ pageable })}
                     pagination={MarsTablePagination({
@@ -72,10 +69,19 @@ export default function SolutionsPage(props: SolutionsPageProps) {
                         setPageable,
                         total: props.total,
                     })}
-                />
+                /> */}
+
+                <div className="solution-wrap">
+                    <div className="solution-content">
+                        <List 
+                            
+                        />
+                    </div>
+                    <div className="solution-sider"></div>
+                </div>
             </div>
 
-            <TFilter form={filter}>
+            {/* <TFilter form={filter}>
                 <Form.Item label="ID" name={['id', 'eq']}>
                     <Input />
                 </Form.Item>
@@ -88,7 +94,7 @@ export default function SolutionsPage(props: SolutionsPageProps) {
                 <Form.Item label="Tanggal Diubah" name="updatedAt">
                     <DateRangeFilter />
                 </Form.Item>
-            </TFilter>
+            </TFilter> */}
         </MarsTableProvider>
     );
 }

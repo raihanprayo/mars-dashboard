@@ -124,3 +124,19 @@
         }
     }
 }
+
+.copyable {
+    cursor: pointer;
+
+    > .anticon {
+        opacity: 0;
+        transition: opacity 200ms;
+        margin-left: 0.5rem;
+    }
+
+    &:hover {
+        > .anticon {
+            opacity: 1;
+        }
+    }
+}

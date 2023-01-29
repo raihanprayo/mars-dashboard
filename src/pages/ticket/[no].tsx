@@ -35,7 +35,7 @@ import { useRouter } from 'next/router';
 import { PageContext } from '_ctx/page.ctx';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { MarsButton } from '_comp/base';
+import { CopyToClipboard, MarsButton } from '_comp/base';
 import notif from '_service/notif';
 
 const AcceptableFileExt = ['.jpg', '.jpeg', '.png', '.webp'];
@@ -157,11 +157,11 @@ function TicketDetail(props: TicketDetailProps) {
             disabled: !ticket.gaul,
             children: <GaulRelation relations={props.relation} />,
         },
-        {
-            key: 'dt-agent',
-            label: 'Agents',
-            disabled: props.agents.length === 0,
-        },
+        // {
+        //     key: 'dt-agent',
+        //     label: 'Agents',
+        //     disabled: props.agents.length === 0,
+        // },
     ];
 
     return (
@@ -173,21 +173,25 @@ function TicketDetail(props: TicketDetailProps) {
                     title={
                         <Typography.Title level={3}>
                             <AuditOutlined className="tc-desc-title-icon" />
-                            <span className="tc-desc-title">Tiket - {ticket.no}</span>
+                            <span className="tc-desc-title">
+                                Tiket - <CopyToClipboard data={ticket.no} />
+                            </span>
                         </Typography.Title>
                     }
                     layout="vertical"
                 >
-                    <Descriptions.Item label="No">{ticket.no}</Descriptions.Item>
+                    <Descriptions.Item label="No">
+                        <CopyToClipboard data={ticket.no} />
+                    </Descriptions.Item>
                     <Descriptions.Item label="Gangguan Ulang" span={5}>
                         {Render.bool(ticket.gaul)}
                     </Descriptions.Item>
 
                     <Descriptions.Item label="Service">
-                        {ticket.serviceNo}
+                        <CopyToClipboard data={ticket.serviceNo} withIcon />
                     </Descriptions.Item>
                     <Descriptions.Item label="Tiket Nossa">
-                        {ticket.incidentNo}
+                        <CopyToClipboard data={ticket.incidentNo} withIcon />
                     </Descriptions.Item>
                     <Descriptions.Item label="Kendala">
                         {ticket.issue.name}
@@ -200,14 +204,16 @@ function TicketDetail(props: TicketDetailProps) {
                         {Render.witel(ticket.witel)}
                     </Descriptions.Item>
                     <Descriptions.Item label="STO" span={2}>
-                        <Tag className="tag-status">
-                            <b>{ticket.sto}</b>
-                        </Tag>
+                        {Render.tags({ bold: true, statusDisplay: true })(ticket.sto)}
                     </Descriptions.Item>
 
-                    <Descriptions.Item label="Note" span={5}>
+                    <Descriptions.Item label="Sumber">
+                        {Render.tags({ bold: true, statusDisplay: true })(ticket.source)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Note" span={3}>
                         {ticket.note ?? <i>*Empty*</i>}
                     </Descriptions.Item>
+
                     <Descriptions.Item label="Attachments" span={5}>
                         <SharedImage assets={ticket.assets} />
                     </Descriptions.Item>
@@ -242,11 +248,7 @@ function TicketDetail(props: TicketDetailProps) {
                                 { required: true, message: 'Status update required' },
                             ]}
                         >
-                            <Radio.Group
-                                buttonStyle="solid"
-                                // value={updateTo}
-                                // onChange={(e) => setUpdateTo(e.target.value)}
-                            >
+                            <Radio.Group buttonStyle="solid">
                                 <Radio.Button value={Mars.Status.CLOSED}>
                                     Close
                                 </Radio.Button>
@@ -259,12 +261,8 @@ function TicketDetail(props: TicketDetailProps) {
                             </Radio.Group>
                         </Form.Item>
 
-                        <Form.Item label={<b>Description</b>} name="description">
-                            <Input.TextArea
-                                // value={description}
-                                // onChange={(e) => setDescription(e.currentTarget.value)}
-                                placeholder="work description"
-                            />
+                        <Form.Item label={<b>Worklog</b>} name="description" required>
+                            <Input.TextArea placeholder="work description" />
                         </Form.Item>
 
                         <Form.Item label={<b>Attachments</b>}>
@@ -321,7 +319,9 @@ export async function getServerSideProps(ctx: NextPageContext) {
         };
     } else {
         const config = api.auhtHeader(session);
-        const res = await api.get(`/ticket/detail/${ticketNo}`, config).catch((err) => err);
+        const res = await api
+            .get(`/ticket/detail/${ticketNo}`, config)
+            .catch((err) => err);
 
         if (axios.isAxiosError(res)) {
             const errorData = res.response?.data ?? {
@@ -343,7 +343,7 @@ export async function getServerSideProps(ctx: NextPageContext) {
             );
             const relatedRes = await api.get<DTO.Ticket[]>(
                 `/ticket/detail/${ticketNo}/relation`,
-                config
+                { ...config, params: { wip: { in: [true, false] } } }
             );
 
             return {
@@ -402,18 +402,18 @@ function GaulRelation(props: { relations: DTO.Ticket[] }) {
                     <List.Item
                         className="tc-detail-relations-item"
                         actions={[
-                            <Space title='Tiket Status'>
+                            <Space title="Tiket Status">
                                 <InfoCircleOutlined />
                                 {item.status}
                             </Space>,
-                            <Space title='Tanggal Dibuat'>
+                            <Space title="Tanggal Dibuat">
                                 <LoginOutlined />
                                 {format(
                                     new Date(item.createdAt),
                                     Render.DATE_WITH_TIMESTAMP
                                 )}
                             </Space>,
-                            <Space title='Dibuat Oleh'>
+                            <Space title="Dibuat Oleh">
                                 <UserOutlined />
                                 {item.createdBy}
                             </Space>,
