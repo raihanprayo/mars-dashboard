@@ -131,38 +131,72 @@
         line-height: 40px;
 
         .workspace-header {
-            display: flex;
             margin-bottom: 10px;
 
-            > ul.menu {
-                list-style-type: none;
-                margin-block-start: 0;
-                margin-block-end: 0;
-                padding-inline-start: 0;
+            > .workspace-header-menu {
+                display: flex;
+                width: 100%;
 
-                > li.workspace-act {
-                    display: inline-block;
+                > ul.menu {
+                    list-style-type: none;
+                    margin-block-start: 0;
+                    margin-block-end: 0;
+                    padding-inline-start: 0;
 
-                    &:not(:last-child) {
-                        margin-right: 0.25rem;
+                    > li.workspace-act {
+                        display: inline-block;
+
+                        &:not(:last-child) {
+                            margin-right: 0.25rem;
+                        }
                     }
-                }
 
-                &.left {
-                    flex: 1;
-                }
-                &.right {
-                    width: fit-content;
+                    &.left {
+                        flex: 1;
+                    }
+                    &.right {
+                        width: fit-content;
+                    }
                 }
             }
 
-            > .workspace-header-menu {
-                width: 100%;
+            &.footer {
+                padding: 0.35rem 0.5rem;
+                border-radius: 3px;
+                margin-top: 10px;
             }
         }
 
         &.profile {
             padding: 0 3rem;
+        }
+        &.settings {
+            padding: 0 5rem;
+
+            > .workspace-setting-content {
+                padding: 0 2rem;
+
+                .ant-form.setting-arr-form {
+                    .ant-space-item {
+                        &:first-child {
+                            width: 80%;
+                        }
+                        // &:last-child {
+                        //     > .ant-form-item {
+                        //         margin-bottom: 1rem;
+                        //     }
+                        // }
+                        > .ant-form-item {
+                            margin-bottom: 0.25rem;
+                        }
+                    }
+
+                    > .ant-form-item:last-child {
+                        margin-top: 1rem;
+                        margin-bottom: 0;
+                    }
+                }
+            }
         }
     }
 }

@@ -12,7 +12,7 @@ import { DateRangeFilter } from '_comp/table/input.fields';
 import { TFilter } from '_comp/table/table.filter';
 import { THeader } from '_comp/table/table.header';
 import { PageContext } from '_ctx/page.ctx';
-import { MarsTableProvider } from '_ctx/table.ctx';
+import { MarsTablePagination, MarsTableProvider } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
 import type { CoreService } from '_service/api';
 
@@ -41,7 +41,7 @@ export default function UsersPage(props: UsersPageProps) {
                             ? undefined
                             : pageable.sort,
                     ...filter.getFieldsValue(),
-                    roles: {}
+                    roles: {},
                 }),
             })
             .finally(() => pageCtx.setLoading(false));
@@ -52,7 +52,7 @@ export default function UsersPage(props: UsersPageProps) {
     }, []);
 
     return (
-        <MarsTableProvider>
+        <MarsTableProvider refresh={refresh}>
             <div className="workspace table-view">
                 <THeader>
                     {/* <THeader.Action
@@ -82,26 +82,34 @@ export default function UsersPage(props: UsersPageProps) {
                     size="small"
                     columns={TableUserColms({ editUser, pageable })}
                     dataSource={props.users ?? []}
-                    pagination={{
-                        total: props.total,
-                        current: pageable.page + 1,
-                        pageSizeOptions: [10, 20, 50, 100, 200],
-                        hideOnSinglePage: false,
-                        onChange(page, pageSize) {
-                            if (pageable.page !== page - 1) {
-                                setPageable({ page: page - 1 });
-                                refresh();
-                            }
-                        },
-                        onShowSizeChange(current, size) {
-                            if (current !== size) {
-                                setPageable({ size });
-                                refresh();
-                            }
-                        },
-                    }}
+                    pagination={
+                        MarsTablePagination({
+                            pageable,
+                            setPageable,
+                            refresh,
+                            total: props.total,
+                        })
+                        // {
+                        //     total: props.total,
+                        //     current: pageable.page + 1,
+                        //     pageSizeOptions: [10, 20, 50, 100, 200],
+                        //     hideOnSinglePage: false,
+                        //     onChange(page, pageSize) {
+                        //         if (pageable.page !== page - 1) {
+                        //             setPageable({ page: page - 1 });
+                        //             refresh();
+                        //         }
+                        //     },
+                        //     onShowSizeChange(current, size) {
+                        //         if (current !== size) {
+                        //             setPageable({ size });
+                        //             refresh();
+                        //         }
+                        //     },
+                        // }
+                    }
                 />
-                <TFilter form={filter} refresh={refresh} title="User Filter">
+                <TFilter form={filter} title="User Filter">
                     <Form.Item label="ID" name={['id', 'eq']} colon>
                         <Input />
                     </Form.Item>

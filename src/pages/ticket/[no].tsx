@@ -1,6 +1,5 @@
-import Icon, {
+import {
     AuditOutlined,
-    CheckCircleOutlined,
     CheckOutlined,
     InboxOutlined,
     InfoCircleOutlined,
@@ -9,7 +8,6 @@ import Icon, {
 } from '@ant-design/icons';
 import { isDefined } from '@mars/common';
 import {
-    Button,
     Descriptions,
     Divider,
     Form,
@@ -337,9 +335,6 @@ export async function getServerSideProps(ctx: NextPageContext) {
                 },
             };
         } else {
-            const nextRes = ctx.res;
-            nextRes.setHeader('Cache-Control', 'public, s-maxage');
-
             const data: DTO.Ticket = res.data;
             const logRes = await api.get(`/ticket/logs/${ticketNo}`, config);
             const agentRes = await api.get<DTO.TicketAgent[]>(

@@ -111,29 +111,35 @@ export function TicketTable(props: TicketTableProps) {
     }, [watchedProductFilter]);
 
     const actions = [
-        props.editorDrawer && (
-            <THeader.Action
-                type="primary"
-                icon={<FileAddOutlined />}
-                onClick={() => setOpenAddTicket(true)}
-                disabledOnRole={MarsButton.disableIfAdmin}
-            >
-                Buat Tiket
-            </THeader.Action>
-        ),
+        // props.editorDrawer && (
+        //     <THeader.Action
+        //         type="primary"
+        //         icon={<FileAddOutlined />}
+        //         onClick={() => setOpenAddTicket(true)}
+        //         disabledOnRole={MarsButton.disableIfAdmin}
+        //     >
+        //         Buat Tiket
+        //     </THeader.Action>
+        // ),
         <THeader.Action
             pos="right"
+            type="primary"
             title="Refresh"
             icon={<ReloadOutlined />}
             onClick={(e) => refresh()}
         />,
-        <THeader.FilterAction pos="right" title="Filter" icon={<FilterOutlined />}>
+        <THeader.FilterAction
+            pos="right"
+            type="primary"
+            title="Filter"
+            icon={<FilterOutlined />}
+        >
             Filter
         </THeader.FilterAction>,
     ].filter(isBool.non);
 
     return (
-        <MarsTableProvider>
+        <MarsTableProvider refresh={refresh}>
             <div className="workspace table-view">
                 <THeader children={actions} />
                 <Table
@@ -169,7 +175,7 @@ export function TicketTable(props: TicketTableProps) {
                         },
                     })}
                 />
-                <TFilter form={formFilter} refresh={refresh} title="Tiket Filter">
+                <TFilter form={formFilter} title="Tiket Filter">
                     <Form.Item label="Sedang Dikerjakan" name={['wip', 'eq']}>
                         <BooleanInput />
                     </Form.Item>
@@ -180,7 +186,7 @@ export function TicketTable(props: TicketTableProps) {
                             placeholder="produk (multi)"
                         />
                     </Form.Item>
-                    <Form.Item label="No Tiket" name={['no', 'like']}>
+                    <Form.Item label="Order No" name={['no', 'like']}>
                         <Input />
                     </Form.Item>
                     <Form.Item label="STO" name={['sto', 'like']}>
@@ -222,7 +228,7 @@ export function TicketTable(props: TicketTableProps) {
                     <Form.Item label="Tanggal Dibuat" name="createdAt">
                         <DateRangeFilter />
                     </Form.Item>
-                    <Form.Item label="Tanggal Diubah" name="createdAt">
+                    <Form.Item label="Tanggal Diubah" name="updatedAt">
                         <DateRangeFilter />
                     </Form.Item>
                 </TFilter>
@@ -281,6 +287,7 @@ export interface TicketTableProps {
 
     withActionCol?: boolean;
     withLinkToDetail?: boolean;
+    editAbleDetail?: boolean;
 
     editorDrawer?: boolean;
     customContextMenu?: boolean;

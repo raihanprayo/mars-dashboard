@@ -26,7 +26,7 @@ export const getServerSideProps = TicketTable.getServerSideProps('/ticket', {
                 Mars.Status.DISPATCH,
                 Mars.Status.REOPEN,
                 Mars.Status.PENDING,
-            ] as any,
+            ],
         },
     },
 });

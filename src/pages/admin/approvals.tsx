@@ -85,7 +85,7 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
     // const noSelectedItem =  selected.filter((e) => e).length === 0;
     console.log('Has Selected Item', hasSelected);
     return (
-        <MarsTableProvider>
+        <MarsTableProvider refresh={refresh}>
             <div className="workspace table-view">
                 <THeader>
                     <THeader.Action
@@ -94,7 +94,7 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
                         title={
                             hasSelected
                                 ? 'Terima Permintaan'
-                                : 'Check salah 1 terlebih dahulu'
+                                : 'Check salah 1 data terlebih dahulu'
                         }
                     >
                         Terima
@@ -105,7 +105,7 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
                         title={
                             hasSelected
                                 ? 'Tolak Permintaan'
-                                : 'Check salah 1 terlebih dahulu'
+                                : 'Check salah 1 data terlebih dahulu'
                         }
                     >
                         Tolak
@@ -148,7 +148,7 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
                         },
                     }}
                 />
-                <TFilter form={filter} refresh={refresh} title="Approval Filter">
+                <TFilter form={filter} title="Approval Filter">
                     <Form.Item label="ID" name={['id', 'eq']} colon>
                         <Input />
                     </Form.Item>

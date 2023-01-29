@@ -10,6 +10,7 @@ import { ColumnType } from 'antd/lib/table';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { useCallback, useState, useEffect } from 'react';
+import { render } from 'react-dom';
 import { MarsButton } from '_comp/base/Button';
 import { Render } from '_comp/value-renderer';
 import { CopyAsGaulTicketEvent } from '_utils/events';
@@ -29,18 +30,21 @@ export interface TableApprovalColumnOptions {
     pageable?: Pageable;
     onAcceptClick(record: DTO.UserApproval, accepted: boolean): void;
 }
+export interface TableSolutionColumnOptions {
+    pageable?: Pageable;
+}
 
-export const TableTicketColms = (props: TableTickerColumnOptions) => {
-    const { takeOrder, withActionCol = true, withCopyToDrawer = false } = props;
+export const TableTicketColms = (opt: TableTickerColumnOptions) => {
+    const { takeOrder, withActionCol = true, withCopyToDrawer = false } = opt;
     const cols: ColumnType<DTO.Ticket>[] = [
-        DefaulCol.INCREMENTAL_NO_COL(props.pageable),
+        DefaultCol.INCREMENTAL_NO_COL(opt.pageable),
         {
             title: 'Order No',
             align: 'center',
             dataIndex: 'no',
             filterSearch: true,
             render(value, record, index) {
-                if (!props.withLinkToDetail) return value;
+                if (!opt.withLinkToDetail) return value;
                 // return <Link href={'/order/detail/' + value}>{value}</Link>;
                 return <Link href={'/ticket/' + value}>{value}</Link>;
             },
@@ -52,7 +56,7 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
             render: (v, r) => Render.orderStatus(v, true),
         },
         {
-            title: 'Ga Ul',
+            title: 'Gaul',
             dataIndex: 'gaul',
             align: 'center',
             render: (v) => Render.bool(v),
@@ -81,7 +85,6 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
             dataIndex: 'product',
             render: Render.product,
         },
-
         {
             title: 'Witel',
             align: 'center',
@@ -93,7 +96,13 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
             align: 'center',
             dataIndex: 'sto',
         },
-        DefaulCol.CREATION_DATE_COL,
+        {
+            title: 'Sumber',
+            align: 'center',
+            dataIndex: 'source',
+            render: Render.tags(),
+        },
+        DefaultCol.CREATION_DATE_COL,
     ];
 
     if (withActionCol) {
@@ -137,8 +146,8 @@ export const TableTicketColms = (props: TableTickerColumnOptions) => {
 
 export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
     const noCol = !opt.pageable
-        ? DefaulCol.NO_COL
-        : DefaulCol.INCREMENTAL_NO_COL(opt.pageable);
+        ? DefaultCol.NO_COL
+        : DefaultCol.INCREMENTAL_NO_COL(opt.pageable);
 
     const cols: ColumnType<DTO.Users>[] = [
         noCol,
@@ -152,13 +161,29 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
             align: 'center',
             dataIndex: 'nik',
         },
+        // {
+        //     title: 'Group',
+        //     align: 'center',
+        //     render(value, record, index) {
+        //         if (!isDefined(record.group)) return '-';
+        //         return (
+        //             <Link href={`/group/${record.group.id}`}>{record.group.name}</Link>
+        //         );
+        //     },
+        // },
         {
-            title: 'Group',
+            title: 'Role',
             align: 'center',
             render(value, record, index) {
-                if (!isDefined(record.group)) return '-';
+                const roles: string[] = record.roles as any;
                 return (
-                    <Link href={`/group/${record.group.id}`}>{record.group.name}</Link>
+                    <>
+                        {roles.map((role, i) => (
+                            <Tag key={`${record.id}:role:${i}`}>
+                                <b>{role.toUpperCase()}</b>
+                            </Tag>
+                        ))}
+                    </>
                 );
             },
         },
@@ -173,7 +198,7 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
                     reverseColor: true,
                 }),
         },
-        DefaulCol.CREATION_DATE_COL,
+        DefaultCol.CREATION_DATE_COL,
     ];
 
     const actions: JSX.Element[] = [];
@@ -184,14 +209,15 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
             align: 'center',
             render(value, record, index) {
                 return (
-                    <>
+                    <Space>
                         <Button
+                            type="primary"
                             icon={<EditOutlined />}
                             onClick={() => opt.editUser(record)}
                         >
                             Edit
                         </Button>
-                    </>
+                    </Space>
                 );
             },
         });
@@ -202,8 +228,8 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
 
 export const TableApprovalColms = (opt: TableApprovalColumnOptions) => {
     const noCol = !opt.pageable
-        ? DefaulCol.NO_COL
-        : DefaulCol.INCREMENTAL_NO_COL(opt.pageable);
+        ? DefaultCol.NO_COL
+        : DefaultCol.INCREMENTAL_NO_COL(opt.pageable);
 
     const cols: ColumnType<DTO.UserApproval>[] = [
         noCol,
@@ -240,7 +266,7 @@ export const TableApprovalColms = (opt: TableApprovalColumnOptions) => {
             dataIndex: 'sto',
             render: Render.tags(),
         },
-        DefaulCol.CREATION_DATE_COL,
+        DefaultCol.CREATION_DATE_COL,
         {
             title: 'Action',
             align: 'center',
@@ -271,6 +297,26 @@ export const TableApprovalColms = (opt: TableApprovalColumnOptions) => {
     return cols;
 };
 
+export const TableSolutionColms = (opt: TableSolutionColumnOptions = {}) => {
+    const noCol = !opt.pageable
+        ? DefaultCol.NO_COL
+        : DefaultCol.INCREMENTAL_NO_COL(opt.pageable);
+
+    const cols: ColumnType<DTO.Solution>[] = [
+        noCol,
+        DefaultCol.CREATION_DATE_COL,
+        {
+            title: 'Aksi',
+            align: 'center',
+            render(v, r, i) {
+                return '-';
+            },
+        },
+    ];
+
+    return cols;
+};
+
 function Difference(props: { orderno: string | number; opentime: Date | string }) {
     const getTime = useCallback(() => {
         const { hour, minute } = Render.calcOrderAge(props.opentime);
@@ -287,7 +333,7 @@ function Difference(props: { orderno: string | number; opentime: Date | string }
     return <span className="diff-time">{time}</span>;
 }
 
-namespace DefaulCol {
+namespace DefaultCol {
     export const NO_COL: ColumnType<any> = {
         title: 'No',
         width: 40,

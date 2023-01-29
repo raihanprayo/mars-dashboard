@@ -21,7 +21,8 @@ export namespace MarsButton {
     export type DisableOnRoleCheck = (role: string) => boolean;
 
     export const disableIfAdmin: DisableOnRoleCheck = (r: string) => r === 'admin';
-    export const disableIfUser: DisableOnRoleCheck = (r: string) => r === 'user';
+    export const disableIfUser: DisableOnRoleCheck = (r: string) =>
+        r === 'user_dashboard' || r === 'user';
 }
 
 export interface MarsButtonProps extends ButtonProps {

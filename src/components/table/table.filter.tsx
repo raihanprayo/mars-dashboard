@@ -5,14 +5,14 @@ import { useMarsTable } from '_ctx/table.ctx';
 
 export function TFilter<T = any>(props: TFilterProps<T>) {
     const tableCtx = useMarsTable();
-    const { form, refresh, title, open } = props;
+    const { form, title, open } = props;
 
     const onClose = () => {
         if (isFn(props.onClose)) props.onClose();
         else tableCtx?.toggleFilter(false);
     };
     const onSearch = () => {
-        const res = refresh?.();
+        const res = tableCtx.refresh();
         if (res instanceof Promise) res.finally(() => onClose());
         else onClose();
     };
@@ -28,7 +28,7 @@ export function TFilter<T = any>(props: TFilterProps<T>) {
                         type="primary"
                         onClick={() => {
                             form.resetFields();
-                            refresh();
+                            tableCtx?.refresh();
                         }}
                     >
                         Clear
@@ -48,7 +48,6 @@ export function TFilter<T = any>(props: TFilterProps<T>) {
 
 interface TFilterProps<T = any> extends HasChild {
     form?: FormInstance<ICriteria<T>>;
-    refresh?(): any;
 
     title?: string;
     open?: boolean;

@@ -13,7 +13,6 @@ import { useEffect } from 'react';
 import { ContextMenu } from '_comp/context-menu';
 import { isBrowser } from '_utils/constants';
 import { AppProvider } from '_ctx/app.ctx';
-import axios from 'axios';
 import config from '_config';
 
 const dash = ['/auth/login', '/auth/register', '/_error', '/dashboard'];

@@ -67,13 +67,13 @@ function PageHeader() {
                     <DateCounter />
                 </Menu.Item>
 
-                <Menu.Item key="inbox-btn" title="Inbox">
+                {<Menu.Item key="inbox-btn" title="Inbox">
                     <Badge count={badge}>
                         <Link href="/inbox">
                             <BellOutlined style={IconStyle} />
                         </Link>
                     </Badge>
-                </Menu.Item>
+                </Menu.Item>}
 
                 <Menu.SubMenu
                     key="profile-menu"

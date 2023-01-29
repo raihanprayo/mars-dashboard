@@ -1,4 +1,4 @@
-import { createContext } from "react";
+import { createContext, useContext } from "react";
 
 export const PageContext = createContext<PageContext>(null);
 export const PageProvider = PageContext.Provider;
@@ -9,4 +9,8 @@ export interface PageContext {
 
     loading: boolean;
     setLoading(loading: boolean): void;
+}
+
+export function usePage() {
+    return useContext(PageContext);
 }
