@@ -120,9 +120,9 @@ export function AddUserDrawer(props: AddUserDrawerProps) {
                 <Form.Item label="STO" name="sto">
                     <Input placeholder="sto" />
                 </Form.Item>
-                <Form.Item label="Group" name="group">
+                {/* <Form.Item label="Group" name="group">
                     <AutoComplete options={groups} placeholder="(auto complete)" />
-                </Form.Item>
+                </Form.Item> */}
                 <Form.Item label="Aktif" name="active" rules={[FormRules.REQUIRED]}>
                     <Radio.Group buttonStyle="solid">
                         <Radio.Button value={true}>Ya</Radio.Button>

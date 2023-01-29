@@ -80,7 +80,7 @@ function TicketDetail(props: TicketDetailProps) {
         }
 
         const form = new FormData();
-        form.set('description', description);
+        form.set('note', description);
         for (const file of files) form.append('files', file as RcFile, file.fileName);
 
         const statusLink =
@@ -164,6 +164,7 @@ function TicketDetail(props: TicketDetailProps) {
         // },
     ];
 
+    const watchStat = Form.useWatch('status', submission);
     return (
         <div className="tc-detail-container">
             <div className="tc-detail-content">
@@ -239,7 +240,9 @@ function TicketDetail(props: TicketDetailProps) {
                         </MarsButton>,
                     ]}
                 >
-                    <Form form={submission} layout="vertical">
+                    <Form form={submission} layout="vertical" initialValues={{
+                        status: Mars.Status.CLOSED
+                    }}>
                         <Form.Item
                             name="status"
                             label={<b>Status</b>}
@@ -261,7 +264,16 @@ function TicketDetail(props: TicketDetailProps) {
                             </Radio.Group>
                         </Form.Item>
 
-                        <Form.Item label={<b>Worklog</b>} name="description" required>
+                        <Form.Item
+                            label={<b>Worklog</b>}
+                            name="description"
+                            rules={[
+                                {
+                                    required: watchStat !== Mars.Status.DISPATCH,
+                                    message: 'Worklog tidak boleh kosong'
+                                },
+                            ]}
+                        >
                             <Input.TextArea placeholder="work description" />
                         </Form.Item>
 

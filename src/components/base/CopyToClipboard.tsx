@@ -7,7 +7,7 @@ export function CopyToClipboard(props: CopyToClipboardProps) {
     const onClick = () =>
         navigator.clipboard
             .writeText(String(props.data))
-            .then(() => message.success('Text Copied'));
+            .then(() => message.success('Text Copied', 2));
 
     const cls = mergeClassName('copyable', props.className);
     return (
