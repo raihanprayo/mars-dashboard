@@ -1,12 +1,29 @@
 import { AuditOutlined } from '@ant-design/icons';
-import { Col, Row, Statistic, Typography } from 'antd';
+import {
+    Col,
+    Form,
+    Input,
+    InputNumber,
+    Radio,
+    Row,
+    Select,
+    Statistic,
+    Typography,
+} from 'antd';
 import axios from 'axios';
-import { format, startOfToday } from 'date-fns';
+import { endOfDay, format, startOfToday } from 'date-fns';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
-import { createContext, ReactNode, useContext } from 'react';
+import { createContext, ReactNode, useContext, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { isBrowser, isServer } from '_utils/constants';
+import { TFilter } from '_comp/table/table.filter';
+import { MarsTableConsumer, MarsTableProvider } from '_ctx/table.ctx';
+import { BooleanInput, DateRangeFilter, EnumSelect } from '_comp/table/input.fields';
+import { mapEnum } from '_utils/conversion';
+import { THeader } from '_comp/table/table.header';
+import { useRouter } from 'next/router';
+import { usePage } from '_ctx/page.ctx';
 
 const Pie = dynamic(
     async () => {
@@ -24,41 +41,108 @@ interface ReportContext {
 function ReportsPage(props: ReportsPageProps) {
     const hGutter = 10;
 
-    if (isServer) return <></>;
-
     if (props.error) {
         return <>Fail to fetch data</>;
     }
 
     const data = props.data;
+    const router = useRouter();
+    const page = usePage();
+    const [filter] = Form.useForm<ICriteria<DTO.Ticket>>();
+
+    const refresh = () => {
+        page.setLoading(true);
+        return router
+            .push({
+                pathname: router.pathname,
+                query: api.serializeParam({
+                    ...filter.getFieldsValue(),
+                    roles: {},
+                }),
+            })
+            .finally(() => page.setLoading(false));
+    };
+
+    const initialDate = useMemo(
+        () => ({
+            gte: startOfToday(),
+            lte: endOfDay(startOfToday()),
+        }),
+        []
+    );
+
     return (
-        <ReportContext.Provider value={{ cardSpan: 3 }}>
-            <div className="mars-report">
-                <Row>
-                    <Col span={24}>
-                        <div style={{ display: 'flex' }}>
-                            <div style={{ flex: 1 }} />
-                            <div style={{ height: '100%' }}>asd</div>
-                        </div>
-                    </Col>
-                </Row>
-                <Row gutter={[hGutter, hGutter]}>
-                    <CardInfo
-                        title="Total Tiket"
-                        value={data.count.total}
-                        prefix={<AuditOutlined />}
-                    />
-                    <CardInfo title="IPTV" value={data.count.iptv} />
-                    <CardInfo title="INTERNET" value={data.count.internet} />
-                    <CardInfo title="VOICE" value={data.count.voice} />
-                </Row>
-                <Row className="mars-chart-container" gutter={16}>
-                    <ChartView title="Umur Tiket" data={data.age} />
-                    <ChartView title="Lama Aksi" data={data.actionAge} />
-                    <ChartView title="Waktu Respon" data={data.responseAge} />
-                </Row>
-            </div>
-        </ReportContext.Provider>
+        <MarsTableProvider refresh={refresh}>
+            <ReportContext.Provider value={{ cardSpan: 3 }}>
+                <div className="mars-report">
+                    <div className="mars-report-tools">
+                        <MarsTableConsumer>
+                            {(value) => (
+                                <Radio.Group>
+                                    <Radio.Button onClick={() => value.toggleFilter()}>
+                                        Filter
+                                    </Radio.Button>
+                                </Radio.Group>
+                            )}
+                        </MarsTableConsumer>
+                    </div>
+
+                    <Row gutter={[hGutter, hGutter]}>
+                        <CardInfo
+                            title="Total Tiket"
+                            value={data.count.total}
+                            prefix={<AuditOutlined />}
+                        />
+                        <CardInfo title="IPTV" value={data.count.iptv} />
+                        <CardInfo title="INTERNET" value={data.count.internet} />
+                        <CardInfo title="VOICE" value={data.count.voice} />
+                    </Row>
+                    <Row className="mars-chart-container" gutter={16}>
+                        <ChartView title="Umur Tiket" data={data.age} />
+                        <ChartView title="Lama Aksi" data={data.actionAge} />
+                        <ChartView title="Waktu Respon" data={data.responseAge} />
+                    </Row>
+                </div>
+                <TFilter
+                    form={filter}
+                    title="Report"
+                    initialValue={{
+                        createdAt: initialDate,
+                    }}
+                >
+                    <Form.Item label="Tanggal Dibuat" name="createdAt" required>
+                        <DateRangeFilter withTime />
+                    </Form.Item>
+                    <Form.Item label="Sedang Dikerjakan" name={['wip', 'eq']}>
+                        <BooleanInput />
+                    </Form.Item>
+                    <Form.Item label="Produk" name={['product', 'in']}>
+                        <EnumSelect enums={Mars.Product} />
+                    </Form.Item>
+                    <Form.Item label="STO" name={['sto', 'like']}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="Witel" name={['witel', 'in']}>
+                        <EnumSelect enums={Mars.Witel} />
+                    </Form.Item>
+                    <Form.Item label="Tiket NOSSA" name={['incidentNo', 'like']}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="Service No" name={['serviceNo', 'like']}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item label="Status" name={['status', 'in']}>
+                        <EnumSelect enums={Mars.Status} />
+                    </Form.Item>
+                    <Form.Item label="Sumber" name={['source', 'in']}>
+                        <EnumSelect enums={Mars.Source} />
+                    </Form.Item>
+                    <Form.Item label="Gaul" name={['gaul', 'eq']}>
+                        <BooleanInput />
+                    </Form.Item>
+                </TFilter>
+            </ReportContext.Provider>
+        </MarsTableProvider>
     );
 }
 
@@ -114,18 +198,19 @@ export default ReportsPage;
 export async function getServerSideProps(ctx: NextPageContext) {
     const session = await getSession(ctx);
 
-    const now = startOfToday();
-    const res = await api
-        .get(
-            '/chart/ticket/report',
-            api.auhtHeader(session, {
-                params: {
-                    from: format(now, 'dd-MM-yyyy'),
-                    to: format(now, 'dd-MM-yyyy'),
-                },
-            })
-        )
-        .catch((err) => err);
+    const startDay = startOfToday();
+    const endDay = endOfDay(startDay);
+
+    const config = api.auhtHeader(session, {
+        params: {
+            createdAt: {
+                gte: startDay,
+                lte: endDay,
+            },
+            ...ctx.query,
+        },
+    });
+    const res = await api.get('/chart/ticket/report', config).catch((err) => err);
 
     if (axios.isAxiosError(res)) {
         return {

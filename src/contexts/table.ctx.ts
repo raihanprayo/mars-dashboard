@@ -10,6 +10,7 @@ export interface MarsTableContext {
     refresh(): OrPromise<any>;
 }
 
+export const MarsTableConsumer = MarsTableContext.Consumer;
 export function MarsTableProvider(props: MarsTableProviderProps): JSX.Element {
     const [filter, setFilter] = useState(false);
 

@@ -37,6 +37,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { CopyToClipboard, MarsButton } from '_comp/base';
 import notif from '_service/notif';
+import { SolutionSelect } from '_comp/table/input.fields';
 
 const AcceptableFileExt = ['.jpg', '.jpeg', '.png', '.webp'];
 
@@ -81,6 +82,7 @@ function TicketDetail(props: TicketDetailProps) {
 
         const form = new FormData();
         form.set('note', description);
+        form.set('solution', submission.getFieldValue('solution')?.value);
         for (const file of files) form.append('files', file as RcFile, file.fileName);
 
         const statusLink =
@@ -240,9 +242,13 @@ function TicketDetail(props: TicketDetailProps) {
                         </MarsButton>,
                     ]}
                 >
-                    <Form form={submission} layout="vertical" initialValues={{
-                        status: Mars.Status.CLOSED
-                    }}>
+                    <Form
+                        form={submission}
+                        layout="vertical"
+                        initialValues={{
+                            status: Mars.Status.CLOSED,
+                        }}
+                    >
                         <Form.Item
                             name="status"
                             label={<b>Status</b>}
@@ -264,13 +270,17 @@ function TicketDetail(props: TicketDetailProps) {
                             </Radio.Group>
                         </Form.Item>
 
+                        <Form.Item label={<b>Actual Solution</b>} name="solution">
+                            <SolutionSelect />
+                        </Form.Item>
+
                         <Form.Item
                             label={<b>Worklog</b>}
                             name="description"
                             rules={[
                                 {
                                     required: watchStat !== Mars.Status.DISPATCH,
-                                    message: 'Worklog tidak boleh kosong'
+                                    message: 'Worklog tidak boleh kosong',
                                 },
                             ]}
                         >

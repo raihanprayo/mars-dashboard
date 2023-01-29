@@ -1,10 +1,13 @@
-import { isFn } from '@mars/common';
+import { isDefined, isFn } from '@mars/common';
 import { Button, Drawer, Form, FormInstance, Space } from 'antd';
 import { NamePath } from 'antd/lib/form/interface';
 import { useMarsTable } from '_ctx/table.ctx';
 
 export function TFilter<T = any>(props: TFilterProps<T>) {
     const tableCtx = useMarsTable();
+    if (!isDefined(tableCtx))
+        throw new Error('TFilter must be in scope of MarsTableContext');
+
     const { form, title, open } = props;
 
     const onClose = () => {
@@ -39,7 +42,7 @@ export function TFilter<T = any>(props: TFilterProps<T>) {
                 </Space>,
             ]}
         >
-            <Form form={form} layout="vertical">
+            <Form form={form} layout="vertical" initialValues={props.initialValue}>
                 {props.children}
             </Form>
         </Drawer>
@@ -54,6 +57,7 @@ interface TFilterProps<T = any> extends HasChild {
     onClose?(): void;
 
     // fields?: FilterField[];
+    initialValue?: ICriteria<T>;
 }
 
 export type FilterField = Fields.FieldString | Fields.FieldNumber | Fields.FieldDate;

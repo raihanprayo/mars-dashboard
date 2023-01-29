@@ -124,6 +124,7 @@
 
 .ant-layout-content {
     padding: 8px 20px;
+    position: relative;
 
     .workspace {
         width: 100%;
@@ -203,8 +204,12 @@
             > .solution-wrap {
                 display: flex;
 
-                >.solution-content {
+                > .solution-content {
                     flex: 1;
+                }
+                > .solution-sider {
+                    width: 50%;
+                    padding: 0 3rem
                 }
             }
         }

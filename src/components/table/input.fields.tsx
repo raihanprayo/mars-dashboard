@@ -1,7 +1,11 @@
+import { isDefined } from '@mars/common';
 import { DatePicker, Radio, Select, SelectProps, Transfer } from 'antd';
+import { DefaultOptionType } from 'antd/lib/select/index';
 import type { TransferDirection, TransferItem } from 'antd/lib/transfer/index';
-import type { Moment } from 'moment';
+import moment, { isMoment, Moment } from 'moment';
 import { useEffect, useState } from 'react';
+import { useBool } from '_hook/util.hook';
+import notif from '_service/notif';
 
 export interface BaseInputProps {
     id?: string;
@@ -16,7 +20,19 @@ export function DateRangeFilter(props: DateFilterProps) {
         allowClear,
         withTime,
     } = props;
-    const [values, setValues] = useState<[Moment, Moment]>();
+
+    const initial = !isDefined(props.value)
+        ? undefined
+        : ([
+              props.value?.[greaterEqualName]
+                  ? moment(props.value[greaterEqualName])
+                  : null,
+              props.value?.[lessThanEqualName]
+                  ? moment(props.value[lessThanEqualName])
+                  : null,
+          ] as [Moment, Moment]);
+
+    const [values, setValues] = useState<[Moment, Moment]>(initial);
 
     const onChange = (value?: [Moment, Moment]) => {
         const d1 = value?.[0];
@@ -146,9 +162,11 @@ export interface BooleanInputProps extends BaseInputProps {
 }
 
 export function EnumSelect(props: EnumSelectProps) {
+    const { mode = 'multiple', ...rest } = props;
     return (
         <Select
-            {...props}
+            {...rest}
+            mode={mode}
             options={Object.values(props.enums)
                 .filter((e) => {
                     if (/^(\d+)$/i.test(e.toString())) return false;
@@ -163,3 +181,26 @@ export interface EnumSelectProps
         Omit<SelectProps, 'onChange' | 'options'> {
     enums: Record<string, string | number>;
 }
+
+export function SolutionSelect(props: SolutionSelectProps) {
+    const loading = useBool();
+    const [list, setList] = useState<DefaultOptionType[]>([]);
+
+    useEffect(() => {
+        loading.toggle();
+        api.get<DTO.Solution[]>('/solution', {
+            params: { size: 1000 },
+        })
+            .then(({ data }) => {
+                console.log(data);
+                setList(data.map((e) => ({ label: e.name, value: e.id })));
+            })
+            .catch(notif.axiosError)
+            .finally(()=> loading.setValue(false));
+    }, []);
+
+    return <Select {...props} options={list} labelInValue loading={loading.value} />;
+}
+export interface SolutionSelectProps
+    extends BaseInputProps,
+        Omit<SelectProps, 'onChange' | 'options' | 'mode'> {}

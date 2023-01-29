@@ -31,9 +31,5 @@ export interface MarsButtonProps extends ButtonProps {
 }
 
 function roleCheck(roles: string[], cb: MarsButton.DisableOnRoleCheck) {
-    for (const role of roles) {
-        const disabled = cb(role);
-        if (disabled) return true;
-    }
-    return false;
+    return roles.map(cb).indexOf(true) !== -1;
 }

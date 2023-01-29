@@ -50,9 +50,9 @@ const PageRoutes: PageRoute[] = [
                 name: 'Solution',
                 path: '/admin/solutions',
                 icon: createElement(BulbOutlined),
-                access: {
-                    hasRole: ['admin']
-                }
+                // access: {
+                //     hasRole: ['admin']
+                // }
             }
         ]
     },

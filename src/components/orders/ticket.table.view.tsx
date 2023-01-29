@@ -14,6 +14,7 @@ import { TFilter } from '_comp/table/table.filter';
 import { PageContext } from '_ctx/page.ctx';
 import { MarsTableProvider } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
+import { mapEnum } from '_utils/conversion';
 import { RefreshBadgeEvent } from '_utils/events';
 import { TableTicketColms } from '../table/table.definitions';
 import { THeader } from '../table/table.header';
@@ -302,9 +303,4 @@ export interface TicketPageMetadata {
     products: Record<Mars.Product, number>;
 
     error?: any;
-}
-
-function mapEnum<T extends map>(o: T) {
-    const values = Object.values(o).filter((e) => !/^(\d)+$/.test(e));
-    return values.map<DefaultOptionType>((e) => ({ label: e, value: e }));
 }
