@@ -86,7 +86,10 @@ export default function IssuePage(props: IssuePageProps) {
                     roles: {},
                 }),
             })
-            .finally(() => page.setLoading(false));
+            .finally(() => {
+                page.setLoading(false);
+                setSelected({ data: null, edit: false });
+            });
     }, []);
 
     const onRowClick = useCallback(
@@ -164,20 +167,22 @@ export default function IssuePage(props: IssuePageProps) {
                             columns={[
                                 DefaultCol.INCREMENTAL_NO_COL(pageable),
                                 {
-                                    title: 'Nama',
+                                    title: 'Kode',
                                     align: 'center',
+                                    width: 150,
                                     dataIndex: 'name',
-                                },
-                                {
-                                    title: 'Alias',
-                                    align: 'center',
-                                    dataIndex: 'alias',
                                 },
                                 {
                                     title: 'Product',
                                     align: 'center',
                                     dataIndex: 'product',
+                                    width: 150,
                                     render: Render.product,
+                                },
+                                {
+                                    title: 'Alias',
+                                    align: 'center',
+                                    dataIndex: 'alias',
                                 },
                                 DefaultCol.CREATION_DATE_COL,
                             ]}
@@ -200,6 +205,14 @@ export default function IssuePage(props: IssuePageProps) {
                                 hoverable
                                 extra={
                                     <Space>
+                                        {selected.edit && (
+                                            <MarsButton
+                                                children="Save"
+                                                size="small"
+                                                icon={<SaveOutlined />}
+                                                onClick={onEditSubmit}
+                                            />
+                                        )}
                                         <MarsButton
                                             children="Edit"
                                             size="small"
@@ -212,19 +225,10 @@ export default function IssuePage(props: IssuePageProps) {
                                             }
                                             disabled={!isDefined(selected.data)}
                                         />
-
-                                        {selected.edit && (
-                                            <MarsButton
-                                                children="Save"
-                                                size="small"
-                                                icon={<SaveOutlined />}
-                                                onClick={onEditSubmit}
-                                            />
-                                        )}
                                     </Space>
                                 }
                             >
-                                {!hasSelected && 'No Data Selected'}
+                                {!hasSelected && <i>* No Data Selected</i>}
                                 {hasSelected && <InfoIssueView />}
                             </Card>
                         </InfoIssueContext.Provider>
@@ -285,12 +289,13 @@ function AddIssueDrawer(props: AddIssueDrawerProps) {
 
     const onSubmit = useCallback(async () => {
         await form.validateFields().then(() => loading.setValue(true));
-        const { name, alias, description } = form.getFieldsValue();
+        const values = form.getFieldsValue();
 
-        api.post('/issue', { name, alias, description })
-            .then(() => {})
-            .catch(notif.error)
-            .finally(() => loading.setValue(false));
+        console.log(values);
+        // api.post('/issue', values)
+        //     .then(() => {})
+        //     .catch(notif.error)
+        //     .finally(() => loading.setValue(false));
     }, [form]);
 
     const onClose = useCallback(() => {
@@ -307,6 +312,7 @@ function AddIssueDrawer(props: AddIssueDrawerProps) {
     return (
         <Drawer
             title="Tambah Kendala"
+            className="solution"
             open={props.open}
             onClose={onClose}
             extra={[
@@ -334,10 +340,10 @@ function AddIssueDrawer(props: AddIssueDrawerProps) {
                     <Input />
                 </Form.Item>
                 <Form.Item
-                    label="Deksripsi"
+                    label="Cek List"
                     name="description"
                     rules={[{ required: true, message: 'Deskripsi tidak boleh kosong' }]}
-                    tooltip="Deskripsi parameter yang nantinya digunakan sebagai cek list sebelum melakukan pembuatan order"
+                    tooltip="Cek List parameter yang nantinya digunakan sebagai cek list sebelum melakukan pembuatan order"
                 >
                     <Input.TextArea />
                 </Form.Item>
@@ -349,7 +355,7 @@ function AddIssueDrawer(props: AddIssueDrawerProps) {
                     <Input />
                 </Form.Item>
                 <Divider />
-                <Form.Item label="Parameter Tambahan" colon>
+                <InfoIssueContext.Provider value={{ form, edit: true }}>
                     <Form.List name="params">
                         {(fields, { add, remove }, meta) => {
                             return (
@@ -365,6 +371,7 @@ function AddIssueDrawer(props: AddIssueDrawerProps) {
                                                 })
                                             }
                                             disabled={hasNoteParam}
+                                            title="Hapus Note Param"
                                         >
                                             Note Param
                                         </MarsButton>
@@ -378,57 +385,27 @@ function AddIssueDrawer(props: AddIssueDrawerProps) {
                                                 })
                                             }
                                             disabled={hasCaptureParam}
+                                            title="Hapus Capture Param"
                                         >
                                             Capture Param
                                         </MarsButton>
                                     </Space>
+                                    <Divider />
                                     {fields.map((field, index) => {
                                         const { key, name, ...others } = field;
                                         return (
-                                            <>
-                                                <Divider />
-                                                <Space
-                                                    key={key}
-                                                    className="issue-param-container"
-                                                >
-                                                    <div className="issue-param">
-                                                        <Form.Item
-                                                            label="Jenis"
-                                                            name={[name, 'type']}
-                                                        >
-                                                            <EnumSelect
-                                                                enums={ParamType}
-                                                                mode="single"
-                                                                disabled
-                                                                size="small"
-                                                            />
-                                                        </Form.Item>
-                                                        <Form.Item
-                                                            label="Display"
-                                                            name={[name, 'display']}
-                                                        >
-                                                            <Input size="small" />
-                                                        </Form.Item>
-                                                        <Form.Item
-                                                            label="Required"
-                                                            name={[name, 'required']}
-                                                        >
-                                                            <BooleanInput />
-                                                        </Form.Item>
-                                                    </div>
-                                                    <MinusCircleOutlined
-                                                        title={'Hapus'}
-                                                        onClick={() => remove(field.name)}
-                                                    />
-                                                </Space>
-                                            </>
+                                            <ParameterDescriptorItem
+                                                key={field.key}
+                                                name={field.name}
+                                                remove={remove}
+                                            />
                                         );
                                     })}
                                 </>
                             );
                         }}
                     </Form.List>
-                </Form.Item>
+                </InfoIssueContext.Provider>
             </Form>
         </Drawer>
     );
@@ -443,7 +420,7 @@ const InfoIssueContext = createContext<InfoIssueContext>(null);
 interface InfoIssueContext {
     edit: boolean;
     form: FormInstance<DTO.Issue>;
-    selected: DTO.Issue;
+    selected?: DTO.Issue;
 }
 
 // Value Editable -------------------------------------------------------------
@@ -456,7 +433,7 @@ function EditableValue(props: EditableValueProps) {
         <>
             {!edit && props.children}
             {edit && (
-                <Form.Item name={props.name} rules={props.rules} noStyle>
+                <Form.Item name={props.name} rules={props.rules}>
                     {<InputElm {...InputProps} />}
                 </Form.Item>
             )}
@@ -482,9 +459,10 @@ function InfoIssueView() {
     const hasCaptureParam = params.findIndex((e) => e.type === ParamType.CAPTURE) !== -1;
     const hasNoteParam = params.findIndex((e) => e.type === ParamType.NOTE) !== -1;
 
+    console.log(selected);
     return (
         <Form form={form} layout="vertical" initialValues={selected}>
-            <Descriptions bordered size="small" column={2} labelStyle={{ width: 50 }}>
+            <Descriptions bordered size="small" column={2} labelStyle={{ width: 90 }}>
                 <Descriptions.Item span={5} label="Nama">
                     <EditableValue name="name" input={<Input />}>
                         {selected.name}
@@ -503,8 +481,13 @@ function InfoIssueView() {
                         {Render.product(selected.product)}
                     </EditableValue>
                 </Descriptions.Item>
+                <Descriptions.Item span={5} label="Cek List">
+                    <EditableValue name="description" input={<Input.TextArea />}>
+                        {selected.description}
+                    </EditableValue>
+                </Descriptions.Item>
             </Descriptions>
-            <Divider />
+            {params.length > 0 && <Divider />}
 
             <Form.List name="params">
                 {(fields, { add, remove }) => {
@@ -561,7 +544,10 @@ function ParameterDescriptorItem(props: ParameterDescriptorItemProps) {
 
     const extra = !edit ? null : (
         <Space>
-            <MinusCircleOutlined onClick={() => props.remove(props.name)} />
+            <MinusCircleOutlined
+                onClick={() => props.remove(props.name)}
+                title="Hapus Parameter"
+            />
         </Space>
     );
     return (
@@ -578,12 +564,24 @@ function ParameterDescriptorItem(props: ParameterDescriptorItemProps) {
                 title={param.type && upperCase(param.type, true) + ' Parameter'}
                 size="small"
                 column={2}
-                labelStyle={{ width: 50 }}
+                labelStyle={{ width: 90 }}
                 extra={extra}
                 style={{ marginBottom: '1rem' }}
+                // className="issue-param"
             >
                 <Descriptions.Item label="Nama Display" span={5}>
-                    <EditableValue name={[props.name, 'display']} input={<Input />}>
+                    <EditableValue
+                        name={[props.name, 'display']}
+                        input={<Input />}
+                        rules={[
+                            {
+                                required: true,
+                                message: `Display Name ${
+                                    param.type && upperCase(param.type, true)
+                                } Parameter, tidak boleh kosong`,
+                            },
+                        ]}
+                    >
                         {param.display}
                     </EditableValue>
                 </Descriptions.Item>
