@@ -17,7 +17,6 @@ import {
     Radio,
     Space,
     Tabs,
-    Tag,
     Timeline,
     Typography,
     Upload,
@@ -257,7 +256,7 @@ function TicketDetail(props: TicketDetailProps) {
                                 { required: true, message: 'Status update required' },
                             ]}
                         >
-                            <Radio.Group buttonStyle="solid">
+                            <Radio.Group buttonStyle="solid" disabled={disableSubmit}>
                                 <Radio.Button value={Mars.Status.CLOSED}>
                                     Close
                                 </Radio.Button>
@@ -271,7 +270,7 @@ function TicketDetail(props: TicketDetailProps) {
                         </Form.Item>
 
                         <Form.Item label={<b>Actual Solution</b>} name="solution">
-                            <SolutionSelect />
+                            <SolutionSelect disabled={disableSubmit} />
                         </Form.Item>
 
                         <Form.Item
@@ -284,12 +283,13 @@ function TicketDetail(props: TicketDetailProps) {
                                 },
                             ]}
                         >
-                            <Input.TextArea placeholder="work description" />
+                            <Input.TextArea placeholder="work description" disabled={disableSubmit} />
                         </Form.Item>
 
                         <Form.Item label={<b>Attachments</b>}>
                             <Form.Item name="files" noStyle>
                                 <Upload.Dragger
+                                    disabled={disableSubmit}
                                     multiple
                                     fileList={files}
                                     name="files"

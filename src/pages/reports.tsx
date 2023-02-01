@@ -203,10 +203,8 @@ export async function getServerSideProps(ctx: NextPageContext) {
 
     const config = api.auhtHeader(session, {
         params: {
-            createdAt: {
-                gte: startDay,
-                lte: endDay,
-            },
+            'createdAt.gte': startDay,
+            'createdAt.lte': endDay,
             ...ctx.query,
         },
     });

@@ -163,10 +163,12 @@ export interface BooleanInputProps extends BaseInputProps {
 
 export function EnumSelect(props: EnumSelectProps) {
     const { mode = 'multiple', ...rest } = props;
+
+    let actualMode = mode === 'multiple' ? mode : mode === 'single' ? null : mode;
     return (
         <Select
             {...rest}
-            mode={mode}
+            mode={actualMode}
             options={Object.values(props.enums)
                 .filter((e) => {
                     if (/^(\d+)$/i.test(e.toString())) return false;
@@ -178,8 +180,9 @@ export function EnumSelect(props: EnumSelectProps) {
 }
 export interface EnumSelectProps
     extends BaseInputProps,
-        Omit<SelectProps, 'onChange' | 'options'> {
+        Omit<SelectProps, 'onChange' | 'options' | 'mode'> {
     enums: Record<string, string | number>;
+    mode?: 'multiple' | 'single';
 }
 
 export function SolutionSelect(props: SolutionSelectProps) {
@@ -196,7 +199,7 @@ export function SolutionSelect(props: SolutionSelectProps) {
                 setList(data.map((e) => ({ label: e.name, value: e.id })));
             })
             .catch(notif.axiosError)
-            .finally(()=> loading.setValue(false));
+            .finally(() => loading.setValue(false));
     }, []);
 
     return <Select {...props} options={list} labelInValue loading={loading.value} />;

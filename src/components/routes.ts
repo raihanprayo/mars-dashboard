@@ -11,6 +11,7 @@ import {
     StarOutlined,
     SettingOutlined,
     BulbOutlined,
+    BugOutlined,
 } from '@ant-design/icons';
 import { isDefined } from '@mars/common';
 import { Session } from 'next-auth';
@@ -35,11 +36,11 @@ const PageRoutes: PageRoute[] = [
         path: '/reports',
         icon: createElement(BarChartOutlined),
     },
-    {
-        type: 'page',
-        name: 'Leaderboards',
-        icon: createElement(StarOutlined),
-    },
+    // {
+    //     type: 'page',
+    //     name: 'Leaderboards',
+    //     icon: createElement(StarOutlined),
+    // },
     {
         type: 'group',
         name: 'Miscellaneous',
@@ -47,8 +48,17 @@ const PageRoutes: PageRoute[] = [
         children: [
             {
                 type: 'page',
-                name: 'Solution',
-                path: '/admin/solutions',
+                name: 'Jenis Kendala',
+                path: '/misc/issue',
+                icon: createElement(BugOutlined),
+                // access: {
+                //     hasRole: ['admin']
+                // }
+            },
+            {
+                type: 'page',
+                name: 'Actual Solution',
+                path: '/misc/solution',
                 icon: createElement(BulbOutlined),
                 // access: {
                 //     hasRole: ['admin']

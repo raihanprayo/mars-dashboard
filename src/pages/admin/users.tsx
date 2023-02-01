@@ -1,24 +1,24 @@
-import { AuditOutlined, ReloadOutlined, UserAddOutlined } from '@ant-design/icons';
+import { ReloadOutlined, UserAddOutlined } from '@ant-design/icons';
 import { HttpHeader } from '@mars/common';
 import { Form, Input, Radio, Table } from 'antd';
 import axios from 'axios';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { AddUserDrawer, EditUserDrawer } from '_comp/admin/index';
 import { TableUserColms } from '_comp/table/table.definitions';
 import { DateRangeFilter } from '_comp/table/input.fields';
 import { TFilter } from '_comp/table/table.filter';
 import { THeader } from '_comp/table/table.header';
-import { PageContext } from '_ctx/page.ctx';
+import { usePage } from '_ctx/page.ctx';
 import { MarsTablePagination, MarsTableProvider } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
 import type { CoreService } from '_service/api';
 
 export default function UsersPage(props: UsersPageProps) {
     const router = useRouter();
-    const pageCtx = useContext(PageContext);
+    const pageCtx = usePage();
     const { pageable, setPageable } = usePageable();
     const [filter] = Form.useForm<ICriteria<DTO.Users>>();
 
@@ -166,7 +166,7 @@ export async function getServerSideProps(ctx: NextPageContext) {
     return {
         props: {
             total,
-            users: res.data,
+            users: res.data.map((e) => ({ ...e, key: e.id })),
         },
     };
 }

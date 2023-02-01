@@ -78,11 +78,7 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
             .finally(() => pageCtx.setLoading(false));
     }, []);
 
-    if (props.error) {
-        return <>{props.error.message}</>;
-    }
-
-    // const noSelectedItem =  selected.filter((e) => e).length === 0;
+    if (props.error) return <>{props.error.message}</>;
     console.log('Has Selected Item', hasSelected);
     return (
         <MarsTableProvider refresh={refresh}>

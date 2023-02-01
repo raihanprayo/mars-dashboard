@@ -43,8 +43,17 @@ export namespace THeader {
         pos?: 'left' | 'right';
     }
 
+    interface ItemProps extends HasPositionProps, HasChild {
+        className?: string;
+        style?: React.CSSProperties;
+    }
     interface ActionItemProps extends MarsButtonProps, HasPositionProps {
         badge?: number;
+    }
+
+    export function Item(props: ItemProps) {
+        const cls = mergeClassName('workspace-act', props.className);
+        return <li className={cls}>{props.children}</li>;
     }
 
     export function Action(props: ActionItemProps) {

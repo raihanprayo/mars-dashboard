@@ -337,7 +337,7 @@ function Difference(props: { orderno: string | number; opentime: Date | string }
     return <span className="diff-time">{time}</span>;
 }
 
-namespace DefaultCol {
+export namespace DefaultCol {
     export const NO_COL: ColumnType<any> = {
         title: 'No',
         width: 40,

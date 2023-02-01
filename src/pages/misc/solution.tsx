@@ -1,25 +1,23 @@
 import {
-    FileAddOutlined,
+    DeleteOutlined,
     FilterOutlined,
-    LoginOutlined,
+    PlusOutlined,
     ReloadOutlined,
-    UserOutlined,
 } from '@ant-design/icons';
 import { HttpHeader } from '@mars/common';
-import { Button, Drawer, Form, Input, List, message, Space } from 'antd';
+import { Button, Drawer, Form, Input, message, Space, Table } from 'antd';
 import axios from 'axios';
-import { format } from 'date-fns';
 import { NextPageContext } from 'next';
-import { getSession, useSession } from 'next-auth/react';
+import { getSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 import { MarsButton } from '_comp/base/Button';
 import { DateRangeFilter } from '_comp/table/input.fields';
+import { DefaultCol } from '_comp/table/table.definitions';
 import { TFilter } from '_comp/table/table.filter';
 import { THeader } from '_comp/table/table.header';
-import { Render } from '_comp/value-renderer';
 import { usePage } from '_ctx/page.ctx';
-import { MarsTableProvider } from '_ctx/table.ctx';
+import { MarsTablePagination, MarsTableProvider } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
 import { CoreService } from '_service/api';
 import notif from '_service/notif';
@@ -30,6 +28,10 @@ export default function SolutionsPage(props: SolutionsPageProps) {
     const { pageable, setPageable } = usePageable();
 
     const [filter] = Form.useForm<ICriteria<DTO.Solution>>();
+    const [selected, setSelected] = useState<boolean[]>(
+        Array(props.data?.length).fill(false)
+    );
+
     const [openAddDrw, setOpenAddDrw] = useState(false);
 
     const refresh = useCallback(() => {
@@ -51,71 +53,97 @@ export default function SolutionsPage(props: SolutionsPageProps) {
             .finally(() => pageCtx.setLoading(false));
     }, [pageable.page, pageable.size, pageable.sort]);
 
-    if (props.error) return <>{props.error.message}</>;
+    const onSelectedChanged = (
+        selectedRowKeys: React.Key[],
+        selectedRows: DTO.Solution[]
+    ) => {
+        const bools = [...selected];
+        for (let index = 0; index < props.data.length; index++) {
+            const dto = props.data[index];
 
-    console.log(props.solutions);
+            const isSelected = selectedRows.findIndex((e) => e.id === dto.id) !== -1;
+            bools[index] = isSelected;
+        }
+
+        setSelected(bools);
+    };
+
+    const actionDelete = (ids?: number[]) => {
+        ids ||= selected.map((s, i) => props.data[i].id);
+    };
+
+    console.log(props.data);
+    if (props.error) return <>{props.error.message}</>;
     return (
         <MarsTableProvider refresh={refresh}>
             <div className="workspace solution">
-                <THeader>
-                    <THeader.Action
-                        icon={<FileAddOutlined />}
-                        title="Buat Solusi Baru"
-                        onClick={() => setOpenAddDrw(true)}
-                    >
-                        Buat
-                    </THeader.Action>
-                    <THeader.FilterAction
-                        pos="right"
-                        title="Data Filter"
-                        icon={<FilterOutlined />}
-                    >
-                        Filter
-                    </THeader.FilterAction>
-                    <THeader.Action
-                        pos="right"
-                        title="Refresh"
-                        icon={<ReloadOutlined />}
-                        onClick={(e) => refresh()}
-                    />
-                </THeader>
-                {/* <Table
-                    dataSource={props.solutions}
-                    columns={TableSolutionColms({ pageable })}
-                    pagination={MarsTablePagination({
-                        pageable,
-                        refresh,
-                        setPageable,
-                        total: props.total,
-                    })}
-                /> */}
-
                 <div className="solution-wrap">
                     <div className="solution-content">
-                        <List
-                            bordered
-                            dataSource={props.solutions}
-                            itemLayout="vertical"
-                            renderItem={(item) => {
-                                return (
-                                    <List.Item
-                                        actions={[
-                                            <Space title="Tanggal Dibuat">
-                                                <LoginOutlined />
-                                                {format(
-                                                    new Date(item.createdAt),
-                                                    Render.DATE_WITH_TIMESTAMP
-                                                )}
-                                            </Space>,
-                                        ]}
-                                    >
-                                        <List.Item.Meta
-                                            title={item.name}
-                                            description={item.description}
-                                        />
-                                    </List.Item>
-                                );
+                        <THeader>
+                            <THeader.Action
+                                icon={<PlusOutlined />}
+                                title="Buat Solusi Baru"
+                                onClick={() => setOpenAddDrw(true)}
+                            >
+                                Buat
+                            </THeader.Action>
+                            <THeader.Action
+                                icon={<DeleteOutlined />}
+                                title="Hapus Solusi"
+                                disabled={selected.filter(e => e).length !== 0}
+                            >
+                                Hapus
+                            </THeader.Action>
+                            <THeader.FilterAction
+                                pos="right"
+                                title="Data Filter"
+                                icon={<FilterOutlined />}
+                            />
+                            <THeader.Action
+                                pos="right"
+                                title="Refresh"
+                                icon={<ReloadOutlined />}
+                                onClick={(e) => refresh()}
+                            />
+                        </THeader>
+                        <Table
+                            size="small"
+                            dataSource={props.data}
+                            columns={[
+                                DefaultCol.INCREMENTAL_NO_COL(pageable),
+                                {
+                                    title: 'Nama',
+                                    align: 'center',
+                                    dataIndex: 'name',
+                                },
+                                DefaultCol.CREATION_DATE_COL,
+                                {
+                                    title: 'Aksi',
+                                    align: 'center',
+                                    width: 100,
+                                    render(value, record, index) {
+                                        return (
+                                            <Space align="baseline">
+                                                <MarsButton
+                                                    type="primary"
+                                                    title={`Hapus ${record.id} `}
+                                                    icon={<DeleteOutlined />}
+                                                />
+                                            </Space>
+                                        );
+                                    },
+                                },
+                            ]}
+                            rowSelection={{
+                                type: 'checkbox',
+                                onChange: onSelectedChanged,
                             }}
+                            pagination={MarsTablePagination({
+                                pageable,
+                                setPageable,
+                                refresh,
+                                total: props.total,
+                            })}
                         />
                     </div>
                     <div className="solution-sider"></div>
@@ -141,7 +169,7 @@ export default function SolutionsPage(props: SolutionsPageProps) {
     );
 }
 interface SolutionsPageProps extends CoreService.ErrorDTO {
-    solutions: DTO.Solution[];
+    data: DTO.Solution[];
     total: number;
 }
 
@@ -159,7 +187,7 @@ export async function getServerSideProps(ctx: NextPageContext) {
     return {
         props: {
             total,
-            solutions: res.data,
+            data: res.data,
         },
     };
 }
