@@ -4,6 +4,7 @@ import { Form, Input, Radio, Table } from 'antd';
 import axios from 'axios';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { DateRangeFilter } from '_comp/table/input.fields';
@@ -82,6 +83,9 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
     console.log('Has Selected Item', hasSelected);
     return (
         <MarsTableProvider refresh={refresh}>
+            <Head>
+                <title>Mars - User Approval</title>
+            </Head>
             <div className="workspace table-view">
                 <THeader>
                     <THeader.Action

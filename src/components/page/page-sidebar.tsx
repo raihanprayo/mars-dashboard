@@ -20,7 +20,7 @@ const getKey = (name: string, index: number) => {
 
 let rootSubMenuKeys: string[] = [];
 
-function PageSidebar() {
+export function PageSidebar() {
     const { pathname } = useRouter();
     const appCtx = useApp();
     const { collapsed } = useContext<PageContext>(PageContext);
@@ -81,8 +81,6 @@ function PageSidebar() {
         </Layout.Sider>
     );
 }
-
-export default PageSidebar;
 
 function renderMenu(selectedPath: string, route: PageRoute, index?: number) {
     if (route.type === 'page') {

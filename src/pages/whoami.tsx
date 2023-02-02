@@ -17,6 +17,7 @@ import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
 import { useMemo, useState } from 'react';
 import { FormRules } from '_comp/admin/rules';
+import { PageContent } from '_comp/page/page';
 
 export default function ProfilePage(props: ProfilePageProps) {
     const { error, user } = props;
@@ -61,89 +62,95 @@ export default function ProfilePage(props: ProfilePageProps) {
     if (error) return <>{error.message}</>;
 
     return (
-        <div className="workspace profile">
-            <Card title={user.name} size="small">
-                <Descriptions bordered size="small">
-                    <Descriptions.Item label="NIK" span={5}>
-                        {user.nik}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Witel">{user.witel}</Descriptions.Item>
-                    <Descriptions.Item label="STO" span={3}>
-                        {user.sto || '-'}
-                    </Descriptions.Item>
+        <PageContent pageTitle="Profile">
+            <div className="workspace profile">
+                <Card title={user.name} size="small">
+                    <Form>
+                        <Descriptions bordered size="small">
+                            <Descriptions.Item label="NIK" span={5}>
+                                {user.nik}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Witel">
+                                {user.witel}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="STO" span={3}>
+                                {user.sto || '-'}
+                            </Descriptions.Item>
 
-                    <Descriptions.Item label="Telegram">
-                        {user.telegramId}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Username" span={3}>
-                        {user.username}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Role">
-                        {user.roles.map((role) => (
-                            <Tag>
-                                <b>{role.toUpperCase()}</b>
-                            </Tag>
-                        ))}
-                    </Descriptions.Item>
-                </Descriptions>
-            </Card>
-            <br />
-            <Card size="small">
-                <Card.Grid>
-                    <Typography.Title level={5}>Update Password</Typography.Title>
-                    <Divider />
-                    <Form
-                        form={updatePassForm}
-                        layout="vertical"
-                        style={{ padding: '0 2rem' }}
-                        size="small"
-                        // onFinish={submitPasswordUpdate}
-                    >
-                        <Form.Item
-                            label="Password Baru"
-                            name="newPass"
-                            colon
-                            rules={[FormRules.REQUIRED]}
-                        >
-                            <Input.Password />
-                        </Form.Item>
-                        <Form.Item
-                            label="Konfirmasi Password Baru"
-                            name="confirmNewPass"
-                            colon
-                            rules={[
-                                ConfirmPassValidator,
-                                {
-                                    required: true,
-                                    message: 'Konfirmasi password tidak boleh kosong',
-                                },
-                            ]}
-                        >
-                            <Input.Password />
-                        </Form.Item>
-                        <Form.Item
-                            label="Password Lama"
-                            name="oldPass"
-                            colon
-                            rules={[FormRules.REQUIRED]}
-                        >
-                            <Input.Password />
-                        </Form.Item>
-                        <Form.Item>
-                            <Button
-                                type="primary"
-                                htmlType="submit"
-                                size="middle"
-                                loading={updatePassLoading}
-                                onClick={submitPasswordUpdate}
-                            >
-                                Update
-                            </Button>
-                        </Form.Item>
+                            <Descriptions.Item label="Telegram">
+                                {user.telegramId}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Username" span={3}>
+                                {user.username}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Role">
+                                {user.roles.map((role) => (
+                                    <Tag>
+                                        <b>{role.toUpperCase()}</b>
+                                    </Tag>
+                                ))}
+                            </Descriptions.Item>
+                        </Descriptions>
                     </Form>
-                </Card.Grid>
-            </Card>
-        </div>
+                </Card>
+                <br />
+                <Card size="small">
+                    <Card.Grid>
+                        <Typography.Title level={5}>Update Password</Typography.Title>
+                        <Divider />
+                        <Form
+                            form={updatePassForm}
+                            layout="vertical"
+                            style={{ padding: '0 2rem' }}
+                            size="small"
+                            // onFinish={submitPasswordUpdate}
+                        >
+                            <Form.Item
+                                label="Password Baru"
+                                name="newPass"
+                                colon
+                                rules={[FormRules.REQUIRED]}
+                            >
+                                <Input.Password />
+                            </Form.Item>
+                            <Form.Item
+                                label="Konfirmasi Password Baru"
+                                name="confirmNewPass"
+                                colon
+                                rules={[
+                                    ConfirmPassValidator,
+                                    {
+                                        required: true,
+                                        message: 'Konfirmasi password tidak boleh kosong',
+                                    },
+                                ]}
+                            >
+                                <Input.Password />
+                            </Form.Item>
+                            <Form.Item
+                                label="Password Lama"
+                                name="oldPass"
+                                colon
+                                rules={[FormRules.REQUIRED]}
+                            >
+                                <Input.Password />
+                            </Form.Item>
+                            <Form.Item>
+                                <Button
+                                    type="primary"
+                                    htmlType="submit"
+                                    size="middle"
+                                    loading={updatePassLoading}
+                                    onClick={submitPasswordUpdate}
+                                >
+                                    Update
+                                </Button>
+                            </Form.Item>
+                        </Form>
+                    </Card.Grid>
+                </Card>
+            </div>
+        </PageContent>
     );
 }
 
@@ -163,8 +170,8 @@ export async function getServerSideProps(ctx: NextPageContext) {
         props: {
             error: {
                 status: data?.status ?? res.status,
-                title: data?.title,
-                message: data?.detail ?? data?.message,
+                title: data?.title ?? res.code,
+                message: data?.detail ?? data?.message ?? res.message,
             },
         },
     };

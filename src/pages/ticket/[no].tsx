@@ -37,6 +37,7 @@ import { format } from 'date-fns';
 import { CopyToClipboard, MarsButton } from '_comp/base';
 import notif from '_service/notif';
 import { SolutionSelect } from '_comp/table/input.fields';
+import Head from 'next/head';
 
 const AcceptableFileExt = ['.jpg', '.jpeg', '.png', '.webp'];
 
@@ -168,6 +169,9 @@ function TicketDetail(props: TicketDetailProps) {
     const watchStat = Form.useWatch('status', submission);
     return (
         <div className="tc-detail-container">
+            <Head>
+                <title>Mars - Detail Order {ticket.no}</title>
+            </Head>
             <div className="tc-detail-content">
                 <Descriptions
                     bordered
@@ -283,7 +287,10 @@ function TicketDetail(props: TicketDetailProps) {
                                 },
                             ]}
                         >
-                            <Input.TextArea placeholder="work description" disabled={disableSubmit} />
+                            <Input.TextArea
+                                placeholder="work description"
+                                disabled={disableSubmit}
+                            />
                         </Form.Item>
 
                         <Form.Item label={<b>Attachments</b>}>

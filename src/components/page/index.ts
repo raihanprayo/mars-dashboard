@@ -1,5 +1,4 @@
-import PageHeader from "./page-header";
-import Page from "./page";
-import PageSidebar from "./page-sidebar";
+export * from './page-header';
+export * from './page-sidebar';
+export * from './page';
 
-export { PageSidebar, PageHeader, Page };

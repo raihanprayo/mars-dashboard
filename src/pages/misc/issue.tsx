@@ -28,6 +28,7 @@ import type { NamePath } from 'antd/lib/form/interface';
 import axios from 'axios';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import {
     createContext,
@@ -133,6 +134,9 @@ export default function IssuePage(props: IssuePageProps) {
     if (props.error) return <>{props.error.message}</>;
     return (
         <MarsTableProvider refresh={refresh}>
+            <Head>
+                <title>Mars - Kendala</title>
+            </Head>
             <div className="workspace solution">
                 <div className="solution-wrap">
                     <div className="solution-content">
@@ -292,10 +296,12 @@ function AddIssueDrawer(props: AddIssueDrawerProps) {
         const values = form.getFieldsValue();
 
         console.log(values);
-        // api.post('/issue', values)
-        //     .then(() => {})
-        //     .catch(notif.error)
-        //     .finally(() => loading.setValue(false));
+        api.post('/issue', values)
+            .then(() =>
+                message.success(`Berhasil menambah Kendala/Issue "${values.name}"`)
+            )
+            .catch(notif.error)
+            .finally(() => loading.setValue(false));
     }, [form]);
 
     const onClose = useCallback(() => {

@@ -1,4 +1,4 @@
-import { isDefined } from '@mars/common';
+import { isBool, isDefined } from '@mars/common';
 import { DatePicker, Radio, Select, SelectProps, Transfer } from 'antd';
 import { DefaultOptionType } from 'antd/lib/select/index';
 import type { TransferDirection, TransferItem } from 'antd/lib/transfer/index';
@@ -163,26 +163,24 @@ export interface BooleanInputProps extends BaseInputProps {
 
 export function EnumSelect(props: EnumSelectProps) {
     const { mode = 'multiple', ...rest } = props;
+    const [options, setOptions] = useState<DefaultOptionType[]>([
+        ...Object.values(props.enums)
+            .filter((e) => {
+                if (/^(\d+)$/i.test(e.toString())) return false;
+                return true;
+            })
+            .map<DefaultOptionType>((en) => ({ label: en, value: en })),
+    ]);
 
     let actualMode = mode === 'multiple' ? mode : mode === 'single' ? null : mode;
-    return (
-        <Select
-            {...rest}
-            mode={actualMode}
-            options={Object.values(props.enums)
-                .filter((e) => {
-                    if (/^(\d+)$/i.test(e.toString())) return false;
-                    return true;
-                })
-                .map((en) => ({ label: en, value: en }))}
-        />
-    );
+    return <Select {...rest} mode={actualMode} options={options} />;
 }
 export interface EnumSelectProps
     extends BaseInputProps,
         Omit<SelectProps, 'onChange' | 'options' | 'mode'> {
     enums: Record<string, string | number>;
     mode?: 'multiple' | 'single';
+    includeNull?: boolean;
 }
 
 export function SolutionSelect(props: SolutionSelectProps) {

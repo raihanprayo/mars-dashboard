@@ -1,13 +1,12 @@
 import {
     MenuUnfoldOutlined,
-    MailOutlined,
     MenuFoldOutlined,
     BellOutlined,
     LogoutOutlined,
     LoginOutlined,
     UserOutlined,
 } from '@ant-design/icons';
-import { Menu, Layout, Avatar, Badge, message, Button } from 'antd';
+import { Menu, Layout, Avatar, Badge } from 'antd';
 import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -15,7 +14,7 @@ import { useContext, CSSProperties, useState, useEffect, useCallback } from 'rea
 import { PageContext } from '_ctx/page.ctx';
 import DateCounter from '../date-counter';
 
-function PageHeader() {
+export function PageHeader() {
     const ctx = useContext(PageContext);
     const session = useSession();
     const router = useRouter();
@@ -103,5 +102,3 @@ function PageHeader() {
         </Layout.Header>
     );
 }
-
-export default PageHeader;

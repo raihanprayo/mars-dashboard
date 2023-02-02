@@ -26,6 +26,7 @@ import axios from 'axios';
 import deepEqual from 'deep-equal';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { createContext, useContext, useMemo, useState } from 'react';
 import { THeader } from '_comp/table/table.header';
@@ -94,6 +95,9 @@ export default function SettingPage(props: SettingPageProps) {
 
     return (
         <div className="workspace settings">
+            <Head>
+                <title>Mars - Application Setting</title>
+            </Head>
             <THeader
                 title={
                     <>

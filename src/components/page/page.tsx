@@ -1,15 +1,17 @@
 import { Layout, Spin } from 'antd';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useCallback, useContext, useState } from 'react';
-import { PageContext, PageProvider } from '_ctx/page.ctx';
-import PageHeader from './page-header';
-import PageSidebar from './page-sidebar';
+import { useMemo, useState,  } from 'react';
+import { PageProvider } from '_ctx/page.ctx';
+import { PageHeader } from './page-header';
+import { PageSidebar } from './page-sidebar';
+
 
 const dash = ['/_error', '/auth'];
 const isExcluded = (t: string) => dash.findIndex((e) => t.startsWith(e)) !== -1;
 
 const { Content } = Layout;
-function Page(props: HasChild) {
+export function Page(props: HasChild) {
     const loc = useRouter();
     if (isExcluded(loc.pathname)) {
         return <>{props.children}</>;
@@ -35,9 +37,20 @@ function Page(props: HasChild) {
     );
 }
 
-export default Page;
+export function PageContent(props: PageWrapperProps) {
+    const title = useMemo(() => {
+        if (props.unPrefixed) return props.pageTitle;
+        return `Mars - ${props.pageTitle}`;
+    }, [props.pageTitle]);
 
-function LoadingLayout(props: HasChild) {
-    const ctx = useContext(PageContext);
-    return <>{props.children}</>;
+    return (
+        <>
+            <Head>{props.pageTitle && <title>{title}</title>}</Head>
+            {props.children}
+        </>
+    );
+}
+export interface PageWrapperProps extends HasChild {
+    pageTitle?: string;
+    unPrefixed?: boolean;
 }

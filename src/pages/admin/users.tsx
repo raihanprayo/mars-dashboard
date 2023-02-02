@@ -15,6 +15,7 @@ import { usePage } from '_ctx/page.ctx';
 import { MarsTablePagination, MarsTableProvider } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
 import type { CoreService } from '_service/api';
+import Head from 'next/head';
 
 export default function UsersPage(props: UsersPageProps) {
     const router = useRouter();
@@ -53,6 +54,9 @@ export default function UsersPage(props: UsersPageProps) {
 
     return (
         <MarsTableProvider refresh={refresh}>
+            <Head>
+                <title>Mars - User</title>
+            </Head>
             <div className="workspace table-view">
                 <THeader>
                     {/* <THeader.Action
