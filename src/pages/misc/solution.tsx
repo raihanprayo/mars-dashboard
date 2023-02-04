@@ -222,6 +222,7 @@ export default function SolutionsPage(props: SolutionsPageProps) {
                         >
                             <Card
                                 size="small"
+                                className='card-editable'
                                 title={
                                     'Detail ' +
                                     (detail.data?.name ? detail.data.name : 'Kendala')

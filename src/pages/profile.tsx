@@ -1,26 +1,38 @@
+import { EditOutlined, SaveOutlined } from '@ant-design/icons';
 import {
     Button,
     Card,
-    Col,
     Descriptions,
     Divider,
     Form,
     Input,
     message,
-    Row,
+    Space,
     Tag,
     Typography,
 } from 'antd';
 import { Rule } from 'antd/lib/form/index';
+import { NamePath } from 'antd/lib/form/interface';
 import axios, { AxiosError } from 'axios';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
-import { useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
+import { ReactElement, useMemo, useState } from 'react';
 import { FormRules } from '_comp/admin/rules';
+import { MarsButton } from '_comp/base/Button';
 import { PageContent } from '_comp/page/page';
+import { Render } from '_comp/value-renderer';
+import { usePage } from '_ctx/page.ctx';
+import { useBool } from '_hook/util.hook';
+import notif from '_service/notif';
 
 export default function ProfilePage(props: ProfilePageProps) {
     const { error, user } = props;
+
+    const router = useRouter();
+    const page = usePage();
+    const editMode = useBool();
+    const [editForm] = Form.useForm<DTO.Whoami>();
 
     const [updatePassForm] = Form.useForm();
     const [updatePassLoading, setUpdatePassLoading] = useState(false);
@@ -58,37 +70,149 @@ export default function ProfilePage(props: ProfilePageProps) {
         }
         setUpdatePassLoading(false);
     };
+    const submitProfileUpdate = async () => {
+        await editForm.validateFields();
+
+        page.setLoading(true);
+        api.put('/user/partial/' + user.id, editForm.getFieldsValue())
+            .then((res) => message.success('Berhasil mengupdate profil'))
+            .then(() => router.reload())
+            .catch(notif.error.bind(notif))
+            .finally(() => page.setLoading(false));
+    };
 
     if (error) return <>{error.message}</>;
+
+    const extra = (
+        <Space align="baseline">
+            {editMode.value && (
+                <MarsButton icon={<SaveOutlined />} onClick={submitProfileUpdate} loading={page.loading}>
+                    Save
+                </MarsButton>
+            )}
+            <MarsButton
+                title="Edit Mode"
+                icon={<EditOutlined />}
+                onClick={() => {
+                    if (editMode.value === true) editForm.resetFields();
+                    editMode.toggle();
+                }}
+            >
+                Edit
+            </MarsButton>
+        </Space>
+    );
+
+    const labelStyle = { width: 120 };
+    const contentStyle = { width: 300 };
 
     return (
         <PageContent pageTitle="Profile">
             <div className="workspace profile">
-                <Card title="Profile" size="small">
-                    <Form>
+                <Card
+                    title="Profile"
+                    size="small"
+                    extra={extra}
+                    className="card-editable"
+                    hoverable
+                >
+                    <Form
+                        form={editForm}
+                        initialValues={{
+                            name: user.name,
+                            email: user.email,
+                            tg: { username: user.username },
+                        }}
+                    >
                         <Descriptions bordered size="small">
-                            <Descriptions.Item label="Name" span={5}>
-                                {user.name}
+                            <Descriptions.Item
+                                label="Name"
+                                labelStyle={labelStyle}
+                                contentStyle={contentStyle}
+                            >
+                                <EditableValue
+                                    name="name"
+                                    input={<Input />}
+                                    edit={editMode.value}
+                                >
+                                    {user.name}
+                                </EditableValue>
                             </Descriptions.Item>
-                            <Descriptions.Item label="NIK" span={5}>
+                            <Descriptions.Item
+                                label="NIK"
+                                labelStyle={labelStyle}
+                                contentStyle={contentStyle}
+                            >
                                 {user.nik}
                             </Descriptions.Item>
-                            <Descriptions.Item label="Witel">
-                                {user.witel}
-                            </Descriptions.Item>
-                            <Descriptions.Item label="STO" span={3}>
-                                {user.sto || '-'}
+                            <Descriptions.Item
+                                label="Email"
+                                labelStyle={labelStyle}
+                                contentStyle={contentStyle}
+                            >
+                                <EditableValue
+                                    name="email"
+                                    input={<Input />}
+                                    edit={editMode.value}
+                                    rules={[
+                                        {
+                                            type: 'email',
+                                            message: 'Invalid email format',
+                                        },
+                                    ]}
+                                >
+                                    {user.email}
+                                </EditableValue>
                             </Descriptions.Item>
 
-                            <Descriptions.Item label="Telegram">
+                            <Descriptions.Item
+                                label="Witel"
+                                labelStyle={labelStyle}
+                                contentStyle={contentStyle}
+                            >
+                                {Render.witel(user.witel)}
+                            </Descriptions.Item>
+                            <Descriptions.Item
+                                label="STO"
+                                span={3}
+                                labelStyle={labelStyle}
+                                contentStyle={contentStyle}
+                            >
+                                {Render.tags({ bold: true, statusDisplay: true })(
+                                    user.sto
+                                )}
+                            </Descriptions.Item>
+
+                            <Descriptions.Item
+                                label="Telegram"
+                                labelStyle={labelStyle}
+                                contentStyle={contentStyle}
+                            >
                                 {user.telegramId}
                             </Descriptions.Item>
-                            <Descriptions.Item label="Username" span={3}>
-                                {user.username}
+                            <Descriptions.Item
+                                label="Username"
+                                span={3}
+                                labelStyle={labelStyle}
+                                contentStyle={contentStyle}
+                            >
+                                <EditableValue
+                                    name={['tg', 'username']}
+                                    input={<Input />}
+                                    edit={editMode.value}
+                                >
+                                    {user.username}
+                                </EditableValue>
                             </Descriptions.Item>
-                            <Descriptions.Item label="Role">
-                                {user.roles.map((role) => (
-                                    <Tag>
+
+                            <Descriptions.Item
+                                label="Role"
+                                span={5}
+                                labelStyle={labelStyle}
+                                contentStyle={contentStyle}
+                            >
+                                {user.roles.map((role, i) => (
+                                    <Tag key={`${role}-${i}`}>
                                         <b>{role.toUpperCase()}</b>
                                     </Tag>
                                 ))}
@@ -156,6 +280,14 @@ export default function ProfilePage(props: ProfilePageProps) {
         </PageContent>
     );
 }
+interface ProfilePageProps {
+    user: DTO.Whoami;
+    error?: {
+        status: number;
+        title?: string;
+        message: string;
+    };
+}
 
 export async function getServerSideProps(ctx: NextPageContext) {
     const session = await getSession(ctx);
@@ -180,11 +312,33 @@ export async function getServerSideProps(ctx: NextPageContext) {
     };
 }
 
-interface ProfilePageProps {
-    user: DTO.Whoami;
-    error?: {
-        status: number;
-        title?: string;
-        message: string;
-    };
+// Context --------------------------------------------------------------------
+// const InfoProfileContext = createContext<InfoProfileContext>(null);
+// interface InfoProfileContext {
+//     edit: boolean;
+//     form: FormInstance<DTO.Whoami>;
+// }
+
+// Value Editable -------------------------------------------------------------
+function EditableValue(props: EditableValueProps) {
+    const { edit } = props;
+
+    const InputElm = props.input.type;
+    const InputProps = { ...props.input.props, size: 'small' };
+    return (
+        <>
+            {!edit && props.children}
+            {edit && (
+                <Form.Item name={props.name} rules={props.rules}>
+                    {<InputElm {...InputProps} />}
+                </Form.Item>
+            )}
+        </>
+    );
+}
+interface EditableValueProps extends HasChild {
+    name: NamePath;
+    input: ReactElement;
+    edit: boolean;
+    rules?: Rule[];
 }

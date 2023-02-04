@@ -222,6 +222,7 @@ export default function IssuePage(props: IssuePageProps) {
                         >
                             <Card
                                 size="small"
+                                className='card-editable'
                                 title={
                                     'Detail ' +
                                     (selected.data?.name ? selected.data.name : 'Kendala')
