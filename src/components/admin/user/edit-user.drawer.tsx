@@ -53,7 +53,7 @@ export function EditUserDrawer(props: UserDetailDrawerProps) {
                     <Input disabled />
                 </Form.Item>
                 <Form.Item label="Nama" name="name">
-                    <Input disabled />
+                    <Input />
                 </Form.Item>
                 <Form.Item label="NIK" name="nik">
                     <Input />
@@ -62,7 +62,7 @@ export function EditUserDrawer(props: UserDetailDrawerProps) {
                     <Input />
                 </Form.Item>
                 <Form.Item label="Witel" name="witel">
-                    <EnumSelect enums={Mars.Witel} />
+                    <EnumSelect enums={Mars.Witel} mode='single' allowClear />
                 </Form.Item>
                 <Form.Item label="STO" name="sto">
                     <Input />

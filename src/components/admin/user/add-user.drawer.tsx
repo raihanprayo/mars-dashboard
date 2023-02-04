@@ -109,7 +109,7 @@ export function AddUserDrawer(props: AddUserDrawerProps) {
                     <Input placeholder="nik" />
                 </Form.Item>
                 <Form.Item label="Witel" name="witel" required>
-                    <EnumSelect enums={Mars.Witel} allowClear />
+                    <EnumSelect enums={Mars.Witel} allowClear mode='single' />
                 </Form.Item>
                 <Form.Item label="No HP" name="phone">
                     <Input placeholder="no hp" />

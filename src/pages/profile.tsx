@@ -64,9 +64,12 @@ export default function ProfilePage(props: ProfilePageProps) {
     return (
         <PageContent pageTitle="Profile">
             <div className="workspace profile">
-                <Card title={user.name} size="small">
+                <Card title="Profile" size="small">
                     <Form>
                         <Descriptions bordered size="small">
+                            <Descriptions.Item label="Name" span={5}>
+                                {user.name}
+                            </Descriptions.Item>
                             <Descriptions.Item label="NIK" span={5}>
                                 {user.nik}
                             </Descriptions.Item>

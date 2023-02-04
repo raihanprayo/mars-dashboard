@@ -19,7 +19,7 @@ export interface TableTickerColumnOptions {
     withActionCol?: boolean;
     withLinkToDetail?: boolean;
     withCopyToDrawer?: boolean;
-    takeOrder(ticket: DTO.Ticket): void | Promise<void>;
+    takeOrder(ticket: DTO.Ticket): void;
     pageable: Pageable;
 }
 export interface TableUserColumnOptions {

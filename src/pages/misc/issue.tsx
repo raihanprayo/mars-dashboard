@@ -188,6 +188,26 @@ export default function IssuePage(props: IssuePageProps) {
                                     align: 'center',
                                     dataIndex: 'alias',
                                 },
+                                {
+                                    title: 'Parameter',
+                                    align: 'center',
+                                    width: 100,
+                                    render(value, record, index) {
+                                        return (
+                                            <>
+                                                {record.params.map((e) => {
+                                                    const color = e.required
+                                                        ? 'red'
+                                                        : undefined;
+                                                    return Render.tags({
+                                                        bold: true,
+                                                        color,
+                                                    })(e.type);
+                                                })}
+                                            </>
+                                        );
+                                    },
+                                },
                                 DefaultCol.CREATION_DATE_COL,
                             ]}
                         />
@@ -469,7 +489,7 @@ function InfoIssueView() {
     return (
         <Form form={form} layout="vertical" initialValues={selected}>
             <Descriptions bordered size="small" column={2} labelStyle={{ width: 90 }}>
-                <Descriptions.Item span={5} label="Nama">
+                <Descriptions.Item span={5} label="Kode">
                     <EditableValue name="name" input={<Input />}>
                         {selected.name}
                     </EditableValue>
@@ -493,7 +513,7 @@ function InfoIssueView() {
                     </EditableValue>
                 </Descriptions.Item>
             </Descriptions>
-            {params.length > 0 && <Divider />}
+            {(params.length > 0 || edit) && <Divider />}
 
             <Form.List name="params">
                 {(fields, { add, remove }) => {

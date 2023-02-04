@@ -39,7 +39,7 @@ export namespace Render {
             const cls = mergeClassName({
                 'tag-status': opt.statusDisplay,
             });
-            return v ? <Tag className={cls}>{text}</Tag> : '-';
+            return v ? <Tag className={cls} color={opt.color}>{text}</Tag> : '-';
         };
     }
 
@@ -115,5 +115,6 @@ interface BoolRenderOpt {
 }
 interface TagRenderOpt {
     bold?: boolean;
+    color?: string;
     statusDisplay?: boolean;
 }

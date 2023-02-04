@@ -1,30 +1,33 @@
-import { FileAddOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
+import { EditOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
 import { HttpHeader, isBool } from '@mars/common';
 import { Form, Input, InputNumber, message, Select, Table } from 'antd';
-import type { DefaultOptionType } from 'antd/lib/select/index';
+import { TableRowSelection } from 'antd/lib/table/interface';
 import axios, { AxiosResponse } from 'axios';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useContext, useState } from 'react';
+import { useCallback, useEffect, useContext, useState, useMemo } from 'react';
 import { MarsButton } from '_comp/base';
 import { useContextMenu } from '_comp/context-menu';
-import { BooleanInput, DateRangeFilter } from '_comp/table/input.fields';
-import { TFilter } from '_comp/table/table.filter';
-import { PageContext } from '_ctx/page.ctx';
+import {
+    BooleanInput,
+    DateRangeFilter,
+    TableTicketColms,
+    THeader,
+    TFilter,
+} from '_comp/table';
+import { PageContext, usePage } from '_ctx/page.ctx';
 import { MarsTableProvider } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
 import { mapEnum } from '_utils/conversion';
 import { RefreshBadgeEvent } from '_utils/events';
-import { TableTicketColms } from '../table/table.definitions';
-import { THeader } from '../table/table.header';
 import { AddTicketDrawer } from './add-ticket.drawer.';
 
 export function TicketTable(props: TicketTableProps) {
     const { data: tickets, products, total } = props.metadata;
     const router = useRouter();
 
-    const { setLoading } = useContext(PageContext);
+    const page = usePage();
     const menu = useContextMenu<DTO.Ticket>();
 
     const { pageable, setPageable } = usePageable(['createdAt', Pageable.Sorts.DESC]);
@@ -32,11 +35,22 @@ export function TicketTable(props: TicketTableProps) {
     const [productFilter, setProductFilter] = useState<Mars.Product[]>([]);
     const [openAddTicket, setOpenAddTicket] = useState(false);
 
+    const [selected, setSelected] = useState<boolean[]>(
+        Array(tickets?.length).fill(false)
+    );
+    const hasSelected = useMemo(() => {
+        return selected.filter((e) => e).length !== 0;
+    }, [selected]);
+
+    const watchedProductFilter = Form.useWatch(
+        ['product', 'in'],
+        formFilter
+    ) as Mars.Product[];
+
     const refresh = useCallback(() => {
-        setLoading(true);
+        page.setLoading(true);
 
         const filter = formFilter.getFieldsValue();
-        console.log(filter);
         return router
             .push({
                 pathname: router.pathname,
@@ -50,15 +64,18 @@ export function TicketTable(props: TicketTableProps) {
                     ...filter,
                 }),
             })
-            .finally(() => setLoading(false));
+            .finally(() => page.setLoading(false));
     }, [pageable.page, pageable.size, pageable.sort, productFilter]);
 
-    const takeOrder = useCallback((ticket: DTO.Ticket) => {
+    const takeOrder = useCallback((ticket: DTO.Ticket, bulk: boolean = false) => {
         return api
             .post('/ticket/wip/take/' + ticket.id)
             .then((res) => {
-                message.success('Berhasil mengambil tiket dengan no ' + ticket.no);
-                refresh();
+                if (!bulk) {
+                    message.success('Berhasil mengambil tiket dengan no ' + ticket.no);
+                    refresh();
+                }
+                return true;
             })
             .catch((err) => {
                 console.error(err);
@@ -70,9 +87,44 @@ export function TicketTable(props: TicketTableProps) {
                 } else {
                     message.error(err?.message || err);
                 }
+                return false;
             })
-            .finally(() => RefreshBadgeEvent.emit());
+            .finally(() => {
+                if (!bulk) RefreshBadgeEvent.emit();
+            });
     }, []);
+
+    const bulkTakeOrder = useCallback(async () => {
+        const t = selected.filter((s) => s).map((s, i) => tickets[i]);
+        const tip = (n: number) => `Mengambil tiket ${n}/${t.length}`;
+
+        page.setLoading(true, tip(0));
+
+        let count = 0;
+        for (const ticket of t) {
+            count++;
+            await takeOrder(ticket, true);
+            page.setLoading(tip(count++));
+        }
+
+        page.setLoading(false);
+        RefreshBadgeEvent.emit();
+    }, [selected]);
+
+    const onRowSelectionChange = useCallback(
+        (keys: React.Key[], selectedRows: DTO.Ticket[]) => {
+            const bools = [...selected];
+            for (let index = 0; index < tickets.length; index++) {
+                const dto = tickets[index];
+
+                const isSelected = selectedRows.findIndex((e) => e.id === dto.id) !== -1;
+                bools[index] = isSelected;
+            }
+
+            setSelected(bools);
+        },
+        []
+    );
 
     useEffect(() => {
         menu.items = [
@@ -102,26 +154,22 @@ export function TicketTable(props: TicketTableProps) {
         }
     }, []);
 
-    const watchedProductFilter = Form.useWatch(
-        ['product', 'in'],
-        formFilter
-    ) as Mars.Product[];
-
     useEffect(() => {
         setProductFilter(watchedProductFilter ?? []);
     }, [watchedProductFilter]);
 
     const actions = [
-        // props.editorDrawer && (
-        //     <THeader.Action
-        //         type="primary"
-        //         icon={<FileAddOutlined />}
-        //         onClick={() => setOpenAddTicket(true)}
-        //         disabledOnRole={MarsButton.disableIfAdmin}
-        //     >
-        //         Buat Tiket
-        //     </THeader.Action>
-        // ),
+        props.withActionCol && (
+            <THeader.Action
+                icon={<EditOutlined />}
+                disabledOnRole={MarsButton.disableIfAdmin}
+                disabled={!hasSelected}
+                title="Bulk Ambil"
+                onClick={() => bulkTakeOrder()}
+            >
+                Ambil
+            </THeader.Action>
+        ),
         <THeader.Action
             pos="right"
             type="primary"
@@ -138,6 +186,12 @@ export function TicketTable(props: TicketTableProps) {
             Filter
         </THeader.FilterAction>,
     ].filter(isBool.non);
+
+    const rowSelection: TableRowSelection<DTO.Ticket> = props.withActionCol
+        ? {
+              onChange: onRowSelectionChange,
+          }
+        : null;
 
     return (
         <MarsTableProvider refresh={refresh}>
@@ -175,6 +229,7 @@ export function TicketTable(props: TicketTableProps) {
                             }
                         },
                     })}
+                    rowSelection={rowSelection}
                 />
                 <TFilter form={formFilter} title="Tiket Filter">
                     <Form.Item label="Sedang Dikerjakan" name={['wip', 'eq']}>

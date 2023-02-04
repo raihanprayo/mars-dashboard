@@ -8,7 +8,8 @@ export interface PageContext {
     setCollapse(b: bool): void;
 
     loading: boolean;
-    setLoading(loading: boolean): void;
+    setLoading(loading: boolean, description?: string): void;
+    setLoading(description: string): void;
 }
 
 export function usePage() {

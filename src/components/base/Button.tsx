@@ -1,6 +1,7 @@
 import { Button, ButtonProps } from 'antd';
 import { useSession } from 'next-auth/react';
 import { useMemo } from 'react';
+import { ROLE_ADMIN, ROLE_AGENT, ROLE_USER } from '_utils/constants';
 
 const defaultDisabledOnRole = () => false;
 
@@ -20,9 +21,9 @@ export function MarsButton(props: MarsButtonProps) {
 export namespace MarsButton {
     export type DisableOnRoleCheck = (role: string) => boolean;
 
-    export const disableIfAdmin: DisableOnRoleCheck = (r: string) => r === 'admin';
+    export const disableIfAdmin: DisableOnRoleCheck = (r: string) => r === ROLE_ADMIN;
     export const disableIfUser: DisableOnRoleCheck = (r: string) =>
-        r === 'user_dashboard' || r === 'user';
+        r === ROLE_AGENT || r === ROLE_USER;
 }
 
 export interface MarsButtonProps extends ButtonProps {

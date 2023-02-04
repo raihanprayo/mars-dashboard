@@ -1,6 +1,7 @@
 import { Session } from 'next-auth';
 import { useSession } from 'next-auth/react';
 import { useEffect, useMemo, useState } from 'react';
+import { ROLE_ADMIN, ROLE_AGENT, ROLE_USER } from '_utils/constants';
 
 type NextAuthClientSession = ReturnType<typeof useSession>;
 
@@ -15,10 +16,10 @@ export function useRole(session?: NextAuthClientSession): RoleHook {
                 return roles.findIndex((role) => role === name) !== -1;
             },
             isAdmin() {
-                return hook.hasRole('admin');
+                return hook.hasRole(ROLE_ADMIN);
             },
             isUser() {
-                return hook.hasRole('user_dashboard') && hook.hasRole('user');
+                return hook.hasRole(ROLE_AGENT) && hook.hasRole(ROLE_USER);
             },
         }),
         [session.status]
@@ -59,10 +60,10 @@ export function useUser(): UserHook {
                 );
             },
             isAdmin() {
-                return hook.hasAnyRole('admin');
+                return hook.hasAnyRole(ROLE_ADMIN);
             },
             isUser() {
-                return hook.hasAnyRole('user', 'user_dashboard');
+                return hook.hasAnyRole(ROLE_USER, ROLE_AGENT);
             },
         }),
         [session.status]

@@ -12,11 +12,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useContext, CSSProperties, useState, useEffect, useCallback } from 'react';
 import { PageContext } from '_ctx/page.ctx';
+import { useUser } from '_hook/credential.hook';
 import DateCounter from '../date-counter';
 
 export function PageHeader() {
     const ctx = useContext(PageContext);
     const session = useSession();
+    const user = useUser();
     const router = useRouter();
     const [badge, setBadge] = useState(0);
     const isLoggedin = session.status === 'authenticated';
@@ -44,10 +46,12 @@ export function PageHeader() {
 
     useEffect(() => isLoggedin && getBadgeCounter(), [isLoggedin]);
     useEffect(() => {
-        window.addEventListener('refresh-badge', getBadgeCounter);
-        return () => {
-            window.removeEventListener('refresh-badge', getBadgeCounter);
-        };
+        if (!user.isAdmin()) {
+            window.addEventListener('refresh-badge', getBadgeCounter);
+            return () => {
+                window.removeEventListener('refresh-badge', getBadgeCounter);
+            };
+        }
     }, [badge]);
 
     return (
@@ -66,13 +70,15 @@ export function PageHeader() {
                     <DateCounter />
                 </Menu.Item>
 
-                {<Menu.Item key="inbox-btn" title="Inbox">
-                    <Badge count={badge}>
-                        <Link href="/inbox">
-                            <BellOutlined style={IconStyle} />
-                        </Link>
-                    </Badge>
-                </Menu.Item>}
+                {!user.isAdmin() && (
+                    <Menu.Item key="inbox-btn" title="Inbox">
+                        <Badge count={badge}>
+                            <Link href="/inbox">
+                                <BellOutlined style={IconStyle} />
+                            </Link>
+                        </Badge>
+                    </Menu.Item>
+                )}
 
                 <Menu.SubMenu
                     key="profile-menu"
@@ -83,7 +89,7 @@ export function PageHeader() {
                 >
                     <Menu.Item
                         icon={<UserOutlined />}
-                        onClick={() => router.push('/whoami')}
+                        onClick={() => router.push('/profile')}
                     >
                         Profile
                     </Menu.Item>

@@ -1,14 +1,11 @@
 import {
     AuditOutlined,
-    ScheduleOutlined,
     BarChartOutlined,
-    TeamOutlined,
     ApartmentOutlined,
     UserOutlined,
     GroupOutlined,
     SolutionOutlined,
     InboxOutlined,
-    StarOutlined,
     SettingOutlined,
     BulbOutlined,
     BugOutlined,
@@ -16,6 +13,7 @@ import {
 import { isDefined } from '@mars/common';
 import { Session } from 'next-auth';
 import { createElement } from 'react';
+import { ROLE_ADMIN, ROLE_AGENT, ROLE_USER } from '_utils/constants';
 
 const PageRoutes: PageRoute[] = [
     {
@@ -29,6 +27,9 @@ const PageRoutes: PageRoute[] = [
         name: 'Inbox',
         path: '/inbox',
         icon: createElement(InboxOutlined),
+        access: {
+            hasRole: [ROLE_AGENT],
+        },
     },
     {
         type: 'page',
@@ -63,8 +64,8 @@ const PageRoutes: PageRoute[] = [
                 // access: {
                 //     hasRole: ['admin']
                 // }
-            }
-        ]
+            },
+        ],
     },
     {
         type: 'group',
@@ -77,7 +78,7 @@ const PageRoutes: PageRoute[] = [
                 path: '/admin/settings',
                 icon: createElement(SettingOutlined),
                 access: {
-                    hasRole: ['admin'],
+                    hasRole: [ROLE_ADMIN],
                 },
             },
             {
@@ -86,7 +87,7 @@ const PageRoutes: PageRoute[] = [
                 path: '/admin/users',
                 icon: createElement(UserOutlined),
                 access: {
-                    hasRole: ['admin'],
+                    hasRole: [ROLE_ADMIN],
                 },
             },
             {
@@ -95,7 +96,7 @@ const PageRoutes: PageRoute[] = [
                 path: '/admin/approvals',
                 icon: createElement(AuditOutlined),
                 access: {
-                    hasRole: ['admin'],
+                    hasRole: [ROLE_ADMIN],
                 },
             },
             {
@@ -105,7 +106,7 @@ const PageRoutes: PageRoute[] = [
                 icon: createElement(GroupOutlined),
                 access: {
                     disable: true,
-                    hasRole: ['admin'],
+                    hasRole: [ROLE_ADMIN],
                 },
             },
             {
@@ -115,7 +116,7 @@ const PageRoutes: PageRoute[] = [
                 icon: createElement(SolutionOutlined),
                 access: {
                     disable: true,
-                    hasRole: ['admin'],
+                    hasRole: [ROLE_ADMIN],
                 },
             },
         ],
@@ -168,9 +169,7 @@ export interface GroupRoute extends BaseRoute {
     type: 'group';
     children: SingleRoute[];
 }
-export interface ChildRoute extends BaseRoute {
-    
-}
+export interface ChildRoute extends BaseRoute {}
 export interface SingleRoute extends BaseRoute {
     type: 'page';
     path?: string;
