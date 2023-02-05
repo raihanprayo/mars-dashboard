@@ -51,13 +51,14 @@ import { usePageable } from '_hook/pageable.hook';
 import { useBool } from '_hook/util.hook';
 import { CoreService } from '_service/api';
 import notif from '_service/notif';
+import { PageTitle } from '_utils/conversion';
 
 enum ParamType {
     NOTE = 'NOTE',
     CAPTURE = 'CAPTURE',
 }
 
-export default function IssuePage(props: IssuePageProps) {
+function IssuePage(props: IssuePageProps) {
     const router = useRouter();
     const page = usePage();
     const { pageable } = usePageable();
@@ -134,9 +135,6 @@ export default function IssuePage(props: IssuePageProps) {
     if (props.error) return <>{props.error.message}</>;
     return (
         <MarsTableProvider refresh={refresh}>
-            <Head>
-                <title>Mars - Kendala</title>
-            </Head>
             <div className="workspace solution">
                 <div className="solution-wrap">
                     <div className="solution-content">
@@ -305,6 +303,8 @@ export interface IssuePageProps extends CoreService.ErrorDTO {
     data: DTO.Issue[];
     total: number;
 }
+
+export default PageTitle("Kendala", IssuePage);
 
 // Drawer ---------------------------------------------------------------------
 function AddIssueDrawer(props: AddIssueDrawerProps) {

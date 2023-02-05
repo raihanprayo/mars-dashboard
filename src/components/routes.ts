@@ -9,6 +9,7 @@ import {
     SettingOutlined,
     BulbOutlined,
     BugOutlined,
+    StarOutlined,
 } from '@ant-design/icons';
 import { isDefined } from '@mars/common';
 import { Session } from 'next-auth';
@@ -34,27 +35,28 @@ const PageRoutes: PageRoute[] = [
     {
         type: 'page',
         name: 'Reports',
-        path: '/reports',
+        path: '/statistik/reports',
         icon: createElement(BarChartOutlined),
     },
-    // {
-    //     type: 'page',
-    //     name: 'Leaderboards',
-    //     icon: createElement(StarOutlined),
-    // },
+    {
+        type: 'page',
+        name: 'Leaderboards',
+        path: '/statistik/leaderboard',
+        icon: createElement(StarOutlined),
+    },
     {
         type: 'group',
         name: 'Miscellaneous',
         icon: createElement(ApartmentOutlined),
+        access: {
+            hasRole: [ROLE_ADMIN]
+        },
         children: [
             {
                 type: 'page',
                 name: 'Jenis Kendala',
                 path: '/misc/issue',
                 icon: createElement(BugOutlined),
-                // access: {
-                //     hasRole: ['admin']
-                // }
             },
             {
                 type: 'page',
@@ -161,7 +163,7 @@ export type PageRoute = GroupRoute | SingleRoute;
 interface BaseRoute {
     name: string;
     roles?: string[];
-    icon?: React.ReactNode;
+    icon?: React.ReactElement;
     access?: RouteAccessOpt;
 }
 

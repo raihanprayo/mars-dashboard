@@ -1,29 +1,18 @@
 import { AuditOutlined } from '@ant-design/icons';
-import {
-    Col,
-    Form,
-    Input,
-    InputNumber,
-    Radio,
-    Row,
-    Select,
-    Statistic,
-    Typography,
-} from 'antd';
+import { Col, Form, Input, Radio, Row, Statistic, Typography } from 'antd';
 import axios from 'axios';
-import { endOfDay, format, startOfToday } from 'date-fns';
+import { endOfDay, startOfToday } from 'date-fns';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
 import { createContext, ReactNode, useContext, useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import { isBrowser, isServer } from '_utils/constants';
+import { isBrowser } from '_utils/constants';
 import { TFilter } from '_comp/table/table.filter';
 import { MarsTableConsumer, MarsTableProvider } from '_ctx/table.ctx';
 import { BooleanInput, DateRangeFilter, EnumSelect } from '_comp/table/input.fields';
-import { mapEnum } from '_utils/conversion';
-import { THeader } from '_comp/table/table.header';
 import { useRouter } from 'next/router';
 import { usePage } from '_ctx/page.ctx';
+import { PageTitle } from '_utils/conversion';
 
 const Pie = dynamic(
     async () => {
@@ -194,7 +183,8 @@ function ChartView(props: { data: PieChartData[]; title?: string; span?: number 
     );
 }
 
-export default ReportsPage;
+export default PageTitle('Chart Report', ReportsPage);
+
 export async function getServerSideProps(ctx: NextPageContext) {
     const session = await getSession(ctx);
 

@@ -46,8 +46,9 @@ import { usePageable } from '_hook/pageable.hook';
 import { useBool } from '_hook/util.hook';
 import { CoreService } from '_service/api';
 import notif from '_service/notif';
+import { PageTitle } from '_utils/conversion';
 
-export default function SolutionsPage(props: SolutionsPageProps) {
+function SolutionsPage(props: SolutionsPageProps) {
     const router = useRouter();
     const page = usePage();
     const { pageable, setPageable } = usePageable();
@@ -124,9 +125,6 @@ export default function SolutionsPage(props: SolutionsPageProps) {
     if (props.error) return <>{props.error.message}</>;
     return (
         <MarsTableProvider refresh={refresh}>
-            <Head>
-                <title>Mars - Actual Solution</title>
-            </Head>
             <div className="workspace solution">
                 <div className="solution-wrap">
                     <div className="solution-content">
@@ -222,7 +220,7 @@ export default function SolutionsPage(props: SolutionsPageProps) {
                         >
                             <Card
                                 size="small"
-                                className='card-editable'
+                                className="card-editable"
                                 title={
                                     'Detail ' +
                                     (detail.data?.name ? detail.data.name : 'Kendala')
@@ -308,6 +306,8 @@ export async function getServerSideProps(ctx: NextPageContext) {
         },
     };
 }
+
+export default PageTitle('Actual Solution', SolutionsPage);
 
 function AddSolutionDrawer(props: AddSolutionDrawerProps) {
     const router = useRouter();

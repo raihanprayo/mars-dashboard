@@ -16,6 +16,7 @@ import { NamePath } from 'antd/lib/form/interface';
 import axios, { AxiosError } from 'axios';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { ReactElement, useMemo, useState } from 'react';
 import { FormRules } from '_comp/admin/rules';
@@ -86,7 +87,11 @@ export default function ProfilePage(props: ProfilePageProps) {
     const extra = (
         <Space align="baseline">
             {editMode.value && (
-                <MarsButton icon={<SaveOutlined />} onClick={submitProfileUpdate} loading={page.loading}>
+                <MarsButton
+                    icon={<SaveOutlined />}
+                    onClick={submitProfileUpdate}
+                    loading={page.loading}
+                >
                     Save
                 </MarsButton>
             )}
@@ -108,6 +113,10 @@ export default function ProfilePage(props: ProfilePageProps) {
 
     return (
         <PageContent pageTitle="Profile">
+            <Head>
+                <title>Profile - {user.name}</title>
+            </Head>
+
             <div className="workspace profile">
                 <Card
                     title="Profile"

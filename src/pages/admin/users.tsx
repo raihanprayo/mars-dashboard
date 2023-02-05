@@ -93,24 +93,6 @@ export default function UsersPage(props: UsersPageProps) {
                             refresh,
                             total: props.total,
                         })
-                        // {
-                        //     total: props.total,
-                        //     current: pageable.page + 1,
-                        //     pageSizeOptions: [10, 20, 50, 100, 200],
-                        //     hideOnSinglePage: false,
-                        //     onChange(page, pageSize) {
-                        //         if (pageable.page !== page - 1) {
-                        //             setPageable({ page: page - 1 });
-                        //             refresh();
-                        //         }
-                        //     },
-                        //     onShowSizeChange(current, size) {
-                        //         if (current !== size) {
-                        //             setPageable({ size });
-                        //             refresh();
-                        //         }
-                        //     },
-                        // }
                     }
                 />
                 <TFilter form={filter} title="User Filter">

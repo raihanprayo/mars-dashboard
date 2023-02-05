@@ -1,4 +1,5 @@
 import { TicketPageMetadata, TicketTable } from '_comp/orders/ticket.table.view';
+import { PageTitle } from '_utils/conversion';
 
 function IndexPage(props: TicketPageMetadata) {
     if (props.error) {
@@ -6,16 +7,11 @@ function IndexPage(props: TicketPageMetadata) {
     }
 
     return (
-        <TicketTable
-            metadata={props}
-            customContextMenu
-            editorDrawer
-            withLinkToDetail
-        />
+        <TicketTable metadata={props} customContextMenu editorDrawer withLinkToDetail />
     );
 }
 
-export default IndexPage;
+export default PageTitle('Dashboard', IndexPage);
 
 export const getServerSideProps = TicketTable.getServerSideProps('/ticket', {
     filter: {
@@ -30,27 +26,3 @@ export const getServerSideProps = TicketTable.getServerSideProps('/ticket', {
         },
     },
 });
-// export async function getServerSideProps(ctx: NextPageContext) {
-//     const session = await getSession(ctx);
-//     const config = api.auhtHeader(session);
-
-//     const res = await api.manage<DTO.Ticket[]>(api.get('/ticket'));
-//     if (axios.isAxiosError(res)) {
-//         return api.serverSideError(res, res.response?.status);
-//     }
-
-//     const countHeader = (res.headers['tc-count'] || '').split(', ');
-//     const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
-
-//     return {
-//         props: {
-//             data: res.data,
-//             total,
-//             products: {
-//                 [Mars.Product.INTERNET]: Number(countHeader[0] || 0),
-//                 [Mars.Product.IPTV]: Number(countHeader[1] || 0),
-//                 [Mars.Product.VOICE]: Number(countHeader[2] || 0),
-//             },
-//         },
-//     };
-// }

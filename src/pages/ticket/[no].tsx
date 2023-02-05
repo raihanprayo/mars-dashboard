@@ -81,8 +81,10 @@ function TicketDetail(props: TicketDetailProps) {
         }
 
         const form = new FormData();
+        const solution = submission.getFieldValue('solution')?.value;
+
         form.set('note', description);
-        form.set('solution', submission.getFieldValue('solution')?.value);
+        if (solution) form.set('solution', solution);
         for (const file of files) form.append('files', file as RcFile, file.fileName);
 
         const statusLink =
@@ -94,6 +96,7 @@ function TicketDetail(props: TicketDetailProps) {
 
         const url = `/ticket/wip/${statusLink}/${ticket.id}`;
 
+        console.log(submission.getFieldsValue())
         pageCtx.setLoading(true);
         api.postForm(url, form)
             .then(() => RefreshBadgeEvent.emit())
@@ -109,12 +112,12 @@ function TicketDetail(props: TicketDetailProps) {
         const leaveMessage = `You have unsaved changes, are you sure you want to leave this page?`;
 
         const handleWindowClose = (e: BeforeUnloadEvent) => {
-            if (!unsaved || resolved) return;
+            if (resolved || !unsaved) return;
             e.preventDefault();
             return (e.returnValue = leaveMessage);
         };
         const handleBrowseAway = () => {
-            if (!unsaved || resolved) return;
+            if (resolved || !unsaved) return;
             if (window.confirm(leaveMessage)) return;
             route.events.emit('routeChangeError');
             throw 'routeChange aborted';
@@ -250,6 +253,9 @@ function TicketDetail(props: TicketDetailProps) {
                         layout="vertical"
                         initialValues={{
                             status: Mars.Status.CLOSED,
+                            solution: null,
+                            description: null,
+                            files: null
                         }}
                     >
                         <Form.Item
@@ -367,7 +373,7 @@ export async function getServerSideProps(ctx: NextPageContext) {
             const data: DTO.Ticket = res.data;
             const logRes = await api.get(`/ticket/logs/${ticketNo}`, config);
             const agentRes = await api.get<DTO.TicketAgent[]>(
-                `/ticket/agents/${ticketNo}`,
+                `/ticket/agent/detail/${ticketNo}`,
                 config
             );
             const relatedRes = await api.get<DTO.Ticket[]>(
@@ -386,6 +392,8 @@ export async function getServerSideProps(ctx: NextPageContext) {
         }
     }
 }
+
+export default TicketDetail;
 
 function SharedImage(props: SharedImageProps) {
     const { assets } = props;
@@ -456,7 +464,6 @@ function GaulRelation(props: { relations: DTO.Ticket[] }) {
         />
     );
 }
-export default TicketDetail;
 
 interface TicketDetailProps {
     data: DTO.Ticket;
