@@ -119,6 +119,7 @@ const route = NextAuth({
 
                 session.roles = roles;
                 session.user = {
+                    id: token.sub,
                     name: token.name,
                     email: token.email,
                     nik: token.nik,
@@ -183,6 +184,7 @@ declare module 'next-auth/jwt' {
 
 declare global {
     interface MarsUserSession {
+        id: string;
         nik: string;
         name: string;
         email: string;

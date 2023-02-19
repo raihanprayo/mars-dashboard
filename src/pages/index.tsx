@@ -15,14 +15,7 @@ export default PageTitle('Dashboard', IndexPage);
 
 export const getServerSideProps = TicketTable.getServerSideProps('/ticket', {
     filter: {
-        status: {
-            in: [
-                Mars.Status.OPEN,
-                Mars.Status.CONFIRMATION,
-                Mars.Status.DISPATCH,
-                Mars.Status.REOPEN,
-                Mars.Status.PENDING,
-            ],
-        },
+        wip: { eq: false },
+        status: { in: [Mars.Status.CLOSED], negated: true },
     },
 });

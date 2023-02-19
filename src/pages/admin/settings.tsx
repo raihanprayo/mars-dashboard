@@ -6,7 +6,7 @@ import {
     ReloadOutlined,
     SaveOutlined,
 } from '@ant-design/icons';
-import { isTruthy } from '@mars/common';
+import { isBool, isTruthy } from '@mars/common';
 import {
     Input,
     InputNumber,
@@ -30,27 +30,26 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { createContext, useContext, useMemo, useState } from 'react';
 import { THeader } from '_comp/table/table.header';
+import { useApp } from '_ctx/app.ctx';
 import { usePage } from '_ctx/page.ctx';
 import { CoreService } from '_service/api';
 import notif from '_service/notif';
+import { RefreshSettingEvent } from '_utils/events';
 
 const SettingItemCtx = createContext<SettingItemCtx>(null);
 interface SettingItemCtx {
     readonly hover: boolean;
 }
 
-export default function SettingPage(props: SettingPageProps) {
-    if (props.error) {
-        return <>{props.error.message}</>;
-    }
-
+export default function SettingPage() {
     const router = useRouter();
+    const app = useApp();
     const page = usePage();
     const [configs] = Form.useForm<map<Setting.Value>>();
 
     const origin = useMemo<Setting.MapValue>(
-        () => Object.fromEntries(props.data.map(Setting.convert)),
-        [props.data]
+        () => Object.fromEntries(app.settings.map(Setting.convert)),
+        [app.settings]
     );
 
     const [hasValueChanged, setHasValueChanged] = useState(false);
@@ -66,15 +65,15 @@ export default function SettingPage(props: SettingPageProps) {
         await configs.validateFields();
 
         const values = configs.getFieldsValue();
-        const newSets: SettingDTO[] = [];
+        const newSets: DTO.Setting[] = [];
 
-        for (const sett of props.data) {
+        for (const sett of app.settings) {
             let { title, value } = values[sett.name];
             switch (sett.type) {
-                case Setting.Type.ARRAY:
+                case DTO.SettingType.ARRAY:
                     value = (value as string[]).join('|');
                     break;
-                case Setting.Type.JSON:
+                case DTO.SettingType.JSON:
                     value = JSON.stringify(value);
                     break;
                 default:
@@ -90,7 +89,10 @@ export default function SettingPage(props: SettingPageProps) {
         api.put('/app/config', newSets)
             .then((res) => message.success('Updated'))
             .catch((err) => notif.axiosError(err))
-            .finally(() => router.reload());
+            .finally(() => {
+                RefreshSettingEvent.emit();
+                router.reload();
+            });
     };
 
     return (
@@ -107,7 +109,7 @@ export default function SettingPage(props: SettingPageProps) {
                 }
             />
 
-            <Form
+            {app.settings.length > 0 && <Form
                 form={configs}
                 size="small"
                 initialValues={origin}
@@ -125,10 +127,10 @@ export default function SettingPage(props: SettingPageProps) {
             >
                 <List
                     grid={{ gutter: 16, column: 3 }}
-                    dataSource={props.data}
+                    dataSource={app.settings}
                     renderItem={(item) => <RenderConfig {...item} />}
                 />
-            </Form>
+            </Form>}
 
             <THeader className="footer bg-primary">
                 <THeader.Action
@@ -153,7 +155,7 @@ export default function SettingPage(props: SettingPageProps) {
         </div>
     );
 }
-export function RenderConfig(config: SettingDTO & { title?: string }) {
+export function RenderConfig(config: DTO.Setting & { title?: string }) {
     const [hover, setHover] = useState(false);
     const tooltip = (
         <Tooltip title={config.description}>
@@ -161,7 +163,7 @@ export function RenderConfig(config: SettingDTO & { title?: string }) {
         </Tooltip>
     );
 
-    const isObjType = [Setting.Type.ARRAY, Setting.Type.JSON].includes(config.type);
+    const isObjType = [DTO.SettingType.ARRAY, DTO.SettingType.JSON].includes(config.type);
     const path = isObjType ? config.name : [config.name, 'value'];
     return (
         <List.Item>
@@ -196,36 +198,27 @@ namespace Setting {
     export type TuppleValue = [string, Value];
     export type MapValue = map<Value>;
 
-    export const EXCLUDED_IDS = [2, 4];
 
-    export enum Type {
-        STRING = 'STRING',
-        NUMBER = 'NUMBER',
-        BOOLEAN = 'BOOLEAN',
-        JSON = 'JSON',
-        ARRAY = 'ARRAY',
-    }
-
-    export function convert(item: SettingDTO): TuppleValue {
+    export function convert(item: DTO.Setting): TuppleValue {
         const get = (value: any) =>
             [item.name, { title: item.title, value }] satisfies TuppleValue;
 
         switch (item.type) {
-            case Type.BOOLEAN:
-                return get('true' === item.value);
-            case Type.NUMBER:
+            case DTO.SettingType.BOOLEAN:
+                return get(['true', 't'].includes(item.value.toLowerCase()));
+            case DTO.SettingType.NUMBER:
                 return get(Number(item.value));
-            case Type.ARRAY:
+            case DTO.SettingType.ARRAY:
                 const items = item.value.split('|').filter(isTruthy);
                 return get(items);
-            case Type.JSON:
+            case DTO.SettingType.JSON:
                 return get(JSON.parse(item.value));
         }
         return get(item.value);
     }
 
     export function EditableTitle(props: {
-        config: SettingDTO;
+        config: DTO.Setting;
         value?: string;
         onChange?(t: string): void;
     }) {
@@ -251,7 +244,7 @@ namespace Setting {
         );
     }
     export function ConfigInput(props: {
-        config: SettingDTO;
+        config: DTO.Setting;
         value?: any;
         onChange?(v: any): void;
     }) {
@@ -259,7 +252,7 @@ namespace Setting {
         let comp: React.ReactElement;
 
         switch (config.type) {
-            case Type.STRING:
+            case DTO.SettingType.STRING:
                 comp = (
                     <Input
                         value={props.value}
@@ -267,10 +260,10 @@ namespace Setting {
                     />
                 );
                 break;
-            case Type.NUMBER:
+            case DTO.SettingType.NUMBER:
                 comp = <InputNumber value={props.value} onChange={props.onChange} />;
                 break;
-            case Type.BOOLEAN:
+            case DTO.SettingType.BOOLEAN:
                 comp = (
                     <Switch
                         size="default"
@@ -281,7 +274,7 @@ namespace Setting {
                     />
                 );
                 break;
-            case Type.ARRAY:
+            case DTO.SettingType.ARRAY:
                 comp = <InputArray config={config} />;
         }
 
@@ -293,7 +286,7 @@ namespace Setting {
         );
     }
 
-    export function _suffix(config: SettingDTO): string | undefined {
+    export function _suffix(config: DTO.Setting): string | undefined {
         switch (config.id) {
             case 1:
                 return 'Menit';
@@ -304,7 +297,7 @@ namespace Setting {
         }
     }
 
-    function _rules_arr(config: SettingDTO): Rule[] {
+    function _rules_arr(config: DTO.Setting): Rule[] {
         switch (config.id) {
             case 7:
                 return [
@@ -319,7 +312,7 @@ namespace Setting {
     }
 
     interface ObjectInput {
-        config: SettingDTO;
+        config: DTO.Setting;
     }
 
     function InputJson() {}
@@ -356,31 +349,31 @@ namespace Setting {
     }
 }
 
-export async function getServerSideProps(ctx: NextPageContext) {
-    const session = await getSession(ctx);
-    const config = api.auhtHeader(session);
+// export async function getServerSideProps(ctx: NextPageContext) {
+//     const session = await getSession(ctx);
+//     const config = api.auhtHeader(session);
 
-    const res = await api.manage<SettingDTO[]>(api.get('/app/config', config));
-    if (axios.isAxiosError(res)) return api.serverSideError(res);
+//     const res = await api.manage<DTO.Setting[]>(api.get('/app/config', config));
+//     if (axios.isAxiosError(res)) return api.serverSideError(res);
 
-    return {
-        props: {
-            data: res.data
-                .sort((a, b) => a.id - b.id)
-                .filter((s) => !Setting.EXCLUDED_IDS.includes(s.id)),
-        },
-    };
-}
+//     return {
+//         props: {
+//             data: res.data
+//                 .sort((a, b) => a.id - b.id)
+//                 .filter((s) => !Setting.EXCLUDED_IDS.includes(s.id)),
+//         },
+//     };
+// }
 
-interface SettingPageProps extends CoreService.ErrorDTO {
-    data: SettingDTO[];
-}
+// interface SettingPageProps extends CoreService.ErrorDTO {
+//     data: DTO.Setting[];
+// }
 
-interface SettingDTO {
-    id: number;
-    name: string;
-    title: string;
-    type: Setting.Type;
-    value: string;
-    description: string;
-}
+// interface SettingDTO {
+//     id: number;
+//     name: string;
+//     title: string;
+//     type: Setting.Type;
+//     value: string;
+//     description: string;
+// }

@@ -54,9 +54,7 @@ function SolutionsPage(props: SolutionsPageProps) {
     const { pageable, setPageable } = usePageable();
 
     const [filter] = Form.useForm<ICriteria<DTO.Solution>>();
-    const [selected, setSelected] = useState<boolean[]>(
-        Array(props.data?.length).fill(false)
-    );
+    const [selected, setSelected] = useState<string[]>([]);
 
     const addDrawer = useBool();
     const [editForm] = Form.useForm<DTO.Solution>();
@@ -65,8 +63,8 @@ function SolutionsPage(props: SolutionsPageProps) {
         edit: false,
     });
 
-    const countSelected = useMemo(() => selected.filter((e) => e).length, [selected]);
-    const hasSelected = useMemo(() => countSelected !== 0, [countSelected]);
+    const countSelected = useMemo(() => selected.length, [selected]);
+    const hasSelected = useMemo(() => selected.length > 0, [selected]);
     const hasFocusDetail = useMemo(() => isDefined(detail.data), [detail.data]);
 
     const refresh = useCallback(() => {
@@ -95,15 +93,15 @@ function SolutionsPage(props: SolutionsPageProps) {
         selectedRowKeys: React.Key[],
         selectedRows: DTO.Solution[]
     ) => {
-        const bools = [...selected];
-        for (let index = 0; index < props.data.length; index++) {
-            const dto = props.data[index];
+        // const bools = [...selected];
+        // for (let index = 0; index < props.data.length; index++) {
+        //     const dto = props.data[index];
 
-            const isSelected = selectedRows.findIndex((e) => e.id === dto.id) !== -1;
-            bools[index] = isSelected;
-        }
+        //     const isSelected = selectedRows.findIndex((e) => e.id === dto.id) !== -1;
+        //     bools[index] = isSelected;
+        // }
 
-        setSelected(bools);
+        setSelected(selectedRowKeys as string[]);
     };
 
     const actionDelete = (ids?: number[]) => {
@@ -302,7 +300,11 @@ export async function getServerSideProps(ctx: NextPageContext) {
     return {
         props: {
             total,
-            data: res.data,
+            // data: res.data,
+            data: res.data.map(e => {
+                e['key'] = e.id;
+                return e;
+            }),
         },
     };
 }

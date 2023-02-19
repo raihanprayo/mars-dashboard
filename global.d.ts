@@ -6,6 +6,12 @@ declare global {
         children?: React.ReactNode;
     }
 
+    interface NextServerSideProps<T extends object> {
+        props: Partial<T>;
+    }
+
+    type NextServerSidePropsAsync<T extends object> = Promise<NextServerSideProps<T>>;
+
     interface NextAppConfiguration {
         publicRuntimeConfig: AppConfiguration;
         serverRuntimeConfig: AppConfiguration;

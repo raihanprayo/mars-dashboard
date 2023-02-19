@@ -1,5 +1,5 @@
 import { CheckOutlined, CloseOutlined, ReloadOutlined } from '@ant-design/icons';
-import { HttpHeader } from '@mars/common';
+import { HttpHeader, isDefined } from '@mars/common';
 import { Form, Input, Radio, Table } from 'antd';
 import axios from 'axios';
 import { NextPageContext } from 'next';
@@ -18,17 +18,15 @@ import { CoreService } from '_service/api';
 
 export default function UserApprovalPage(props: UserApprovalPageProps) {
     const router = useRouter();
-    const pageCtx = useContext(PageContext);
+    const page = useContext(PageContext);
     const { pageable, setPageable } = usePageable();
 
     const [filter] = Form.useForm<ICriteria<DTO.UserApproval>>();
-    const [selected, setSelected] = useState<boolean[]>(
-        Array(props.data?.length).fill(false)
-    );
-    const [hasSelected, setHasSelected] = useState(false);
+    const [selected, setSelected] = useState<string[]>([]);
+    const hasSelected = useMemo(() => selected.length > 0, [selected]);
 
     const refresh = useCallback(() => {
-        pageCtx.setLoading(true);
+        page.setLoading(true);
         return router
             .push({
                 pathname: router.pathname,
@@ -43,23 +41,25 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
                     roles: {},
                 }),
             })
-            .finally(() => pageCtx.setLoading(false));
+            .finally(() => page.setLoading(false));
     }, [pageable.page, pageable.size, pageable.sort]);
 
     const onSelectedChanged = (
         selectedRowKeys: React.Key[],
         selectedRows: DTO.UserApproval[]
     ) => {
-        const bools = [...selected];
-        for (let index = 0; index < props.data.length; index++) {
-            const dto = props.data[index];
+        // const bools = [...selected];
+        // for (let index = 0; index < props.data.length; index++) {
+        //     const dto = props.data[index];
 
-            const isSelected = selectedRows.findIndex((e) => e.id === dto.id) !== -1;
-            bools[index] = isSelected;
-        }
+        //     const isSelected = selectedRows.findIndex((e) => e.id === dto.id) !== -1;
+        //     bools[index] = isSelected;
+        // }
 
-        setSelected(bools);
-        setHasSelected(selectedRows.length !== 0);
+        const s = selectedRows.map((e) => e.id);
+        setSelected(s);
+        console.log('Selected Keys', selectedRowKeys);
+        console.log('Selected Rows', selectedRows);
     };
 
     const onAcceptClick = useCallback((r: DTO.UserApproval, approved: boolean) => {
@@ -67,16 +67,13 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
     }, []);
 
     const approvalBulkAccept = useCallback((approved: boolean, ids?: string[]) => {
-        ids ||= selected
-            .filter((e) => e)
-            .map((e, i) => props.data[i])
-            .map((e) => e.id);
+        ids ||= selected;
 
-        pageCtx.setLoading(true);
+        page.setLoading(true);
         api.post('/user/approvals', ids, { params: { approved } })
             .then(() => refresh())
             .catch((err) => {})
-            .finally(() => pageCtx.setLoading(false));
+            .finally(() => page.setLoading(false));
     }, []);
 
     if (props.error) return <>{props.error.message}</>;
@@ -127,6 +124,7 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
                     dataSource={props.data}
                     rowSelection={{
                         type: 'checkbox',
+                        selectedRowKeys: selected,
                         onChange: onSelectedChanged,
                     }}
                     pagination={{
@@ -183,14 +181,18 @@ export async function getServerSideProps(ctx: NextPageContext) {
     const session = await getSession(ctx);
     const config = api.auhtHeader(session);
 
-    const res = await api.manage(api.get('/user/approvals', config));
+    const res = await api.manage<DTO.UserApproval[]>(api.get('/user/approvals', config));
     if (axios.isAxiosError(res)) return api.serverSideError(res);
 
     const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
     return {
         props: {
             total,
-            data: res.data,
+            data: res.data.map((e) => {
+                e['key'] = e.id;
+                return e;
+            }),
+            // data: res.data,
         },
     };
 }

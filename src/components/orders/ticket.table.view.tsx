@@ -1,5 +1,5 @@
 import { EditOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
-import { HttpHeader, isBool } from '@mars/common';
+import { HttpHeader, isBool, Properties } from '@mars/common';
 import { Form, Input, InputNumber, message, Select, Table } from 'antd';
 import { TableRowSelection } from 'antd/lib/table/interface';
 import axios, { AxiosResponse } from 'axios';
@@ -51,6 +51,8 @@ export function TicketTable(props: TicketTableProps) {
         page.setLoading(true);
 
         const filter = formFilter.getFieldsValue();
+        if (filter.status.in) filter.status.negated = false;
+
         return router
             .push({
                 pathname: router.pathname,
@@ -232,9 +234,11 @@ export function TicketTable(props: TicketTableProps) {
                     rowSelection={rowSelection}
                 />
                 <TFilter form={formFilter} title="Tiket Filter">
-                    <Form.Item label="Sedang Dikerjakan" name={['wip', 'eq']}>
-                        <BooleanInput />
-                    </Form.Item>
+                    {!props.inbox && (
+                        <Form.Item label="Sedang Dikerjakan" name={['wip', 'eq']}>
+                            <BooleanInput />
+                        </Form.Item>
+                    )}
                     <Form.Item label="Produk" name={['product', 'in']}>
                         <Select
                             mode="multiple"
@@ -306,14 +310,20 @@ TicketTable.getServerSideProps = function getServerSidePropsInitilizer(
 ) {
     return async function getServerSideProps(ctx: NextPageContext) {
         const session = await getSession(ctx);
-        const config = api.auhtHeader(session, {
-            params: Object.assign(
-                {},
-                defaults.pageable || {},
-                defaults.filter || {},
-                ctx.query
-            ),
+
+        const properties = new Properties({
+            ...(defaults.pageable || {}),
+            ...(defaults.filter || {}),
         });
+
+        const config = api.auhtHeader(session, {
+            params: {
+                ...properties.inlined,
+                ...ctx.query,
+            },
+        });
+
+        console.log(config.params);
 
         const res = await api.manage<DTO.Ticket[]>(api.get(url, config));
         if (axios.isAxiosError(res)) {

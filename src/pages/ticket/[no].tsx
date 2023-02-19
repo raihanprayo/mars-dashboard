@@ -38,10 +38,12 @@ import { CopyToClipboard, MarsButton } from '_comp/base';
 import notif from '_service/notif';
 import { SolutionSelect } from '_comp/table/input.fields';
 import Head from 'next/head';
+import { CreatedBy } from '_comp/base/UserInfo';
 
 const AcceptableFileExt = ['.jpg', '.jpeg', '.png', '.webp'];
 
 function TicketDetail(props: TicketDetailProps) {
+    console.log(props.worklogs);
     const ticket: DTO.Ticket = props.data || ({} as any);
     const route = useRouter();
     const session = useSession();
@@ -67,8 +69,7 @@ function TicketDetail(props: TicketDetailProps) {
         ].includes(ticket.status);
 
         const invalidProgress =
-            session.status === 'authenticated' &&
-            ticket.wipBy?.nik !== session.data?.user?.nik;
+            session.status === 'authenticated' && ticket.wipBy !== session.data?.user?.id;
 
         return invalidStat || invalidProgress;
     }, [ticket]);
@@ -96,7 +97,7 @@ function TicketDetail(props: TicketDetailProps) {
 
         const url = `/ticket/wip/${statusLink}/${ticket.id}`;
 
-        console.log(submission.getFieldsValue())
+        console.log(submission.getFieldsValue());
         pageCtx.setLoading(true);
         api.postForm(url, form)
             .then(() => RefreshBadgeEvent.emit())
@@ -149,7 +150,7 @@ function TicketDetail(props: TicketDetailProps) {
                             <Timeline.Item key={`tl:item-${i}`} label={d}>
                                 {log.message}
                                 <br />
-                                <b>by:</b> {log.createdBy}
+                                <b>by:</b> <CreatedBy data={log} />
                             </Timeline.Item>
                         );
                     })}
@@ -255,7 +256,7 @@ function TicketDetail(props: TicketDetailProps) {
                             status: Mars.Status.CLOSED,
                             solution: null,
                             description: null,
-                            files: null
+                            files: null,
                         }}
                     >
                         <Form.Item
@@ -338,7 +339,9 @@ function TicketDetail(props: TicketDetailProps) {
     );
 }
 
-export async function getServerSideProps(ctx: NextPageContext) {
+export async function getServerSideProps(
+    ctx: NextPageContext
+): NextServerSidePropsAsync<TicketDetailProps> {
     const ticketNo = ctx.query.no;
     const session = await getSession(ctx);
 
@@ -371,24 +374,26 @@ export async function getServerSideProps(ctx: NextPageContext) {
             };
         } else {
             const data: DTO.Ticket = res.data;
-            const logRes = await api.get(`/ticket/logs/${ticketNo}`, config);
-            const agentRes = await api.get<DTO.TicketAgent[]>(
-                `/ticket/agent/detail/${ticketNo}`,
-                config
-            );
+            const logRes = await api.get(`/ticket/detail/${ticketNo}/logs`, config);
             const relatedRes = await api.get<DTO.Ticket[]>(
                 `/ticket/detail/${ticketNo}/relation`,
                 { ...config, params: { wip: { in: [true, false] } } }
             );
+            const workspacesRes = await api.get<DTO.AgentWorklog[]>(
+                `/ticket/detail/${ticketNo}/worklogs`,
+                { ...config, params: { full: true } }
+            );
 
-            return {
+            const result: NextServerSideProps<TicketDetailProps> = {
                 props: {
                     data,
                     logs: logRes.data,
-                    agents: agentRes.data,
+                    worklogs: workspacesRes.data,
                     relation: relatedRes.data.filter((e) => e.id !== data.id),
                 },
             };
+
+            return result;
         }
     }
 }
@@ -468,7 +473,7 @@ function GaulRelation(props: { relations: DTO.Ticket[] }) {
 interface TicketDetailProps {
     data: DTO.Ticket;
     logs: DTO.TicketLog[];
-    agents: DTO.TicketAgent[];
+    worklogs: DTO.AgentWorklog[];
     relation: DTO.Ticket[];
     error: any;
 }

@@ -57,11 +57,11 @@ function MarsRocWrapper(props: AppProps & CustomAppProps) {
     const { session, info, ...others } = props;
 
     return (
-        <AppProvider info={info}>
-            <SessionProvider session={session} refetchInterval={60 * 5}>
+        <SessionProvider session={session} refetchInterval={60 * 5}>
+            <AppProvider info={info}>
                 <MarsRocApp {...others} />
-            </SessionProvider>
-        </AppProvider>
+            </AppProvider>
+        </SessionProvider>
     );
 }
 

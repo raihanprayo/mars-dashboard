@@ -18,6 +18,7 @@ import {
     Input,
     InputNumber,
     message,
+    Pagination,
     Select,
     Space,
     Table,
@@ -441,6 +442,8 @@ interface AddIssueDrawerProps {
     open?: boolean;
     onClose?(): void;
 }
+
+Pagination
 
 // Context --------------------------------------------------------------------
 const InfoIssueContext = createContext<InfoIssueContext>(null);

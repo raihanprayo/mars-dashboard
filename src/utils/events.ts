@@ -17,3 +17,13 @@ export class CopyAsGaulTicketEvent extends Event {
         window.dispatchEvent(new CopyAsGaulTicketEvent(data));
     }
 }
+
+export class RefreshSettingEvent extends Event {
+    constructor() {
+        super('refresh-setting');
+    }
+
+    static emit() {
+        window.dispatchEvent(new RefreshSettingEvent());
+    }
+}

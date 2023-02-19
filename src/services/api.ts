@@ -4,6 +4,7 @@ import { HttpHeader } from '@mars/common';
 import { Session } from 'next-auth';
 import { isServer } from '_utils/constants';
 import config from '_config';
+import { PathBuilder, RequestPath } from './service';
 
 const api: CoreService = axios.create({
     baseURL: isServer ? config.service.url : null,
@@ -26,7 +27,6 @@ const api: CoreService = axios.create({
 }) as any;
 
 if (isServer) {
-    
     api.defaults.baseURL = config.service.url;
 }
 
@@ -70,7 +70,14 @@ api.serializeParam = (params = {}) => {
         .slice(1);
 };
 
-globalThis.api = api;
+globalThis.api = Object.assign(api, {
+    get ticket() {
+        return RequestPath.r(api.defaults.baseURL).ticket;
+    },
+    get auth() {
+        return RequestPath.r(api.defaults.baseURL).auth;
+    },
+});
 
 declare global {
     var api: CoreService;
@@ -89,6 +96,9 @@ export interface CoreService extends Axios {
     serverSideErrorLog(err: any): any;
 
     serializeParam(o?: map): string;
+
+    readonly auth: PathBuilder;
+    readonly ticket: PathBuilder;
 }
 export namespace CoreService {
     export interface ErrorDTO {

@@ -1,6 +1,6 @@
 import { Session } from 'next-auth';
 import { useSession } from 'next-auth/react';
-import { useEffect, useMemo, useState } from 'react';
+import { DependencyList, EffectCallback, useEffect, useMemo, useState } from 'react';
 import { ROLE_ADMIN, ROLE_AGENT, ROLE_USER } from '_utils/constants';
 
 type NextAuthClientSession = ReturnType<typeof useSession>;
@@ -34,7 +34,6 @@ export interface RoleHook {
     isAdmin(): boolean;
     isUser(): boolean;
 }
-
 
 export function useUser(): UserHook {
     const session = useSession();
@@ -81,4 +80,18 @@ export interface UserHook {
     isLoggedIn(): boolean;
     isAdmin(): boolean;
     isUser(): boolean;
+}
+
+/**
+ * Sama kyk useEffect, hanya saja callback jalan setelah auth berhasil
+ * @param effect 
+ * @param deps 
+ */
+export function onAuthenticated(effect: EffectCallback, deps: DependencyList = []) {
+    const session = useSession();
+
+    useEffect(() => {
+        if (session.status !== 'authenticated') return;
+        return effect();
+    }, [session.status, ...deps]);
 }
