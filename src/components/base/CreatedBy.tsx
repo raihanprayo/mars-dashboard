@@ -1,6 +1,7 @@
 import { isDefined, isStr } from '@mars/common';
 import { Popover, Spin } from 'antd';
-import { createElement } from 'react';
+import { createElement, useEffect } from 'react';
+import { onAuthenticated } from '_hook/credential.hook';
 import { useBool } from '_hook/util.hook';
 
 const cache = new Map<string, Partial<DTO.Users>>();
@@ -32,13 +33,21 @@ export function CreatedBy<T extends map>(props: UserInfoPopupProps<T>) {
 
     const content = <Spin spinning={loading.value}>{name}</Spin>;
 
+    onAuthenticated(() => {
+        if (props.replace) onVisibleChange(true);
+    });
+
+    if (props.replace) {
+        return <span>{name || createdBy}</span>;
+    }
+
     return (
         <Popover
             // title={cache.get(nik)?.name}
             content={content}
             onOpenChange={onVisibleChange}
         >
-            <a href="javascript:void(0)">{createdBy}</a>
+            <span>{createdBy}</span>
         </Popover>
     );
 }
@@ -46,4 +55,5 @@ export function CreatedBy<T extends map>(props: UserInfoPopupProps<T>) {
 export interface UserInfoPopupProps<T extends map | string> {
     data: T;
     field?: string;
+    replace?: boolean;
 }

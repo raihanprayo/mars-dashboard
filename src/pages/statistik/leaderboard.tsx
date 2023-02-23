@@ -2,7 +2,6 @@ import { ReloadOutlined } from '@ant-design/icons';
 import { Button, Form, Space, Table } from 'antd';
 import { useCallback } from 'react';
 import { THeader } from '_comp/table/table.header';
-import { endOfDay, startOfDay } from 'date-fns';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
 import { CoreService } from '_service/api';
@@ -42,29 +41,11 @@ function LeaderboardPage(props: LeaderboardPageProps) {
 
     return (
         <div className="workspace table-view">
-            <Form
-                form={filter}
-                initialValues={{
-                    range: { gte: startOfDay(new Date()), lte: endOfDay(new Date()) },
-                }}
-            >
+            <Form form={filter}>
                 <THeader>
                     <THeader.Item pos="right">
                         <Space align="baseline">
-                            {/* <Form.Item name={['product', 'in']} noStyle>
-                                    <Radio.Group>
-                                        <Radio.Button value={Mars.Product.INTERNET}>
-                                            {Mars.Product.INTERNET}
-                                        </Radio.Button>
-                                        <Radio.Button value={Mars.Product.IPTV}>
-                                            {Mars.Product.IPTV}
-                                        </Radio.Button>
-                                        <Radio.Button value={Mars.Product.VOICE}>
-                                            {Mars.Product.VOICE}
-                                        </Radio.Button>
-                                    </Radio.Group>
-                                </Form.Item> */}
-                            <Form.Item name="range" noStyle>
+                            <Form.Item name="createdAt" noStyle>
                                 <DateRangeFilter withTime />
                             </Form.Item>
                             <Button
@@ -94,7 +75,7 @@ function LeaderboardPage(props: LeaderboardPageProps) {
                     {
                         title: 'Avg Response',
                         align: 'center',
-                        dataIndex: 'avgResponTime',
+                        dataIndex: 'avgRespon',
                         render: (v: number) => {
                             return calcTime(v);
                         },
@@ -102,7 +83,7 @@ function LeaderboardPage(props: LeaderboardPageProps) {
                     {
                         title: 'Avg Action',
                         align: 'center',
-                        dataIndex: 'avgActionTime',
+                        dataIndex: 'avgAction',
                         render: (v: number) => {
                             return calcTime(v);
                         },
@@ -129,18 +110,11 @@ function LeaderboardPage(props: LeaderboardPageProps) {
 }
 export async function getServerSideProps(ctx: NextPageContext) {
     const session = await getSession(ctx);
-
-    const from = startOfDay(new Date());
-    const end = endOfDay(from);
     const config = api.auhtHeader(session, {
-        params: {
-            'range.gte': from.toJSON(),
-            'range.lte': end.toJSON(),
-            ...ctx.query,
-        },
+        params: ctx.query,
     });
 
-    const res = await api.manage(api.get('/ticket/agent/leaderboard', config));
+    const res = await api.manage(api.get('/chart/leaderboard', config));
     if (axios.isAxiosError(res)) return api.serverSideError(res);
 
     const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;

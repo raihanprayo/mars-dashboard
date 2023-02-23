@@ -2,8 +2,8 @@ import { BaseContext, NextPageContext } from 'next/dist/shared/lib/utils';
 import { ComponentType } from 'react';
 
 declare global {
-    interface HasChild {
-        children?: React.ReactNode;
+    interface HasChild<T = React.ReactNode> {
+        children?: T;
     }
 
     interface NextServerSideProps<T extends object> {

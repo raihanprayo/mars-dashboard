@@ -1,5 +1,5 @@
 import { CopyOutlined } from '@ant-design/icons';
-import { mergeClassName } from '@mars/common';
+import { isDefined, mergeClassName } from '@mars/common';
 import { message, Space } from 'antd';
 import { useState } from 'react';
 
@@ -7,9 +7,10 @@ export function CopyToClipboard(props: CopyToClipboardProps) {
     const onClick = () =>
         navigator.clipboard
             .writeText(String(props.data))
-            .then(() => message.success('Text Copied', 2));
+            .then(() => message.success('Copy To Clipboard', 2));
 
     const cls = mergeClassName('copyable', props.className);
+    if (!isDefined(props.data)) return <></>;
     return (
         <span
             title={'copy ' + props.data}

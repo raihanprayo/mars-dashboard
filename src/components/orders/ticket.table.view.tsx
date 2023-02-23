@@ -51,7 +51,7 @@ export function TicketTable(props: TicketTableProps) {
         page.setLoading(true);
 
         const filter = formFilter.getFieldsValue();
-        if (filter.status.in) filter.status.negated = false;
+        if (filter?.status?.in) filter.status.negated = false;
 
         return router
             .push({

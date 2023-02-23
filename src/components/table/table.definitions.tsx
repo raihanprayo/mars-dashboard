@@ -134,6 +134,7 @@ export const TableTicketColms = (opt: TableTickerColumnOptions) => {
                             title="Ambil tiket"
                             disabled={disabled}
                             disabledOnRole={MarsButton.disableIfAdmin}
+                            children={!withCopyToDrawer ? 'Ambil' : null}
                         />
                     </Space>
                 );
