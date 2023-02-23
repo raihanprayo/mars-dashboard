@@ -1,5 +1,5 @@
 import { EditOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
-import { HttpHeader, isBool, Properties } from '@mars/common';
+import { HttpHeader, isArr, isBool, isNull, isStr, Properties } from '@mars/common';
 import { Form, Input, InputNumber, message, Select, Table } from 'antd';
 import { TableRowSelection } from 'antd/lib/table/interface';
 import axios, { AxiosResponse } from 'axios';
@@ -30,7 +30,10 @@ export function TicketTable(props: TicketTableProps) {
     const page = usePage();
     const menu = useContextMenu<DTO.Ticket>();
 
-    const { pageable, setPageable } = usePageable(['createdAt', Pageable.Sorts.DESC]);
+    const { pageable, setPageable, updateSort } = usePageable([
+        'createdAt',
+        Pageable.Sorts.DESC,
+    ]);
     const [formFilter] = Form.useForm<ICriteria<DTO.Ticket>>();
     const [productFilter, setProductFilter] = useState<Mars.Product[]>([]);
     const [openAddTicket, setOpenAddTicket] = useState(false);
@@ -223,14 +226,31 @@ export function TicketTable(props: TicketTableProps) {
                             if (current !== size) setPageable({ size });
                         },
                     }}
-                    onRow={(rec, index) => ({
-                        onContextMenu(event) {
-                            if (props.customContextMenu) {
-                                event.preventDefault();
-                                menu.popup(event.clientX, event.clientY, rec);
+                    onChange={(p, f, s, e) => {
+                        if (e.action === 'sort') {
+                            if (!isArr(s)) {
+                                const { column, order, field } = s;
+                                const f = !isArr(field) ? String(field) : field.join('.');
+                                updateSort(f, order);
+                            } else {
+                                for (const sortProp of s) {
+                                    const { column, order, field } = sortProp;
+                                    const f = !isArr(field)
+                                        ? String(field)
+                                        : field.join('.');
+                                    updateSort(f, order);
+                                }
                             }
-                        },
-                    })}
+                        }
+                    }}
+                    // onRow={(rec, index) => ({
+                    //     onContextMenu(event) {
+                    //         if (props.customContextMenu) {
+                    //             event.preventDefault();
+                    //             menu.popup(event.clientX, event.clientY, rec);
+                    //         }
+                    //     },
+                    // })}
                     rowSelection={rowSelection}
                 />
                 <TFilter form={formFilter} title="Tiket Filter">

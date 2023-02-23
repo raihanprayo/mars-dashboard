@@ -42,7 +42,7 @@ export const TableTicketColms = (opt: TableTickerColumnOptions) => {
             title: 'Order No',
             align: 'center',
             dataIndex: 'no',
-            filterSearch: true,
+            sorter: true,
             render(value, record, index) {
                 if (!opt.withLinkToDetail) return value;
                 // return <Link href={'/order/detail/' + value}>{value}</Link>;
@@ -53,6 +53,7 @@ export const TableTicketColms = (opt: TableTickerColumnOptions) => {
             title: 'Status',
             dataIndex: 'status',
             align: 'center',
+            sorter: true,
             render: (v, r) => Render.orderStatus(v, true),
         },
         {
@@ -73,36 +74,42 @@ export const TableTicketColms = (opt: TableTickerColumnOptions) => {
             title: 'Service No',
             align: 'center',
             dataIndex: 'serviceNo',
+            sorter: true,
         },
         {
             title: 'Tiket NOSSA',
             align: 'center',
             dataIndex: 'incidentNo',
+            sorter: true,
         },
         {
             title: 'Product',
             align: 'center',
             dataIndex: 'product',
+            sorter: true,
             render: Render.product,
         },
         {
             title: 'Witel',
             align: 'center',
             dataIndex: 'witel',
+            sorter: true,
             render: Render.witel,
         },
         {
             title: 'STO',
             align: 'center',
             dataIndex: 'sto',
+            sorter: true,
         },
         {
             title: 'Sumber',
             align: 'center',
             dataIndex: 'source',
+            sorter: true,
             render: Render.tags(),
         },
-        DefaultCol.CREATION_DATE_COL,
+        { ...DefaultCol.CREATION_DATE_COL, sorter: true },
     ];
 
     if (withActionCol) {
@@ -307,7 +314,6 @@ export const TableSolutionColms = (opt: TableSolutionColumnOptions = {}) => {
         noCol,
         {
             title: 'Nama',
-            
         },
         DefaultCol.CREATION_DATE_COL,
         {

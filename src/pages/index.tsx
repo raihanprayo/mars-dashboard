@@ -7,7 +7,7 @@ function IndexPage(props: TicketPageMetadata) {
     }
 
     return (
-        <TicketTable metadata={props} customContextMenu withLinkToDetail />
+        <TicketTable metadata={props} customContextMenu withLinkToDetail withActionCol />
     );
 }
 
