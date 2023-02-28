@@ -1,6 +1,7 @@
 import axios, { Axios, AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import qs from 'qs';
-import { HttpHeader } from '@mars/common';
+import { HttpHeader, isArr, Properties } from '@mars/common';
+import { isDate } from 'date-fns';
 import { Session } from 'next-auth';
 import { isServer } from '_utils/constants';
 import config from '_config';
@@ -9,19 +10,6 @@ import { PathBuilder, RequestPath } from './service';
 const api: CoreService = axios.create({
     baseURL: isServer ? config.service.url : null,
     paramsSerializer(params) {
-        // const o = inlineKey(params, { separateArray: false });
-        // const result: string[] = [];
-        // const result = qs.stringify(params, {
-        //     allowDots: true,
-        //     arrayFormat: 'brackets',
-        //     charset: 'utf-8',
-        //     skipNulls: false,
-        //     addQueryPrefix: true,
-        //     serializeDate: (d) => d.toJSON(),
-        //     indices: true,
-        // });
-
-        // return result.slice(1);
         return api.serializeParam(params);
     },
 }) as any;

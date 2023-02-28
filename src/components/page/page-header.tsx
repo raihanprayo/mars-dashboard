@@ -5,14 +5,17 @@ import {
     LogoutOutlined,
     LoginOutlined,
     UserOutlined,
+    ExclamationCircleOutlined,
 } from '@ant-design/icons';
-import { Menu, Layout, Avatar, Badge } from 'antd';
+import { Menu, Layout, Avatar, Badge, Modal, message } from 'antd';
+import axios from 'axios';
 import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useContext, CSSProperties, useState, useEffect, useCallback } from 'react';
 import { PageContext } from '_ctx/page.ctx';
 import { useUser } from '_hook/credential.hook';
+import notif from '_service/notif';
 import DateCounter from '../date-counter';
 
 export function PageHeader() {
@@ -20,6 +23,7 @@ export function PageHeader() {
     const session = useSession();
     const user = useUser();
     const router = useRouter();
+
     const [badge, setBadge] = useState(0);
     const isLoggedin = session.status === 'authenticated';
 
@@ -95,10 +99,32 @@ export function PageHeader() {
                     </Menu.Item>
                     <Menu.Item
                         icon={<LoginLogoutIcon />}
-                        onClick={() => {
-                            signOut({ callbackUrl: '/auth/login', redirect: true });
-                            localStorage.removeItem('token');
-                            localStorage.removeItem('MARS-JWT');
+                        onClick={async () => {
+                            const result = await accountLogout();
+
+                            if (!result.ok && result.checkpoint) {
+                                Modal.confirm({
+                                    title: 'Konfirmasi Logout',
+                                    icon: <ExclamationCircleOutlined />,
+                                    content: (
+                                        <>
+                                            Beberapa tiket belum kamu selesai kerjakan,
+                                            apakah kamu yakin untuk melakukan logout ?
+                                            <br />
+                                            <br />
+                                            <i>
+                                                tiket yang belum selesai dikerjakan akan
+                                                diubah statusnya ke <b>DISPATCH</b>
+                                            </i>
+                                        </>
+                                    ),
+
+                                    okText: 'Log Out',
+                                    onOk: () => accountLogout(true),
+
+                                    cancelText: 'Batal',
+                                });
+                            }
                         }}
                     >
                         {isLoggedin ? 'Logout' : 'Login'}
@@ -107,4 +133,25 @@ export function PageHeader() {
             </Menu>
         </Layout.Header>
     );
+}
+
+async function accountLogout(confirmeLogout = false): Promise<LogoutResult> {
+    const res = await api.manage(
+        api.post('/auth/logout', {}, { params: { confirmeLogout } })
+    );
+    if (axios.isAxiosError(res)) {
+        notif.error(res);
+        if (res.response?.status === 400) return { ok: false, checkpoint: true };
+        return { ok: false };
+    } else {
+        await signOut({ callbackUrl: '/auth/login', redirect: true });
+        localStorage.removeItem('token');
+        localStorage.removeItem('MARS-JWT');
+        return { ok: true };
+    }
+}
+
+interface LogoutResult {
+    ok: boolean;
+    checkpoint?: boolean;
 }
