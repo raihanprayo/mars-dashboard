@@ -1,11 +1,23 @@
-import { isBool, isDefined } from '@mars/common';
-import { DatePicker, Radio, Select, SelectProps, Transfer } from 'antd';
+import { Duration, isBool, isDefined, isStr, randomString } from '@mars/common';
+import {
+    DatePicker,
+    InputNumber,
+    Popover,
+    Radio,
+    Select,
+    SelectProps,
+    Space,
+    Transfer,
+} from 'antd';
 import { DefaultOptionType } from 'antd/lib/select/index';
 import type { TransferDirection, TransferItem } from 'antd/lib/transfer/index';
 import moment, { isMoment, Moment } from 'moment';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useBool } from '_hook/util.hook';
 import notif from '_service/notif';
+
+const DURATION_REGX =
+    /^([-+]?)P(?:([-+]?[0-9]+)D)?(T(?:([-+]?[0-9]+)H)?(?:([-+]?[0-9]+)M)?(?:([-+]?[0-9]+)(?:[.,]([0-9]{0,9}))?S)?)?$/;
 
 export interface BaseInputProps {
     id?: string;
@@ -205,3 +217,102 @@ export function SolutionSelect(props: SolutionSelectProps) {
 export interface SolutionSelectProps
     extends BaseInputProps,
         Omit<SelectProps, 'onChange' | 'options' | 'mode'> {}
+
+export function DurationInput(props: DurationInputProps) {
+    const id = useMemo(() => randomString(12), []);
+    const width = 60;
+    const [value, setValue] = useState<Duration>(
+        isStr(props.value) ? Duration.from(props.value) : props.value
+    );
+
+    const dayPop = useBool();
+    const hourPop = useBool();
+    const minutePop = useBool();
+    const secondPop = useBool();
+
+    const onSegmentChange = useCallback(
+        (field: 'day' | 'hour' | 'minute' | 'second', v: number) => {
+            switch (field) {
+                case 'day':
+                    setValue(new Duration(v, value.hour, value.minute, value.second));
+                    break;
+                case 'hour':
+                    setValue(new Duration(value.day, v, value.minute, value.second));
+                    break;
+                case 'minute':
+                    setValue(new Duration(value.day, value.hour, v, value.second));
+                    break;
+                case 'second':
+                    setValue(new Duration(value.day, value.hour, value.minute, v));
+                    break;
+                default:
+                    break;
+            }
+        },
+        [value]
+    );
+
+    return (
+        <Space align="baseline">
+            <Popover content={`${value.day} Hari`}>
+                <InputNumber
+                    key={`Duration:${id}--Day`}
+                    min={0}
+                    size="small"
+                    style={{ width }}
+                    placeholder="Hari"
+                    value={value.day}
+                    onChange={(v) => onSegmentChange('day', v)}
+                    onFocus={() => dayPop.setValue(true)}
+                    onBlur={() => dayPop.setValue(false)}
+                />
+            </Popover>
+            <Popover content={`${value.hour} Jam`}>
+                <InputNumber
+                    key={`Duration:${id}--Hour`}
+                    min={0}
+                    max={23}
+                    size="small"
+                    style={{ width }}
+                    placeholder="Jam"
+                    value={value.hour}
+                    onChange={(v) => onSegmentChange('hour', v)}
+                    onFocus={() => hourPop.setValue(true)}
+                    onBlur={() => hourPop.setValue(false)}
+                />
+            </Popover>
+            <Popover content={`${value.minute} Menit`}>
+                <InputNumber
+                    key={`Duration:${id}--Minute`}
+                    min={0}
+                    max={59}
+                    size="small"
+                    style={{ width }}
+                    placeholder="Menit"
+                    value={value.minute}
+                    onChange={(v) => onSegmentChange('minute', v)}
+                    onFocus={() => minutePop.setValue(true)}
+                    onBlur={() => minutePop.setValue(false)}
+                />
+            </Popover>
+            <Popover content={`${value.second} Detik`}>
+                <InputNumber
+                    key={`Duration:${id}--Second`}
+                    min={0}
+                    max={59}
+                    size="small"
+                    style={{ width }}
+                    placeholder="Detik"
+                    value={value.second}
+                    onChange={(v) => onSegmentChange('second', v)}
+                    onFocus={() => secondPop.setValue(true)}
+                    onBlur={() => secondPop.setValue(false)}
+                />
+            </Popover>
+        </Space>
+    );
+}
+export interface DurationInputProps extends BaseInputProps {
+    value?: string | Duration;
+    onChange?(value: Duration): void;
+}

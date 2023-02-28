@@ -1,3 +1,4 @@
+import { Duration } from '@mars/common';
 import { createContext, createElement, useCallback, useContext, useState } from 'react';
 import { onAuthenticated } from '_hook/credential.hook';
 import notif from '_service/notif';
@@ -64,5 +65,36 @@ export class AppSetting implements DTO.Setting {
         Object.keys(setting).forEach((k) => {
             this[k] = setting[k];
         });
+    }
+
+    getAsNumber() {
+        switch (this.type) {
+            case DTO.SettingType.DURATION:
+                return Duration.from(this.value).toMilis();
+            case DTO.SettingType.NUMBER:
+                return Number(this.value);
+            default:
+                return null;
+        }
+    }
+
+    getAsDuration() {
+        if (this.type !== DTO.SettingType.DURATION) return null;
+        return Duration.from(this.value);
+    }
+
+    getAsArray() {
+        if (this.type !== DTO.SettingType.ARRAY) return null;
+        return this.value.split('|');
+    }
+
+    getAsBoolean() {
+        if (this.type !== DTO.SettingType.BOOLEAN) return null;
+        return ['true', 't'].includes(this.value.trim().toLowerCase());
+    }
+
+    getAsJson() {
+        if (this.type !== DTO.SettingType.JSON) return null;
+        return JSON.parse(this.value);
     }
 }

@@ -41,7 +41,7 @@ import {
 } from 'react';
 import type { RcFile, UploadFile } from 'antd/lib/upload';
 import { RefreshBadgeEvent } from '_utils/events';
-import { PageContext } from '_ctx/page.ctx';
+import { PageContext, usePage } from '_ctx/page.ctx';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -72,7 +72,7 @@ function TicketDetail(props: TicketDetailProps) {
     const route = useRouter();
     const session = useSession();
 
-    const pageCtx = useContext(PageContext);
+    const pageCtx = usePage();
     const [submission] = Form.useForm();
     const [resolved, setResolved] = useState(false);
     const [files, setFiles] = useState<UploadFile[]>([]);

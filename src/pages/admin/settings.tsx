@@ -6,7 +6,7 @@ import {
     ReloadOutlined,
     SaveOutlined,
 } from '@ant-design/icons';
-import { isBool, isTruthy } from '@mars/common';
+import { Duration, isStr } from '@mars/common';
 import {
     Input,
     InputNumber,
@@ -22,17 +22,14 @@ import {
     Button,
 } from 'antd';
 import { Rule } from 'antd/lib/form/index';
-import axios from 'axios';
 import deepEqual from 'deep-equal';
-import { NextPageContext } from 'next';
-import { getSession } from 'next-auth/react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { createContext, useContext, useMemo, useState } from 'react';
+import { DurationInput } from '_comp/table/input.fields';
 import { THeader } from '_comp/table/table.header';
-import { useApp } from '_ctx/app.ctx';
+import { AppSetting, useApp } from '_ctx/app.ctx';
 import { usePage } from '_ctx/page.ctx';
-import { CoreService } from '_service/api';
 import notif from '_service/notif';
 import { RefreshSettingEvent } from '_utils/events';
 
@@ -76,14 +73,15 @@ export default function SettingPage() {
                 case DTO.SettingType.JSON:
                     value = JSON.stringify(value);
                     break;
+                case DTO.SettingType.DURATION:
+                    if (value instanceof Duration) value = value.toJSON();
+                    break;
                 default:
                     value = String(value);
                     break;
             }
             newSets.push({ ...sett, title: title, value });
         }
-
-        console.log(values);
 
         page.setLoading(true);
         api.put('/app/config', newSets)
@@ -109,28 +107,30 @@ export default function SettingPage() {
                 }
             />
 
-            {app.settings.length > 0 && <Form
-                form={configs}
-                size="small"
-                initialValues={origin}
-                className="workspace-setting-content"
-                onReset={() => {
-                    console.log('reset');
-                    const values = configs.getFieldsValue();
-                    const result = deepEqual(origin, values);
-                    setHasValueChanged(!result);
-                }}
-                onValuesChange={(changed, values) => {
-                    const result = deepEqual(origin, values);
-                    setHasValueChanged(!result);
-                }}
-            >
-                <List
-                    grid={{ gutter: 16, column: 3 }}
-                    dataSource={app.settings}
-                    renderItem={(item) => <RenderConfig {...item} />}
-                />
-            </Form>}
+            {app.settings.length > 0 && (
+                <Form
+                    form={configs}
+                    size="small"
+                    initialValues={origin}
+                    className="workspace-setting-content"
+                    onReset={() => {
+                        console.log('reset');
+                        const values = configs.getFieldsValue();
+                        const result = deepEqual(origin, values);
+                        setHasValueChanged(!result);
+                    }}
+                    onValuesChange={(changed, values) => {
+                        const result = deepEqual(origin, values);
+                        setHasValueChanged(!result);
+                    }}
+                >
+                    <List
+                        grid={{ gutter: 16, column: 3 }}
+                        dataSource={app.settings}
+                        renderItem={(item) => <RenderConfig {...item} />}
+                    />
+                </Form>
+            )}
 
             <THeader className="footer bg-primary">
                 <THeader.Action
@@ -198,21 +198,22 @@ namespace Setting {
     export type TuppleValue = [string, Value];
     export type MapValue = map<Value>;
 
-
     export function convert(item: DTO.Setting): TuppleValue {
         const get = (value: any) =>
             [item.name, { title: item.title, value }] satisfies TuppleValue;
 
+        const instance = new AppSetting(item);
         switch (item.type) {
             case DTO.SettingType.BOOLEAN:
-                return get(['true', 't'].includes(item.value.toLowerCase()));
+                return get(instance.getAsBoolean());
             case DTO.SettingType.NUMBER:
-                return get(Number(item.value));
+                return get(instance.getAsNumber());
             case DTO.SettingType.ARRAY:
-                const items = item.value.split('|').filter(isTruthy);
-                return get(items);
+                return get(instance.getAsArray());
             case DTO.SettingType.JSON:
-                return get(JSON.parse(item.value));
+                return get(instance.getAsJson());
+            case DTO.SettingType.DURATION:
+                return get(instance.getAsDuration());
         }
         return get(item.value);
     }
@@ -274,8 +275,12 @@ namespace Setting {
                     />
                 );
                 break;
+            case DTO.SettingType.DURATION:
+                comp = <DurationInput value={props.value} onChange={props.onChange} />;
+                break;
             case DTO.SettingType.ARRAY:
                 comp = <InputArray config={config} />;
+                break;
         }
 
         return (
@@ -287,14 +292,16 @@ namespace Setting {
     }
 
     export function _suffix(config: DTO.Setting): string | undefined {
-        switch (config.id) {
-            case 1:
-                return 'Menit';
-            case 5:
-                return 'Menit';
-            case 6:
-                return 'Jam';
-        }
+        // switch (config.id) {
+        //     case 1:
+        //         return 'Menit';
+        //     case 5:
+        //         return 'Menit';
+        //     case 6:
+        //         return 'Jam';
+        // }
+
+        return;
     }
 
     function _rules_arr(config: DTO.Setting): Rule[] {
