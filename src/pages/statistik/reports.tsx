@@ -1,10 +1,17 @@
 import { AuditOutlined } from '@ant-design/icons';
-import { Col, Form, Input, Radio, Row, Statistic, Typography } from 'antd';
+import { Col, Form, Input, Modal, Radio, Row, Statistic, Typography } from 'antd';
 import axios from 'axios';
 import { endOfDay, startOfToday } from 'date-fns';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
-import { createContext, ReactNode, useContext, useMemo } from 'react';
+import {
+    createContext,
+    MouseEvent,
+    MouseEventHandler,
+    ReactNode,
+    useContext,
+    useMemo,
+} from 'react';
 import dynamic from 'next/dynamic';
 import { isBrowser } from '_utils/constants';
 import { TFilter } from '_comp/table/table.filter';
@@ -81,6 +88,12 @@ function ReportsPage(props: ReportsPageProps) {
                             title="Total Tiket"
                             value={data.count.total}
                             prefix={<AuditOutlined />}
+                            onClick={(event) =>
+                                router.push({
+                                    pathname: router.pathname + '/closed',
+                                    query: router.query,
+                                })
+                            }
                         />
                         <CardInfo title="IPTV" value={data.count.iptv} />
                         <CardInfo title="INTERNET" value={data.count.internet} />
@@ -138,7 +151,7 @@ function ReportsPage(props: ReportsPageProps) {
 function CardInfo(props: CardInfoProps) {
     const { cardSpan } = useContext(ReportContext) || {};
     return (
-        <Col span={cardSpan}>
+        <Col span={cardSpan} onClickCapture={props.onClick}>
             <Statistic
                 className="mars-stat-card"
                 title={props.title}
@@ -220,6 +233,7 @@ interface CardInfoProps extends HasChild {
     title?: string;
     value: number;
     prefix?: ReactNode;
+    onClick?: MouseEventHandler<HTMLElement>;
 }
 
 interface PieChartData {
