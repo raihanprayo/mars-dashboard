@@ -39,7 +39,6 @@ export function PageHeader() {
             params: { counter: true },
         })
             .then((res) => {
-                console.log('Badge Response', res.data);
                 setBadge(Number(res.data?.total ?? res.data ?? 0));
             })
             .catch((err) => console.error('Fetch Badge Counter: ' + err.message));

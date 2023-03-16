@@ -116,14 +116,15 @@ export async function getServerSideProps(ctx: NextPageContext) {
 
     const res = await api.manage(api.get('/chart/leaderboard', config));
     if (axios.isAxiosError(res)) return api.serverSideError(res);
-
-    const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
-    return {
-        props: {
-            total,
-            data: res.data,
-        },
-    };
+    else {
+        const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
+        return {
+            props: {
+                total,
+                data: res.data,
+            },
+        };
+    }
 }
 
 interface LeaderboardPageProps extends CoreService.ErrorDTO {

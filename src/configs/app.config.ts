@@ -1,5 +1,5 @@
 const config = {
-    witel: (process.env.MARS_WITEL || Mars.Witel.ROC) as Mars.Witel,
+    witel: (process.env.MARS_WITEL || Mars.Witel.ROC).toUpperCase() as Mars.Witel,
     service: {
         url: process.env.MARS_SERVICE_URL,
     },

@@ -16,7 +16,6 @@ export function EditUserDrawer(props: UserDetailDrawerProps) {
         const values = form.getFieldsValue();
         const { id, nik, phone, active, roles } = values;
 
-        console.log(values);
         setLoading(true);
         api.put('/user/partial/' + id, { nik, phone, active, roles })
             .then((res) => message.success('Success'))
@@ -33,7 +32,6 @@ export function EditUserDrawer(props: UserDetailDrawerProps) {
         else form.setFieldsValue({});
     }, [props.user]);
 
-    // console.log(props.user);
     return (
         <Drawer
             title="Edit User"

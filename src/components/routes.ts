@@ -10,6 +10,7 @@ import {
     BulbOutlined,
     BugOutlined,
     StarOutlined,
+    TeamOutlined,
 } from '@ant-design/icons';
 import { isDefined } from '@mars/common';
 import { Session } from 'next-auth';
@@ -52,6 +53,12 @@ const PageRoutes: PageRoute[] = [
             hasRole: [ROLE_ADMIN]
         },
         children: [
+            {
+                type: 'page',
+                name: 'STO',
+                path: '/misc/sto',
+                icon: createElement(TeamOutlined),
+            },
             {
                 type: 'page',
                 name: 'Jenis Kendala',

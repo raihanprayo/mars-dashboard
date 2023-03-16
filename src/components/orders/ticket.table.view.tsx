@@ -1,5 +1,5 @@
 import { EditOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
-import { HttpHeader, isArr, isBool, isNull, isStr, Properties } from '@mars/common';
+import { HttpHeader, isArr, isBool, isFn, isNull, isStr, Properties } from '@mars/common';
 import { Form, Input, InputNumber, message, Select, Table } from 'antd';
 import { TableRowSelection } from 'antd/lib/table/interface';
 import axios, { AxiosResponse } from 'axios';
@@ -22,6 +22,7 @@ import { usePageable } from '_hook/pageable.hook';
 import { mapEnum } from '_utils/conversion';
 import { RefreshBadgeEvent } from '_utils/events';
 import { AddTicketDrawer } from './add-ticket.drawer.';
+import { ParsedUrlQuery } from 'querystring';
 
 export function TicketTable(props: TicketTableProps) {
     const { data: tickets, products, total } = props.metadata;
@@ -326,18 +327,22 @@ export function TicketTable(props: TicketTableProps) {
 
 TicketTable.getServerSideProps = function getServerSidePropsInitilizer(
     url: string,
-    defaults: TicketTableGetOptions = {}
+    defaults: TicketTableGetUnion = {}
 ) {
     return async function getServerSideProps(ctx: NextPageContext) {
         const session = await getSession(ctx);
 
+        const defaultOptions = !isFn(defaults) ? defaults : defaults(ctx.query) ;
+
         const properties = new Properties({
-            ...(defaults.pageable || {}),
-            ...(defaults.filter || {}),
+            ...(defaultOptions.pageable || {}),
+            ...(defaultOptions.filter || {}),
         });
 
         const config = api.auhtHeader(session, {
             params: {
+                page: 0,
+                size: 10,
                 ...properties.inlined,
                 ...ctx.query,
             },
@@ -382,6 +387,10 @@ export interface TicketTableGetOptions {
     pageable?: Partial<Pageable>;
     filter?: ICriteria<DTO.Ticket>;
 }
+export type TicketTableGetUnion =
+    | TicketTableGetOptions
+    | ((params: ParsedUrlQuery) => TicketTableGetOptions);
+
 export interface TicketPageMetadata {
     data: DTO.Ticket[];
     total: number;

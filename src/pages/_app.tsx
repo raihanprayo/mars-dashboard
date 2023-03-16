@@ -14,6 +14,7 @@ import { ContextMenu } from '_comp/context-menu';
 import { isBrowser } from '_utils/constants';
 import { AppProvider } from '_ctx/app.ctx';
 import config from '_config';
+import { CreatedBy } from '_comp/base/CreatedBy';
 
 const dash = ['/auth/login', '/auth/register', '/_error', '/dashboard'];
 const isExcluded = (t: string) => dash.findIndex((e) => t.startsWith(e)) !== -1;
@@ -59,7 +60,9 @@ function MarsRocWrapper(props: AppProps & CustomAppProps) {
     return (
         <SessionProvider session={session} refetchInterval={60 * 5}>
             <AppProvider info={info}>
-                <MarsRocApp {...others} />
+                <CreatedBy.Provider>
+                    <MarsRocApp {...others} />
+                </CreatedBy.Provider>
             </AppProvider>
         </SessionProvider>
     );

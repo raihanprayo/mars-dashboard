@@ -42,18 +42,20 @@ export function MarsTablePagination(
     return {
         total: total,
         current: pageable.page + 1,
-        pageSizeOptions: [10, 20, 50, 100, 200],
-        hideOnSinglePage: false,
+        pageSize: pageable.size,
+        pageSizeOptions: [10, 20, 50],
+        hideOnSinglePage: true,
         onChange(page, pageSize) {
-            if (pageable.page !== page - 1) {
-                setPageable({ page: page - 1 });
-                refresh();
+            const actualPage = page - 1;
+            console.log(page, pageable.page);
+            if (pageable.page !== actualPage) {
+                setPageable({ page: actualPage });
+                return;
             }
-        },
-        onShowSizeChange(current, size) {
-            if (current !== size) {
-                setPageable({ size });
-                refresh();
+
+            if (pageable.size !== pageSize) {
+                setPageable({ size: pageSize });
+                return;
             }
         },
     };

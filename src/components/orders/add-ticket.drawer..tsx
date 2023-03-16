@@ -40,7 +40,6 @@ export function AddTicketDrawer(props: AddOrderDrawerProps) {
         try {
             setLoading(true);
             const values = await form.validateFields();
-            console.log(values);
 
             const {
                 issue: { value: issueId },
@@ -268,7 +267,6 @@ const VALIDATOR = {
     }),
     incidentNo: (product?: Mars.Product) => (form) => ({
         validator(rule: RuleObject, value: string, callback: (error?: string) => void) {
-            console.log(form.getFieldValue('issue'));
 
             if (!value || !value.trim())
                 return callback('Tiket NOSSA tidak boleh kosong');

@@ -142,7 +142,6 @@ function ConfirmPassword(props: ConfirmPasswordProps) {
     );
 
     const InternalLogin = () => {
-        console.log('Sending Confirmation');
         const values = formRef.getFieldsValue();
         props.setLoading(true);
         login(router, { ...values, confirmed: true, callbackUrl: props.callbackUrl })

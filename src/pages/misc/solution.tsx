@@ -295,7 +295,6 @@ export async function getServerSideProps(ctx: NextPageContext) {
     const res = await api.manage(api.get<DTO.Solution[]>('/solution', config));
     if (axios.isAxiosError(res)) return api.serverSideError(res);
 
-    console.log(res.data);
     const total = Number(res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length);
     return {
         props: {
@@ -415,7 +414,6 @@ function InfoSolutionView() {
         else form.setFieldsValue(selected ?? {});
     }, [edit, selected]);
 
-    console.log(selected);
     return (
         <Form form={form} layout="vertical" initialValues={selected}>
             <Descriptions bordered size="small" column={2} labelStyle={{ width: 90 }}>

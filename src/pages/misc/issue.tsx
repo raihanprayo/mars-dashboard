@@ -317,7 +317,6 @@ function AddIssueDrawer(props: AddIssueDrawerProps) {
         await form.validateFields().then(() => loading.setValue(true));
         const values = form.getFieldsValue();
 
-        console.log(values);
         api.post('/issue', values)
             .then(() =>
                 message.success(`Berhasil menambah Kendala/Issue "${values.name}"`)
@@ -489,7 +488,6 @@ function InfoIssueView() {
     const hasCaptureParam = params.findIndex((e) => e.type === ParamType.CAPTURE) !== -1;
     const hasNoteParam = params.findIndex((e) => e.type === ParamType.NOTE) !== -1;
 
-    console.log(selected);
     return (
         <Form form={form} layout="vertical" initialValues={selected}>
             <Descriptions bordered size="small" column={2} labelStyle={{ width: 90 }}>

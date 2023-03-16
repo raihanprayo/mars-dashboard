@@ -21,7 +21,6 @@ export function AddUserDrawer(props: AddUserDrawerProps) {
 
     const onSubmit = async () => {
         const result = await form.validateFields();
-        console.log('Validation', result);
 
         const {
             name,

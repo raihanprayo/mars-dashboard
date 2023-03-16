@@ -114,7 +114,6 @@ export default function SettingPage() {
                     initialValues={origin}
                     className="workspace-setting-content"
                     onReset={() => {
-                        console.log('reset');
                         const values = configs.getFieldsValue();
                         const result = deepEqual(origin, values);
                         setHasValueChanged(!result);

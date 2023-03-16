@@ -8,7 +8,7 @@ export function usePageable(defaultSort?: PageableSort): PageableHook {
     const [sorter, setSorter] = useState<PageableSortTupple[]>([]);
     const [pageable, setPageable] = useState<Pageable>({
         page: Number(router.query.page || 0),
-        size: Number(router.query.size || 20),
+        size: Number(router.query.size || 10),
         sort: isArr(defaultSort) ? defaultSort : Pageable.Sorts.UNSORT,
     });
 

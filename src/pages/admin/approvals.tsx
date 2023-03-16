@@ -77,7 +77,6 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
     }, []);
 
     if (props.error) return <>{props.error.message}</>;
-    console.log('Has Selected Item', hasSelected);
     return (
         <MarsTableProvider refresh={refresh}>
             <Head>

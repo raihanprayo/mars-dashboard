@@ -67,7 +67,6 @@ interface ImageHolder {
 }
 
 function TicketDetail(props: TicketDetailProps) {
-    console.log(props.workspaces);
     const ticket: DTO.Ticket = props.data || ({} as any);
     const route = useRouter();
     const session = useSession();
@@ -121,7 +120,6 @@ function TicketDetail(props: TicketDetailProps) {
 
         const url = `/ticket/wip/${statusLink}/${ticket.id}`;
 
-        console.log(submission.getFieldsValue());
         pageCtx.setLoading(true);
         api.postForm(url, form)
             .then(() => RefreshBadgeEvent.emit())
@@ -129,6 +127,24 @@ function TicketDetail(props: TicketDetailProps) {
             .then(() => (window.location.href = '/inbox'))
             .catch((err) => notif.error(err))
             .finally(() => pageCtx.setLoading(false));
+    };
+
+    const onPaste = async (event: ClipboardEvent | React.ClipboardEvent) => {
+        const data = event.clipboardData;
+
+        console.log('Clipboard:', data);
+        console.log('Submit Disabled:', disableSubmit);
+        if (data && !disableSubmit) {
+            const files: File[] = [];
+            for (const file of data.files) {
+                const isImage = file.type.toLowerCase().startsWith('image/');
+                if (isImage) files.push(file);
+            }
+
+            if (files.length > 0) {
+                setFiles((p) => [...p, ...(files as any)]);
+            }
+        }
     };
 
     useEffect(() => {
@@ -155,6 +171,11 @@ function TicketDetail(props: TicketDetailProps) {
             route.events.off('routeChangeStart', handleBrowseAway);
         };
     }, [description, files]);
+
+    useEffect(() => {
+        document.addEventListener('paste', onPaste);
+        return () => document.removeEventListener('paste', onPaste);
+    }, []);
 
     if (props.error) {
         return <>Cannot get Ticket detail</>;
@@ -204,7 +225,6 @@ function TicketDetail(props: TicketDetailProps) {
         },
     ];
 
-    console.log(props.assets);
     const watchStat = Form.useWatch('status', submission);
     return (
         <DetailContext.Provider value={{ ticket: props.data, assets: props.assets }}>
@@ -453,7 +473,7 @@ function SharedImage(props: SharedImageProps) {
     const { assets = [] } = props;
     if (!isDefined(assets) || assets.length === 0) {
         if (!props.emptyWithText) return <></>;
-        return <i className='text-primary'>* No Image</i>;
+        return <i className="text-primary">* No Image</i>;
     }
 
     const copyImage = useCallback(async (path: string) => {
@@ -495,11 +515,7 @@ function SharedImage(props: SharedImageProps) {
                                         onClick={() => copyImage(src)}
                                     />
                                 </Space>
-                            ),
-                            onVisibleChange(value, prevValue) {
-                                console.log('Current', value);
-                                console.log('Previous', prevValue);
-                            },
+                            )
                         }}
                     />
                 );
@@ -571,7 +587,7 @@ function Workspaces(props: { ws: DTO.AgentWorkspace }) {
     const { ws } = props;
     const title = (
         <Space>
-            <span className='text-primary'>{ws.status}</span> |
+            <span className="text-primary">{ws.status}</span> |
             <CreatedBy data={{ nik: ws.agent.nik }} field="nik" replace />
         </Space>
     );
@@ -607,7 +623,7 @@ function WorklogView(props: { ws: DTO.AgentWorkspace; wl: DTO.AgentWorklog }) {
     const extra = <Space>{Render.date(wl.createdAt, Render.DATE_WITH_TIMESTAMP)}</Space>;
     const messageFooter = (
         <>
-            <Divider style={{margin: '10px 0'}} />
+            <Divider style={{ margin: '10px 0' }} />
             <p>{wl.reopenMessage || '-'}</p>
             <SharedImage assets={assets?.requestor} />
         </>
