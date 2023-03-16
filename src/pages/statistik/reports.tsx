@@ -1,5 +1,17 @@
-import { AuditOutlined } from '@ant-design/icons';
-import { Col, Form, Input, Modal, Radio, Row, Statistic, Typography } from 'antd';
+import { AuditOutlined, DownloadOutlined } from '@ant-design/icons';
+import {
+    Col,
+    Form,
+    Input,
+    Modal,
+    Radio,
+    Row,
+    Space,
+    Statistic,
+    Table,
+    Typography,
+    message,
+} from 'antd';
 import axios from 'axios';
 import { endOfDay, startOfToday } from 'date-fns';
 import { NextPageContext } from 'next';
@@ -20,6 +32,9 @@ import { BooleanInput, DateRangeFilter, EnumSelect } from '_comp/table/input.fie
 import { useRouter } from 'next/router';
 import { usePage } from '_ctx/page.ctx';
 import { PageTitle } from '_utils/conversion';
+import { useBool } from '_hook/util.hook';
+import notif from '_service/notif';
+import { TableTicketColms, TableTicketColms2 } from '_comp/table';
 
 const Pie = dynamic(
     async () => {
@@ -44,6 +59,7 @@ function ReportsPage(props: ReportsPageProps) {
     const data = props.data;
     const router = useRouter();
     const page = usePage();
+    const switchView = useBool();
     const [filter] = Form.useForm<ICriteria<DTO.Ticket>>();
 
     const refresh = () => {
@@ -53,10 +69,35 @@ function ReportsPage(props: ReportsPageProps) {
                 pathname: router.pathname,
                 query: api.serializeParam({
                     ...filter.getFieldsValue(),
-                    roles: {},
                 }),
             })
             .finally(() => page.setLoading(false));
+    };
+
+    const downloadCsv = () => {
+        if (data.chart.count.total === 0) {
+            message.info("Total tiket pada report berjumlah 0");
+        } else {
+            page.setLoading(true);
+            api.get('/chart/ticket/report/download', {
+                responseType: 'blob',
+                params: filter.getFieldsValue(),
+            })
+                .then((res) => {
+                    console.log(res.headers);
+
+                    const blob: Blob = res.data;
+                    const href = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = href;
+                    link.setAttribute('download', res.headers.filename);
+                    link.click();
+
+                    URL.revokeObjectURL(href);
+                })
+                .catch((err) => notif.error(err))
+                .finally(() => page.setLoading(false));
+        }
     };
 
     const initialDate = useMemo(
@@ -67,6 +108,25 @@ function ReportsPage(props: ReportsPageProps) {
         []
     );
 
+    const charts = (
+        <Row className="mars-chart-container" gutter={16}>
+            <ChartView title="Umur Tiket" data={data.chart.age} />
+            <ChartView title="Lama Aksi" data={data.chart.actionAge} />
+            <ChartView title="Waktu Respon" data={data.chart.responseAge} />
+        </Row>
+    );
+
+    const tables = (
+        <Table
+            dataSource={data.raw}
+            size="small"
+            style={{ marginTop: 10 }}
+            columns={TableTicketColms2()}
+        />
+    );
+
+    console.log(filter.getFieldsValue());
+    console.log(data.raw);
     return (
         <MarsTableProvider refresh={refresh}>
             <ReportContext.Provider value={{ cardSpan: 3 }}>
@@ -75,6 +135,12 @@ function ReportsPage(props: ReportsPageProps) {
                         <MarsTableConsumer>
                             {(value) => (
                                 <Radio.Group>
+                                    <Radio.Button onClick={downloadCsv}>
+                                        <Space>
+                                            <DownloadOutlined />
+                                            CSV
+                                        </Space>
+                                    </Radio.Button>
                                     <Radio.Button onClick={() => value.toggleFilter()}>
                                         Filter
                                     </Radio.Button>
@@ -86,24 +152,24 @@ function ReportsPage(props: ReportsPageProps) {
                     <Row gutter={[hGutter, hGutter]}>
                         <CardInfo
                             title="Total Tiket"
-                            value={data.count.total}
+                            value={data.chart.count.total}
                             prefix={<AuditOutlined />}
-                            onClick={(event) =>
-                                router.push({
-                                    pathname: router.pathname + '/closed',
-                                    query: router.query,
-                                })
-                            }
+                            onClick={(event) => {
+                                // router.push({
+                                //     pathname:
+                                //         router.pathname +
+                                //         '/closed?' +
+                                //         api.serializeParam(filter.getFieldsValue()),
+                                // });
+                                switchView.toggle();
+                            }}
                         />
-                        <CardInfo title="IPTV" value={data.count.iptv} />
-                        <CardInfo title="INTERNET" value={data.count.internet} />
-                        <CardInfo title="VOICE" value={data.count.voice} />
+                        <CardInfo title="IPTV" value={data.chart.count.iptv} />
+                        <CardInfo title="INTERNET" value={data.chart.count.internet} />
+                        <CardInfo title="VOICE" value={data.chart.count.voice} />
                     </Row>
-                    <Row className="mars-chart-container" gutter={16}>
-                        <ChartView title="Umur Tiket" data={data.age} />
-                        <ChartView title="Lama Aksi" data={data.actionAge} />
-                        <ChartView title="Waktu Respon" data={data.responseAge} />
-                    </Row>
+                    {!switchView.value && charts}
+                    {switchView.value && tables}
                 </div>
                 <TFilter
                     form={filter}
@@ -198,7 +264,9 @@ function ChartView(props: { data: PieChartData[]; title?: string; span?: number 
 
 export default PageTitle('Chart Report', ReportsPage);
 
-export async function getServerSideProps(ctx: NextPageContext) {
+export async function getServerSideProps(
+    ctx: NextPageContext
+): NextServerSidePropsAsync<ReportsPageProps> {
     const session = await getSession(ctx);
 
     const startDay = startOfToday();
@@ -220,12 +288,21 @@ export async function getServerSideProps(ctx: NextPageContext) {
     }
 
     return {
-        props: { data: res.data, error: false },
+        props: {
+            data: {
+                chart: res.data.chart,
+                raw: res.data.raw,
+            },
+            error: false,
+        },
     };
 }
 
 interface ReportsPageProps {
-    data: PieChartDTO;
+    data: {
+        chart: PieChartDTO;
+        raw: DTO.Ticket[];
+    };
     error: boolean;
 }
 

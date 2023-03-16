@@ -152,6 +152,84 @@ export const TableTicketColms = (opt: TableTickerColumnOptions) => {
     return cols;
 };
 
+export const TableTicketColms2 = () => {
+    const cols: ColumnType<DTO.Ticket>[] = [
+        DefaultCol.NO_COL,
+        {
+            title: 'Order No',
+            align: 'center',
+            dataIndex: 'no',
+            sorter: true,
+            render(value, record, index) {
+                return value;
+            },
+        },
+        {
+            title: 'Status',
+            dataIndex: 'status',
+            align: 'center',
+            sorter: true,
+            render: (v, r) => Render.orderStatus(v, true),
+        },
+        {
+            title: 'Gaul',
+            dataIndex: 'gaul',
+            align: 'center',
+            render: (v) => Render.bool(v),
+        },
+        {
+            title: 'Umur Tiket',
+            align: 'center',
+            dataIndex: 'createdAt',
+            render(value, record, index) {
+                return <Difference orderno={record.no} opentime={value} />;
+            },
+        },
+        {
+            title: 'Service No',
+            align: 'center',
+            dataIndex: 'serviceNo',
+            sorter: true,
+        },
+        {
+            title: 'Tiket NOSSA',
+            align: 'center',
+            dataIndex: 'incidentNo',
+            sorter: true,
+        },
+        {
+            title: 'Product',
+            align: 'center',
+            dataIndex: 'product',
+            sorter: true,
+            render: Render.product,
+        },
+        {
+            title: 'Witel',
+            align: 'center',
+            dataIndex: 'witel',
+            sorter: true,
+            render: Render.witel,
+        },
+        {
+            title: 'STO',
+            align: 'center',
+            dataIndex: 'sto',
+            sorter: true,
+        },
+        {
+            title: 'Sumber',
+            align: 'center',
+            dataIndex: 'source',
+            sorter: true,
+            render: Render.tags(),
+        },
+        { ...DefaultCol.CREATION_DATE_COL, sorter: true },
+    ];
+
+    return cols;
+};
+
 export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
     const noCol = !opt.pageable
         ? DefaultCol.NO_COL

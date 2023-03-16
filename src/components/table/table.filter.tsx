@@ -21,31 +21,42 @@ export function TFilter<T = any>(props: TFilterProps<T>) {
     };
 
     return (
-        <Drawer
-            title={title}
-            open={open ?? tableCtx?.openFilter}
-            onClose={onClose}
-            extra={[
-                <Space key="filter-search-btn">
-                    <Button
-                        type="primary"
-                        onClick={() => {
-                            form.resetFields();
-                            tableCtx?.refresh();
-                        }}
-                    >
-                        Clear
-                    </Button>
-                    <Button type="primary" onClick={onSearch}>
-                        Search
-                    </Button>
-                </Space>,
-            ]}
-        >
-            <Form form={form} layout="vertical" initialValues={props.initialValue}>
+        <>
+            <Drawer
+                title={title}
+                open={open ?? tableCtx?.openFilter}
+                onClose={onClose}
+                extra={[
+                    <Space key="filter-search-btn">
+                        <Button
+                            type="primary"
+                            onClick={() => {
+                                form.resetFields();
+                                tableCtx?.refresh();
+                            }}
+                        >
+                            Clear
+                        </Button>
+                        <Button type="primary" onClick={onSearch}>
+                            Search
+                        </Button>
+                    </Space>,
+                ]}
+            >
+                <Form form={form} layout="vertical" initialValues={props.initialValue}>
+                    {props.children}
+                </Form>
+            </Drawer>
+
+            <Form
+                form={form}
+                layout="vertical"
+                initialValues={props.initialValue}
+                style={{ display: 'none' }}
+            >
                 {props.children}
             </Form>
-        </Drawer>
+        </>
     );
 }
 
