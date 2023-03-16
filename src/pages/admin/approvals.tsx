@@ -6,15 +6,16 @@ import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useCallback, useContext, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { DateRangeFilter } from '_comp/table/input.fields';
 import { TableApprovalColms } from '_comp/table/table.definitions';
 import { TFilter } from '_comp/table/table.filter';
 import { THeader } from '_comp/table/table.header';
 import { PageContext } from '_ctx/page.ctx';
-import { MarsTableProvider } from '_ctx/table.ctx';
+import { MarsTablePagination, MarsTableProvider } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
 import { CoreService } from '_service/api';
+import { useBool } from '_hook/util.hook';
 
 export default function UserApprovalPage(props: UserApprovalPageProps) {
     const router = useRouter();
@@ -77,6 +78,13 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
     }, []);
 
     if (props.error) return <>{props.error.message}</>;
+
+    const init = useBool();
+    useEffect(() => {
+        if (init.value) refresh();
+        else init.setValue(true);
+    }, [pageable.page, pageable.size, pageable.sort]);
+
     return (
         <MarsTableProvider refresh={refresh}>
             <Head>
@@ -84,7 +92,7 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
             </Head>
             <div className="workspace table-view">
                 <THeader>
-                    <THeader.Action
+                    {/* <THeader.Action
                         icon={<CheckOutlined />}
                         disabled={!hasSelected}
                         title={
@@ -105,7 +113,7 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
                         }
                     >
                         Tolak
-                    </THeader.Action>
+                    </THeader.Action> */}
                     <THeader.Action
                         pos="right"
                         type="primary"
@@ -121,29 +129,35 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
                         onAcceptClick,
                     })}
                     dataSource={props.data}
-                    rowSelection={{
-                        type: 'checkbox',
-                        selectedRowKeys: selected,
-                        onChange: onSelectedChanged,
-                    }}
-                    pagination={{
+                    // rowSelection={{
+                    //     type: 'checkbox',
+                    //     selectedRowKeys: selected,
+                    //     onChange: onSelectedChanged,
+                    // }}
+                    // pagination={{
+                    //     total: props.total,
+                    //     current: pageable.page + 1,
+                    //     pageSizeOptions: [10, 20, 50],
+                    //     hideOnSinglePage: false,
+                    //     onChange(page, pageSize) {
+                    //         if (pageable.page !== page - 1) {
+                    //             setPageable({ page: page - 1 });
+                    //             refresh();
+                    //         }
+                    //     },
+                    //     onShowSizeChange(current, size) {
+                    //         if (current !== size) {
+                    //             setPageable({ size });
+                    //             refresh();
+                    //         }
+                    //     },
+                    // }}
+                    pagination={MarsTablePagination({
+                        pageable: pageable,
+                        refresh,
+                        setPageable,
                         total: props.total,
-                        current: pageable.page + 1,
-                        pageSizeOptions: [10, 20, 50, 100, 200],
-                        hideOnSinglePage: false,
-                        onChange(page, pageSize) {
-                            if (pageable.page !== page - 1) {
-                                setPageable({ page: page - 1 });
-                                refresh();
-                            }
-                        },
-                        onShowSizeChange(current, size) {
-                            if (current !== size) {
-                                setPageable({ size });
-                                refresh();
-                            }
-                        },
-                    }}
+                    })}
                 />
                 <TFilter form={filter} title="Approval Filter">
                     <Form.Item label="ID" name={['id', 'eq']} colon>

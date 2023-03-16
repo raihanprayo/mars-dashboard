@@ -44,7 +44,7 @@ export default function StoPage(props: StoPageProps) {
     };
 
     useEffect(() => {
-        if (init) refresh();
+        if (init.value) refresh();
         else init.setValue(true);
     }, [pageable.page, pageable.size]);
 

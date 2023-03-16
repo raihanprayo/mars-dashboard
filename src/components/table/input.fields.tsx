@@ -232,21 +232,27 @@ export function DurationInput(props: DurationInputProps) {
 
     const onSegmentChange = useCallback(
         (field: 'day' | 'hour' | 'minute' | 'second', v: number) => {
+            let newVal: Duration;
             switch (field) {
                 case 'day':
-                    setValue(new Duration(v, value.hour, value.minute, value.second));
+                    newVal = new Duration(v, value.hour, value.minute, value.second);
                     break;
                 case 'hour':
-                    setValue(new Duration(value.day, v, value.minute, value.second));
+                    newVal = new Duration(value.day, v, value.minute, value.second);
                     break;
                 case 'minute':
-                    setValue(new Duration(value.day, value.hour, v, value.second));
+                    newVal = new Duration(value.day, value.hour, v, value.second);
                     break;
                 case 'second':
-                    setValue(new Duration(value.day, value.hour, value.minute, v));
+                    newVal = new Duration(value.day, value.hour, value.minute, v);
                     break;
                 default:
                     break;
+            }
+
+            if (newVal) {
+                setValue(newVal);
+                props.onChange?.(newVal);
             }
         },
         [value]
