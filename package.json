@@ -43,5 +43,6 @@
     "author": {
         "name": "scarlass",
         "email": "zakypundiasa@gmail.com"
-    }
+    },
+    "license": "MIT"
 }

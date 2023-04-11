@@ -92,7 +92,7 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
             </Head>
             <div className="workspace table-view">
                 <THeader>
-                    {/* <THeader.Action
+                    <THeader.Action
                         icon={<CheckOutlined />}
                         disabled={!hasSelected}
                         title={
@@ -113,7 +113,7 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
                         }
                     >
                         Tolak
-                    </THeader.Action> */}
+                    </THeader.Action>
                     <THeader.Action
                         pos="right"
                         type="primary"
@@ -129,11 +129,11 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
                         onAcceptClick,
                     })}
                     dataSource={props.data}
-                    // rowSelection={{
-                    //     type: 'checkbox',
-                    //     selectedRowKeys: selected,
-                    //     onChange: onSelectedChanged,
-                    // }}
+                    rowSelection={{
+                        type: 'checkbox',
+                        selectedRowKeys: selected,
+                        onChange: onSelectedChanged,
+                    }}
                     // pagination={{
                     //     total: props.total,
                     //     current: pageable.page + 1,
