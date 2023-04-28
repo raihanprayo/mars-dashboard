@@ -39,12 +39,8 @@ export function TicketTable(props: TicketTableProps) {
     const [productFilter, setProductFilter] = useState<Mars.Product[]>([]);
     const [openAddTicket, setOpenAddTicket] = useState(false);
 
-    const [selected, setSelected] = useState<boolean[]>(
-        Array(tickets?.length).fill(false)
-    );
-    const hasSelected = useMemo(() => {
-        return selected.filter((e) => e).length !== 0;
-    }, [selected]);
+    const [selected, setSelected] = useState<string[]>([]);
+    const hasSelected = useMemo(() => selected.length > 0, [selected]);
 
     const watchedProductFilter = Form.useWatch(
         ['product', 'in'],
@@ -117,20 +113,23 @@ export function TicketTable(props: TicketTableProps) {
         RefreshBadgeEvent.emit();
     }, [selected]);
 
-    const onRowSelectionChange = useCallback(
-        (keys: React.Key[], selectedRows: DTO.Ticket[]) => {
-            const bools = [...selected];
-            for (let index = 0; index < tickets.length; index++) {
-                const dto = tickets[index];
-
-                const isSelected = selectedRows.findIndex((e) => e.id === dto.id) !== -1;
-                bools[index] = isSelected;
-            }
-
-            setSelected(bools);
-        },
-        []
-    );
+    const onRowSelectionChange = {
+        onChange: (selectedRowKeys: React.Key[], selectedRows: DTO.Ticket[]) => {
+            console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows.map((x) => x.id));
+          },
+          getCheckboxProps: (record: DTO.Ticket) => ({
+            disabled: record.id === 'Disabled User', // Column configuration not to be checked
+            id: record.id,
+          }),
+        // onChange: (keys: React.Key[], selectedRows: DTO.Ticket[]) => {
+        //     const s = selectedRows.map((e) => e.id);
+        //     setSelected(selectedRows.map((e) => e.id))
+        //     console.log(selected)
+        //     console.log('Selected Keys', keys);
+        //     console.log('Selected Rows', selectedRows);
+        // }
+    }
+        
 
     useEffect(() => {
         menu.items = [
@@ -193,11 +192,11 @@ export function TicketTable(props: TicketTableProps) {
         </THeader.FilterAction>,
     ].filter(isBool.non);
 
-    const rowSelection: TableRowSelection<DTO.Ticket> = props.withActionCol
-        ? {
-              onChange: onRowSelectionChange,
-          }
-        : null;
+    // const rowSelection: TableRowSelection<DTO.Ticket> = props.withActionCol
+    //     ? {
+    //           onChange: onRowSelectionChange,
+    //       }
+    //     : null;
 
     return (
         <MarsTableProvider refresh={refresh}>
@@ -252,7 +251,7 @@ export function TicketTable(props: TicketTableProps) {
                     //         }
                     //     },
                     // })}
-                    rowSelection={rowSelection}
+                    rowSelection={ props.withActionCol && onRowSelectionChange}
                 />
                 <TFilter form={formFilter} title="Tiket Filter">
                     {!props.inbox && (
