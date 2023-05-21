@@ -26,6 +26,8 @@
         "strict": false,
         "baseUrl": ".",
         "paths": {
+            "@mars/common": ["src/libs/commons/index"],
+            "@mars/common/*": ["src/libs/commons/*"],
             "_config": ["src/configs/index.ts"],
             "_comp/*": ["src/components/*"],
             "_ctx/*": ["src/contexts/*"],
