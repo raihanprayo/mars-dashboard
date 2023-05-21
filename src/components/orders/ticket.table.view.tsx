@@ -1,7 +1,7 @@
 import { EditOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
 import { HttpHeader, isArr, isBool, isFn, isNull, isStr, Properties } from '@mars/common';
 import { Form, Input, InputNumber, message, Select, Table } from 'antd';
-import { TableRowSelection } from 'antd/lib/table/interface';
+import type { TableRowSelection } from 'antd/lib/table/interface';
 import axios, { AxiosResponse } from 'axios';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
@@ -25,6 +25,7 @@ import { AddTicketDrawer } from './add-ticket.drawer.';
 import { ParsedUrlQuery } from 'querystring';
 
 export function TicketTable(props: TicketTableProps) {
+    console.log(props.metadata.data);
     const { data: tickets, products, total } = props.metadata;
     const router = useRouter();
 
@@ -39,12 +40,9 @@ export function TicketTable(props: TicketTableProps) {
     const [productFilter, setProductFilter] = useState<Mars.Product[]>([]);
     const [openAddTicket, setOpenAddTicket] = useState(false);
 
-    const [selected, setSelected] = useState<boolean[]>(
-        Array(tickets?.length).fill(false)
-    );
-    const hasSelected = useMemo(() => {
-        return selected.filter((e) => e).length !== 0;
-    }, [selected]);
+    const [selected, setSelected] = useState<string[]>([]);
+    const hasSelected = useMemo(() => selected.length > 0, [selected]);
+    console.log('Has Selection', hasSelected, selected);
 
     const watchedProductFilter = Form.useWatch(
         ['product', 'in'],
@@ -117,21 +115,6 @@ export function TicketTable(props: TicketTableProps) {
         RefreshBadgeEvent.emit();
     }, [selected]);
 
-    const onRowSelectionChange = useCallback(
-        (keys: React.Key[], selectedRows: DTO.Ticket[]) => {
-            const bools = [...selected];
-            for (let index = 0; index < tickets.length; index++) {
-                const dto = tickets[index];
-
-                const isSelected = selectedRows.findIndex((e) => e.id === dto.id) !== -1;
-                bools[index] = isSelected;
-            }
-
-            setSelected(bools);
-        },
-        []
-    );
-
     useEffect(() => {
         menu.items = [
             {
@@ -193,11 +176,14 @@ export function TicketTable(props: TicketTableProps) {
         </THeader.FilterAction>,
     ].filter(isBool.non);
 
-    const rowSelection: TableRowSelection<DTO.Ticket> = props.withActionCol
-        ? {
-              onChange: onRowSelectionChange,
-          }
-        : null;
+    const rowSelection: TableRowSelection<DTO.Ticket> = {
+        selectedRowKeys: selected,
+        onChange(selectedRowKeys, selectedRows, info) {
+            console.log(`selectedRowKeys:`, selectedRowKeys);
+            console.log('selectedRows: ', selectedRows);
+            setSelected(selectedRows.map((e, i) => e.id));
+        },
+    };
 
     return (
         <MarsTableProvider refresh={refresh}>
@@ -252,7 +238,7 @@ export function TicketTable(props: TicketTableProps) {
                     //         }
                     //     },
                     // })}
-                    rowSelection={rowSelection}
+                    rowSelection={props.withActionCol && rowSelection}
                 />
                 <TFilter form={formFilter} title="Tiket Filter">
                     {!props.inbox && (
@@ -332,7 +318,7 @@ TicketTable.getServerSideProps = function getServerSidePropsInitilizer(
     return async function getServerSideProps(ctx: NextPageContext) {
         const session = await getSession(ctx);
 
-        const defaultOptions = !isFn(defaults) ? defaults : defaults(ctx.query) ;
+        const defaultOptions = !isFn(defaults) ? defaults : defaults(ctx.query);
 
         const properties = new Properties({
             ...(defaultOptions.pageable || {}),
@@ -360,7 +346,7 @@ TicketTable.getServerSideProps = function getServerSidePropsInitilizer(
 
         return {
             props: {
-                data: res.data,
+                data: res.data.map((e) => ({ key: e.id, ...e })),
                 total,
                 products: {
                     [Mars.Product.INTERNET]: Number(countHeader[0] || 0),

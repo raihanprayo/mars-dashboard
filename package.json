@@ -6,14 +6,13 @@
     "private": true,
     "scripts": {
         "dev": "next dev -p 9011",
-        "build": "next build --no-lint",
+        "build": "rimraf .next && next build --no-lint",
         "start": "next start -p 9011",
         "lint": "next lint"
     },
     "dependencies": {
         "@ant-design/icons": "^4.7.0",
         "@ant-design/plots": "^1.2.3",
-        "@mars/common": "^2.1.3",
         "@types/sockjs-client": "^1.5.1",
         "antd": "^4.23.0",
         "axios": "^0.27.2",
@@ -25,12 +24,12 @@
         "next-with-less": "^2.0.5",
         "qs": "^6.11.0",
         "react": "^18.2.0",
-        "react-dom": "^18.2.0"
-    },
-    "tempDependencies": {
-        "@mars/common": "^2.0.2-0"
+        "react-dom": "^18.2.0",
+        "reflect-metadata": "^0.1.13",
+        "typegram": "^4.0.0"
     },
     "devDependencies": {
+        "@types/axios": "^0.14.0",
         "@types/deep-equal": "^1.0.1",
         "@types/node": "18.7.14",
         "@types/react": "18.0.18",
@@ -38,6 +37,7 @@
         "eslint": "8.23.0",
         "eslint-config-next": "12.2.5",
         "next-transpile-modules": "^10.0.0",
+        "rimraf": "^5.0.1",
         "typescript": "^4.9.4"
     },
     "author": {
