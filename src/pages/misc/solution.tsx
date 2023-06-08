@@ -198,7 +198,6 @@ function SolutionsPage(props: SolutionsPageProps) {
                             pagination={MarsTablePagination({
                                 pageable,
                                 setPageable,
-                                refresh,
                                 total: props.total,
                             })}
                             onRow={(data, index) => {

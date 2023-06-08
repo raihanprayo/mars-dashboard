@@ -1,4 +1,5 @@
 import {
+    DeleteOutlined,
     EditOutlined,
     FilterOutlined,
     MinusCircleOutlined,
@@ -6,6 +7,8 @@ import {
     PlusOutlined,
     ReloadOutlined,
     SaveOutlined,
+    ImportOutlined,
+    FileAddOutlined,
 } from '@ant-design/icons';
 import { HttpHeader, isDefined, upperCase } from '@mars/common';
 import {
@@ -18,8 +21,6 @@ import {
     Input,
     InputNumber,
     message,
-    Pagination,
-    Select,
     Space,
     Table,
 } from 'antd';
@@ -29,7 +30,6 @@ import type { NamePath } from 'antd/lib/form/interface';
 import axios from 'axios';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
-import Head from 'next/head';
 import { useRouter } from 'next/router';
 import {
     createContext,
@@ -47,7 +47,7 @@ import { TFilter } from '_comp/table/table.filter';
 import { THeader } from '_comp/table/table.header';
 import { Render } from '_comp/value-renderer';
 import { usePage } from '_ctx/page.ctx';
-import { MarsTableProvider } from '_ctx/table.ctx';
+import { MarsTablePagination, MarsTableProvider } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
 import { useBool } from '_hook/util.hook';
 import { CoreService } from '_service/api';
@@ -62,18 +62,22 @@ enum ParamType {
 function IssuePage(props: IssuePageProps) {
     const router = useRouter();
     const page = usePage();
-    const { pageable } = usePageable();
+    const { pageable, setPageable } = usePageable();
 
     const [filter] = Form.useForm<ICriteria<DTO.Issue>>();
     const [editForm] = Form.useForm<DTO.Issue>();
-    const [selected, setSelected] = useState<{ data: DTO.Issue; edit: boolean }>({
+
+    const [selected, setSelected] = useState<number[]>([]);
+    const [detail, setDetail] = useState<{ data: DTO.Issue; edit: boolean }>({
         data: null,
         edit: false,
     });
     const addDrawer = useBool();
 
-    const hasSelected = useMemo(() => isDefined(selected.data), [selected.data]);
-    const refresh = useCallback(() => {
+    const countSelected = useMemo(() => selected.length, [selected]);
+    const hasSelected = useMemo(() => selected.length > 0, [selected]);
+    const hasFocusDetail = useMemo(() => isDefined(detail.data), [detail.data]);
+    const refresh = () => {
         page.setLoading(true);
         return router
             .push({
@@ -91,23 +95,22 @@ function IssuePage(props: IssuePageProps) {
             })
             .finally(() => {
                 page.setLoading(false);
-                setSelected({ data: null, edit: false });
+                setDetail({ data: null, edit: false });
             });
-    }, []);
+    };
 
     const onRowClick = useCallback(
         (record: DTO.Issue) => {
-            if (selected.data) {
-                if (selected.data.id === record.id)
-                    setSelected({ data: null, edit: false });
+            if (detail.data) {
+                if (detail.data.id === record.id) setDetail({ data: null, edit: false });
                 else {
-                    setSelected({ data: record, edit: false });
+                    setDetail({ data: record, edit: false });
                 }
             } else {
-                setSelected({ data: record, edit: false });
+                setDetail({ data: record, edit: false });
             }
         },
-        [selected.data]
+        [detail.data]
     );
 
     const onEditSubmit = useCallback(async () => {
@@ -118,28 +121,47 @@ function IssuePage(props: IssuePageProps) {
         const deletedParams: number[] = [];
         const oldParams = value.params.filter((e) => isDefined(e.id));
 
-        for (const param of selected.data.params) {
+        for (const param of detail.data.params) {
             const index = oldParams.findIndex((e) => e.id === param.id);
             if (index === -1) deletedParams.push(param.id);
         }
 
-        api.put('/issue/' + selected.data.id, { ...value, deletedParams })
+        api.put('/issue/' + detail.data.id, { ...value, deletedParams })
             .then((res) => message.success('Issue updated'))
             .then(() => refresh())
             .catch(notif.error.bind(notif))
             .finally(() => {
                 page.setLoading(false);
-                setSelected({ data: null, edit: false });
+                setDetail({ data: null, edit: false });
             });
-    }, [editForm, selected]);
+    }, [editForm, detail]);
+
+    const actionDelete = (ids: number[]) => {
+        if (ids.length === 0) return;
+
+        page.setLoading(true);
+        api.delete('/issue/bulk', { data: ids })
+            .then((res) => message.success(`Berhasil menghapus ${ids.length} Kendala`))
+            .then(refresh)
+            .catch(notif.error.bind(notif))
+            .finally(() => page.setLoading(false));
+    };
 
     if (props.error) return <>{props.error.message}</>;
+
+    // console.log('Selected:', selected);
     return (
         <MarsTableProvider refresh={refresh}>
             <div className="workspace solution">
                 <div className="solution-wrap">
                     <div className="solution-content">
                         <THeader>
+                            {/* TODO: CSV IMPORT
+                            <THeader.Action
+                                title="Import CSV"
+                                icon={<FileAddOutlined />}
+                            />
+                             */}
                             <THeader.Action
                                 title="Buat"
                                 icon={<PlusOutlined />}
@@ -147,6 +169,13 @@ function IssuePage(props: IssuePageProps) {
                             >
                                 Buat Kendala
                             </THeader.Action>
+                            <THeader.Action
+                                pos="right"
+                                icon={<DeleteOutlined />}
+                                title={`Hapus Kendala Terpilih (${countSelected})`}
+                                disabled={!hasSelected}
+                                onClick={() => actionDelete(selected)}
+                            />
                             <THeader.FilterAction
                                 title="Filter Issue"
                                 pos="right"
@@ -166,6 +195,17 @@ function IssuePage(props: IssuePageProps) {
                                 return {
                                     onClick: () => onRowClick(data),
                                 };
+                            }}
+                            pagination={MarsTablePagination({
+                                pageable,
+                                setPageable,
+                                total: props.total,
+                            })}
+                            rowSelection={{
+                                type: 'checkbox',
+                                onChange(selectedRowKeys, selectedRows, info) {
+                                    setSelected(selectedRowKeys as number[]);
+                                },
                             }}
                             columns={[
                                 DefaultCol.INCREMENTAL_NO_COL(pageable),
@@ -208,28 +248,48 @@ function IssuePage(props: IssuePageProps) {
                                     },
                                 },
                                 DefaultCol.CREATION_DATE_COL,
+                                {
+                                    title: 'Aksi',
+                                    align: 'center',
+                                    width: 100,
+                                    render(value, record, index) {
+                                        const name = record.alias || record.name;
+                                        return (
+                                            <Space align="baseline">
+                                                <MarsButton
+                                                    type="primary"
+                                                    title={`Hapus ${name}`}
+                                                    icon={<DeleteOutlined />}
+                                                    onClick={() =>
+                                                        actionDelete([record.id])
+                                                    }
+                                                />
+                                            </Space>
+                                        );
+                                    },
+                                },
                             ]}
                         />
                     </div>
                     <div className="solution-sider">
                         <InfoIssueContext.Provider
                             value={{
-                                selected: selected.data,
-                                edit: selected.edit,
+                                selected: detail.data,
+                                edit: detail.edit,
                                 form: editForm,
                             }}
                         >
                             <Card
                                 size="small"
-                                className='card-editable'
+                                className="card-editable"
                                 title={
                                     'Detail ' +
-                                    (selected.data?.name ? selected.data.name : 'Kendala')
+                                    (detail.data?.name ? detail.data.name : 'Kendala')
                                 }
                                 hoverable
                                 extra={
                                     <Space>
-                                        {selected.edit && (
+                                        {detail.edit && (
                                             <MarsButton
                                                 children="Save"
                                                 size="small"
@@ -242,18 +302,18 @@ function IssuePage(props: IssuePageProps) {
                                             size="small"
                                             icon={<EditOutlined />}
                                             onClick={() =>
-                                                setSelected({
-                                                    ...selected,
-                                                    edit: !selected.edit,
+                                                setDetail({
+                                                    ...detail,
+                                                    edit: !detail.edit,
                                                 })
                                             }
-                                            disabled={!isDefined(selected.data)}
+                                            disabled={!isDefined(detail.data)}
                                         />
                                     </Space>
                                 }
                             >
-                                {!hasSelected && <i>* No Data Selected</i>}
-                                {hasSelected && <InfoIssueView />}
+                                {!hasFocusDetail && <i>* No Data Selected</i>}
+                                {hasFocusDetail && <InfoIssueView />}
                             </Card>
                         </InfoIssueContext.Provider>
                     </div>
@@ -295,7 +355,10 @@ export async function getServerSideProps(ctx: NextPageContext) {
     return {
         props: {
             total,
-            data: res.data,
+            data: res.data.map((d) => {
+                d['key'] = d.id;
+                return d;
+            }),
         },
     };
 }
@@ -305,7 +368,7 @@ export interface IssuePageProps extends CoreService.ErrorDTO {
     total: number;
 }
 
-export default PageTitle("Kendala", IssuePage);
+export default PageTitle('Kendala', IssuePage);
 
 // Drawer ---------------------------------------------------------------------
 function AddIssueDrawer(props: AddIssueDrawerProps) {
@@ -442,8 +505,6 @@ interface AddIssueDrawerProps {
     onClose?(): void;
 }
 
-Pagination
-
 // Context --------------------------------------------------------------------
 const InfoIssueContext = createContext<InfoIssueContext>(null);
 interface InfoIssueContext {
@@ -541,7 +602,7 @@ function InfoIssueView() {
                                         }
                                         disabled={hasNoteParam}
                                     >
-                                        Note Param
+                                        Text Param
                                     </MarsButton>
                                     <MarsButton
                                         icon={<PlusCircleOutlined />}
@@ -554,7 +615,7 @@ function InfoIssueView() {
                                         }
                                         disabled={hasCaptureParam}
                                     >
-                                        Capture Param
+                                        Image Param
                                     </MarsButton>
                                 </Space>
                             )}
@@ -578,6 +639,8 @@ function ParameterDescriptorItem(props: ParameterDescriptorItemProps) {
             />
         </Space>
     );
+
+    const title = param.type === 'NOTE' ? 'TEXT' : 'IMAGE';
     return (
         <>
             <Form.Item hidden name={[props.name, 'id']}>
@@ -589,7 +652,7 @@ function ParameterDescriptorItem(props: ParameterDescriptorItemProps) {
             <Descriptions
                 bordered
                 key={'issue-param:' + props.name + '_' + param.type}
-                title={param.type && upperCase(param.type, true) + ' Parameter'}
+                title={param.type && upperCase(title, true) + ' Parameter'}
                 size="small"
                 column={2}
                 labelStyle={{ width: 90 }}

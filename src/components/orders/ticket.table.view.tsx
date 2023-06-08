@@ -17,7 +17,7 @@ import {
     TFilter,
 } from '_comp/table';
 import { PageContext, usePage } from '_ctx/page.ctx';
-import { MarsTableProvider } from '_ctx/table.ctx';
+import { MarsTablePagination, MarsTableProvider } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
 import { mapEnum } from '_utils/conversion';
 import { RefreshBadgeEvent } from '_utils/events';
@@ -25,7 +25,6 @@ import { AddTicketDrawer } from './add-ticket.drawer.';
 import { ParsedUrlQuery } from 'querystring';
 
 export function TicketTable(props: TicketTableProps) {
-    console.log(props.metadata.data);
     const { data: tickets, products, total } = props.metadata;
     const router = useRouter();
 
@@ -199,20 +198,11 @@ export function TicketTable(props: TicketTableProps) {
                         withLinkToDetail: props.withLinkToDetail,
                         withCopyToDrawer: props.editorDrawer,
                     })}
-                    pagination={{
+                    pagination={MarsTablePagination({
                         total,
-                        current: pageable.page + 1,
-                        pageSize: pageable.size,
-                        pageSizeOptions: [10, 20, 50, 100, 200],
-                        hideOnSinglePage: false,
-                        onChange(page, pageSize) {
-                            if (pageable.page !== page - 1)
-                                setPageable({ page: page - 1 });
-                        },
-                        onShowSizeChange(current, size) {
-                            if (current !== size) setPageable({ size });
-                        },
-                    }}
+                        pageable,
+                        setPageable
+                    })}
                     onChange={(p, f, s, e) => {
                         if (e.action === 'sort') {
                             if (!isArr(s)) {
@@ -230,14 +220,6 @@ export function TicketTable(props: TicketTableProps) {
                             }
                         }
                     }}
-                    // onRow={(rec, index) => ({
-                    //     onContextMenu(event) {
-                    //         if (props.customContextMenu) {
-                    //             event.preventDefault();
-                    //             menu.popup(event.clientX, event.clientY, rec);
-                    //         }
-                    //     },
-                    // })}
                     rowSelection={props.withActionCol && rowSelection}
                 />
                 <TFilter form={formFilter} title="Tiket Filter">

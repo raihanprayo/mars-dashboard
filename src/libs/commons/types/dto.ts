@@ -171,7 +171,7 @@ declare global {
         }
 
         export interface Issue {
-            id: string;
+            id: number;
             name: string;
             alias: string;
             product: Mars.Product;
@@ -228,6 +228,14 @@ declare global {
             solution: number;
             message: string;
             reopenMessage: string;
+
+            ticket?: {
+                id: string;
+                no: string;
+                status: Mars.Status;
+                createdAt: Date;
+                updatedAt: Date;
+            }
         }
     }
 

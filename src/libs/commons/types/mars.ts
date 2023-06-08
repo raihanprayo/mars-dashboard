@@ -15,6 +15,7 @@ namespace Mars {
         INTERNET = 'INTERNET',
         IPTV = 'IPTV',
         VOICE = 'VOICE',
+        OTHERS = 'OTHERS',
     }
     export enum Status {
         OPEN = 'OPEN',

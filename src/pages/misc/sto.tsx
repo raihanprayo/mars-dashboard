@@ -75,7 +75,6 @@ export default function StoPage(props: StoPageProps) {
                     dataSource={props.data}
                     pagination={MarsTablePagination({
                         pageable,
-                        refresh,
                         setPageable,
                         total: props.total,
                     })}

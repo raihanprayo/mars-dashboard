@@ -27,14 +27,19 @@ import {
 import dynamic from 'next/dynamic';
 import { isBrowser } from '_utils/constants';
 import { TFilter } from '_comp/table/table.filter';
-import { MarsTableConsumer, MarsTableProvider } from '_ctx/table.ctx';
+import {
+    MarsTableConsumer,
+    MarsTablePagination,
+    MarsTableProvider,
+} from '_ctx/table.ctx';
 import { BooleanInput, DateRangeFilter, EnumSelect } from '_comp/table/input.fields';
 import { useRouter } from 'next/router';
 import { usePage } from '_ctx/page.ctx';
 import { PageTitle } from '_utils/conversion';
 import { useBool } from '_hook/util.hook';
 import notif from '_service/notif';
-import { TableTicketColms, TableTicketColms2 } from '_comp/table';
+import { TableTicketColms } from '_comp/table';
+import { usePageable } from '_hook/pageable.hook';
 
 const Pie = dynamic(
     async () => {
@@ -61,6 +66,7 @@ function ReportsPage(props: ReportsPageProps) {
     const page = usePage();
     const switchView = useBool();
     const [filter] = Form.useForm<ICriteria<DTO.Ticket>>();
+    const { pageable, setPageable } = usePageable();
 
     const refresh = () => {
         page.setLoading(true);
@@ -76,7 +82,7 @@ function ReportsPage(props: ReportsPageProps) {
 
     const downloadCsv = () => {
         if (data.chart.count.total === 0) {
-            message.info("Total tiket pada report berjumlah 0");
+            message.info('Total tiket pada report berjumlah 0');
         } else {
             page.setLoading(true);
             api.get('/chart/ticket/report/download', {
@@ -121,12 +127,15 @@ function ReportsPage(props: ReportsPageProps) {
             dataSource={data.raw}
             size="small"
             style={{ marginTop: 10 }}
-            columns={TableTicketColms2()}
+            columns={TableTicketColms({ pageable })}
+            pagination={MarsTablePagination({
+                pageable,
+                setPageable,
+                total: props.data.rawTotal,
+            })}
         />
     );
 
-    console.log(filter.getFieldsValue());
-    console.log(data.raw);
     return (
         <MarsTableProvider refresh={refresh}>
             <ReportContext.Provider value={{ cardSpan: 3 }}>
@@ -279,7 +288,7 @@ export async function getServerSideProps(
             ...ctx.query,
         },
     });
-    const res = await api.get('/chart/ticket/report', config).catch((err) => err);
+    const res = await api.manage(api.get('/chart/ticket/report', config));
 
     if (axios.isAxiosError(res)) {
         return {
@@ -289,11 +298,12 @@ export async function getServerSideProps(
 
     return {
         props: {
+            error: false,
             data: {
                 chart: res.data.chart,
                 raw: res.data.raw,
+                rawTotal: Number(res.headers['x-total-count'] || 0),
             },
-            error: false,
         },
     };
 }
@@ -302,6 +312,7 @@ interface ReportsPageProps {
     data: {
         chart: PieChartDTO;
         raw: DTO.Ticket[];
+        rawTotal: number;
     };
     error: boolean;
 }

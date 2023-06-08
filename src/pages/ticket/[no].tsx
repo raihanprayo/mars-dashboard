@@ -131,9 +131,6 @@ function TicketDetail(props: TicketDetailProps) {
 
     const onPaste = async (event: ClipboardEvent | React.ClipboardEvent) => {
         const data = event.clipboardData;
-
-        console.log('Clipboard:', data);
-        console.log('Submit Disabled:', disableSubmit);
         if (data && !disableSubmit) {
             const files: File[] = [];
             for (const file of data.files) {

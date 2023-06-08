@@ -4,22 +4,21 @@ import {
     CopyOutlined,
     EditOutlined,
 } from '@ant-design/icons';
-import { isDefined, isFalsy } from '@mars/common';
+import { isDefined, isFalsy, isFn } from '@mars/common';
 import { Button, Space, Tag } from 'antd';
 import { ColumnType } from 'antd/lib/table';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { useCallback, useState, useEffect } from 'react';
-import { render } from 'react-dom';
 import { MarsButton } from '_comp/base/Button';
 import { Render } from '_comp/value-renderer';
 import { CopyAsGaulTicketEvent } from '_utils/events';
 
 export interface TableTickerColumnOptions {
+    takeOrder?(ticket: DTO.Ticket): void;
     withActionCol?: boolean;
     withLinkToDetail?: boolean;
     withCopyToDrawer?: boolean;
-    takeOrder(ticket: DTO.Ticket): void;
     pageable: Pageable;
 }
 export interface TableUserColumnOptions {
@@ -65,9 +64,8 @@ export const TableTicketColms = (opt: TableTickerColumnOptions) => {
         {
             title: 'Umur Tiket',
             align: 'center',
-            dataIndex: 'createdAt',
             render(value, record, index) {
-                return <Difference orderno={record.no} opentime={value} />;
+                return <Difference orderno={record.no} opentime={record.createdAt} />;
             },
         },
         {
@@ -134,98 +132,22 @@ export const TableTicketColms = (opt: TableTickerColumnOptions) => {
                                 disabledOnRole={MarsButton.disableIfAdmin}
                             />
                         )}
-                        <MarsButton
-                            type="primary"
-                            onClick={() => takeOrder(rec)}
-                            icon={<EditOutlined />}
-                            title="Ambil tiket"
-                            disabled={disabled}
-                            disabledOnRole={MarsButton.disableIfAdmin}
-                            children={!withCopyToDrawer ? 'Ambil' : null}
-                        />
+                        {isFn(takeOrder) && (
+                            <MarsButton
+                                type="primary"
+                                onClick={() => takeOrder(rec)}
+                                icon={<EditOutlined />}
+                                title="Ambil tiket"
+                                disabled={disabled}
+                                disabledOnRole={MarsButton.disableIfAdmin}
+                                children={!withCopyToDrawer ? 'Ambil' : null}
+                            />
+                        )}
                     </Space>
                 );
             },
         });
     }
-
-    return cols;
-};
-
-export const TableTicketColms2 = () => {
-    const cols: ColumnType<DTO.Ticket>[] = [
-        DefaultCol.NO_COL,
-        {
-            title: 'Order No',
-            align: 'center',
-            dataIndex: 'no',
-            sorter: true,
-            render(value, record, index) {
-                return value;
-            },
-        },
-        {
-            title: 'Status',
-            dataIndex: 'status',
-            align: 'center',
-            sorter: true,
-            render: (v, r) => Render.orderStatus(v, true),
-        },
-        {
-            title: 'Gaul',
-            dataIndex: 'gaul',
-            align: 'center',
-            render: (v) => Render.bool(v),
-        },
-        {
-            title: 'Umur Tiket',
-            align: 'center',
-            dataIndex: 'createdAt',
-            render(value, record, index) {
-                return <Difference orderno={record.no} opentime={value} />;
-            },
-        },
-        {
-            title: 'Service No',
-            align: 'center',
-            dataIndex: 'serviceNo',
-            sorter: true,
-        },
-        {
-            title: 'Tiket NOSSA',
-            align: 'center',
-            dataIndex: 'incidentNo',
-            sorter: true,
-        },
-        {
-            title: 'Product',
-            align: 'center',
-            dataIndex: 'product',
-            sorter: true,
-            render: Render.product,
-        },
-        {
-            title: 'Witel',
-            align: 'center',
-            dataIndex: 'witel',
-            sorter: true,
-            render: Render.witel,
-        },
-        {
-            title: 'STO',
-            align: 'center',
-            dataIndex: 'sto',
-            sorter: true,
-        },
-        {
-            title: 'Sumber',
-            align: 'center',
-            dataIndex: 'source',
-            sorter: true,
-            render: Render.tags(),
-        },
-        { ...DefaultCol.CREATION_DATE_COL, sorter: true },
-    ];
 
     return cols;
 };

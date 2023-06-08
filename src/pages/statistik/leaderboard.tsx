@@ -13,6 +13,7 @@ import { usePageable } from '_hook/pageable.hook';
 import { DateRangeFilter } from '_comp/table/input.fields';
 import { DefaultCol } from '_comp/table/table.definitions';
 import { PageTitle } from '_utils/conversion';
+import { differenceInMilliseconds } from 'date-fns';
 
 function LeaderboardPage(props: LeaderboardPageProps) {
     const router = useRouter();
@@ -57,7 +58,7 @@ function LeaderboardPage(props: LeaderboardPageProps) {
                     </THeader.Item>
                 </THeader>
             </Form>
-            <Table
+            <Table<LeaderboardDTO>
                 size="small"
                 dataSource={props.data}
                 columns={[
@@ -76,7 +77,28 @@ function LeaderboardPage(props: LeaderboardPageProps) {
                         title: 'Avg Response',
                         align: 'center',
                         dataIndex: 'avgRespon',
-                        render: (v: number) => {
+                        render: (v, record) => {
+                            // const filtered = record.worklogs.filter((e) =>
+                            //     [Mars.Status.OPEN, Mars.Status.DISPATCH].includes(
+                            //         e.takeStatus
+                            //     )
+                            // );
+                            // let timestamp = 0;
+
+                            // for (const wl of filtered) {
+                            //     const wlCreatedAt = new Date(wl.createdAt);
+                            //     const tcCreatedAt = new Date(wl.ticket.createdAt);
+
+                            //     const diff = differenceInMilliseconds(
+                            //         wlCreatedAt,
+                            //         tcCreatedAt
+                            //     );
+
+                            //     timestamp += diff;
+                            //     console.log(record.name, diff / 1000 / 60);
+                            // }
+
+                            // timestamp = timestamp / filtered.length;
                             return calcTime(v);
                         },
                     },
@@ -84,7 +106,23 @@ function LeaderboardPage(props: LeaderboardPageProps) {
                         title: 'Avg Action',
                         align: 'center',
                         dataIndex: 'avgAction',
-                        render: (v: number) => {
+                        render: (v: number, record) => {
+                            // const filtered = record.worklogs;
+                            // let timestamp = 0;
+
+                            // for (const wl of filtered) {
+                            //     if (wl.ticket.status !== Mars.Status.CLOSED) continue;
+                            //     const wlUpdatedAt = new Date(wl.updatedAt);
+                            //     const tcCreatedAt = new Date(wl.ticket.createdAt);
+
+                            //     timestamp += differenceInMilliseconds(
+                            //         wlUpdatedAt,
+                            //         tcCreatedAt
+                            //     );
+                            // }
+
+                            // timestamp = timestamp / filtered.length;
+                            // // console.log(record.name, timestamp, record.avgRespon);
                             return calcTime(v);
                         },
                     },
@@ -97,6 +135,17 @@ function LeaderboardPage(props: LeaderboardPageProps) {
                         title: 'Handle Dispatch',
                         align: 'center',
                         dataIndex: 'totalHandleDispatch',
+                    },
+                    {
+                        title: 'Skor',
+                        align: 'center',
+                        render(v, record) {
+                            const score =
+                                record.total -
+                                record.totalDispatch * 0.1 +
+                                record.totalHandleDispatch * 0.1;
+                            return score === 0 ? 0 : score.toFixed(2);
+                        },
                     },
                     {
                         title: 'Total',
@@ -143,12 +192,14 @@ interface LeaderboardDTO {
     nik: string;
     name: string;
 
-    avgResponTime: number;
-    avgActionTime: number;
+    avgRespon: number;
+    avgAction: number;
 
     totalDispatch: number;
     totalHandleDispatch: number;
     total: number;
+
+    worklogs: DTO.AgentWorklog[];
 }
 
 function calcTime(time: number, unit: 'ms' | 's' | 'm' = 'm') {

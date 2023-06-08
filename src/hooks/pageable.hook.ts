@@ -58,6 +58,18 @@ export function usePageable(defaultSort?: PageableSort): PageableHook {
         } else setPageable((prev) => ({ ...prev, sort: Pageable.Sorts.UNSORT }));
     }, [sorter]);
 
+    const refreshPage = (pageable: Pageable) => {
+        router.push({
+            pathname: router.pathname,
+            query: api.serializeParam({
+                ...router.query,
+                page: pageable.page,
+                size: pageable.size,
+                sort: pageable.sort === Pageable.Sorts.UNSORT ? undefined : pageable.sort,
+            }),
+        });
+    };
+
     return {
         pageable,
         updateSort(field, order) {
@@ -65,7 +77,9 @@ export function usePageable(defaultSort?: PageableSort): PageableHook {
             else rmSortOrder(field);
         },
         setPageable(v = {}) {
-            setPageable((t) => ({ ...t, ...v }));
+            const m = { ...pageable, ...v };
+            setPageable(m);
+            refreshPage(m);
         },
     };
 }
