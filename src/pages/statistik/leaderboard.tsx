@@ -19,7 +19,7 @@ function LeaderboardPage(props: LeaderboardPageProps) {
     const router = useRouter();
     const page = usePage();
 
-    const { pageable } = usePageable();
+    // const { pageable } = usePageable();
     const [filter] = Form.useForm<LeaderboardCriteria>();
 
     const refresh = useCallback(() => {
@@ -27,15 +27,7 @@ function LeaderboardPage(props: LeaderboardPageProps) {
         return router
             .push({
                 pathname: router.pathname,
-                query: api.serializeParam({
-                    page: pageable.page,
-                    size: pageable.size,
-                    sort:
-                        pageable.sort === Pageable.Sorts.UNSORT
-                            ? undefined
-                            : pageable.sort,
-                    ...filter.getFieldsValue(),
-                }),
+                query: api.serializeParam(filter.getFieldsValue()),
             })
             .finally(() => page.setLoading(false));
     }, []);
@@ -61,8 +53,9 @@ function LeaderboardPage(props: LeaderboardPageProps) {
             <Table<LeaderboardDTO>
                 size="small"
                 dataSource={props.data}
+                pagination={false}
                 columns={[
-                    DefaultCol.INCREMENTAL_NO_COL(pageable),
+                    DefaultCol.NO_COL,
                     {
                         title: 'NIK',
                         align: 'center',
@@ -74,55 +67,10 @@ function LeaderboardPage(props: LeaderboardPageProps) {
                         dataIndex: 'name',
                     },
                     {
-                        title: 'Avg Response',
-                        align: 'center',
-                        dataIndex: 'avgRespon',
-                        render: (v, record) => {
-                            // const filtered = record.worklogs.filter((e) =>
-                            //     [Mars.Status.OPEN, Mars.Status.DISPATCH].includes(
-                            //         e.takeStatus
-                            //     )
-                            // );
-                            // let timestamp = 0;
-
-                            // for (const wl of filtered) {
-                            //     const wlCreatedAt = new Date(wl.createdAt);
-                            //     const tcCreatedAt = new Date(wl.ticket.createdAt);
-
-                            //     const diff = differenceInMilliseconds(
-                            //         wlCreatedAt,
-                            //         tcCreatedAt
-                            //     );
-
-                            //     timestamp += diff;
-                            //     console.log(record.name, diff / 1000 / 60);
-                            // }
-
-                            // timestamp = timestamp / filtered.length;
-                            return calcTime(v);
-                        },
-                    },
-                    {
                         title: 'Avg Action',
                         align: 'center',
                         dataIndex: 'avgAction',
-                        render: (v: number, record) => {
-                            // const filtered = record.worklogs;
-                            // let timestamp = 0;
-
-                            // for (const wl of filtered) {
-                            //     if (wl.ticket.status !== Mars.Status.CLOSED) continue;
-                            //     const wlUpdatedAt = new Date(wl.updatedAt);
-                            //     const tcCreatedAt = new Date(wl.ticket.createdAt);
-
-                            //     timestamp += differenceInMilliseconds(
-                            //         wlUpdatedAt,
-                            //         tcCreatedAt
-                            //     );
-                            // }
-
-                            // timestamp = timestamp / filtered.length;
-                            // // console.log(record.name, timestamp, record.avgRespon);
+                        render: (v: number) => {
                             return calcTime(v);
                         },
                     },
@@ -166,10 +114,8 @@ export async function getServerSideProps(ctx: NextPageContext) {
     const res = await api.manage(api.get('/chart/leaderboard', config));
     if (axios.isAxiosError(res)) return api.serverSideError(res);
     else {
-        const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
         return {
             props: {
-                total,
                 data: res.data,
             },
         };
@@ -184,8 +130,9 @@ interface LeaderboardPageProps extends CoreService.ErrorDTO {
 export default PageTitle('Leaderboard', LeaderboardPage);
 
 interface LeaderboardCriteria {
-    range: IFilter.Range<Date>;
     product: IFilter.Readable<Mars.Product>;
+    createdAt: IFilter.Range<Date>;
+    updatedAt: IFilter.Range<Date>;
 }
 interface LeaderboardDTO {
     id: string;
