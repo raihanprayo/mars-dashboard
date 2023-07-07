@@ -1,13 +1,12 @@
 import { message } from 'antd';
 import axios, { AxiosError } from 'axios';
-import { getSession } from 'next-auth/react';
-import { isBrowser } from '_utils/constants';
+// import { isBrowser } from '_utils/constants';
 
-if (isBrowser) {
-    message.config({
+// if (isBrowser) {
+//     message.config({
         
-    })
-}
+//     })
+// }
 
 class Notifier {
     #ws: WebSocket;

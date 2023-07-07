@@ -67,13 +67,22 @@ function LoginPage(props: { session: Session; providers: NextAuthProviders }) {
                         <Input.Password placeholder="password" />
                     </Form.Item>
 
+                    <Form.Item>
+                        <Link href="/auth/forgot">Forgot Password</Link>
+                    </Form.Item>
+
                     <Form.Item className="submit-container">
                         {/* <Button type="link" className="register-btn">
                             <Link href="/auth/register">
                                 <b>register</b>
                             </Link>
                         </Button> */}
-                        <Button type="primary" htmlType="submit" className="right">
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            className="right"
+                            loading={loading}
+                        >
                             <b>Login</b>
                         </Button>
                     </Form.Item>
@@ -152,10 +161,8 @@ function ConfirmPassword(props: ConfirmPasswordProps) {
                 props.setLoading(false);
             });
     };
-    
-    useEffect(() => {
-        
-    }, [])
+
+    useEffect(() => {}, []);
 
     return (
         <Modal
