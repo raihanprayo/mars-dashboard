@@ -56,6 +56,15 @@
         justify-content: center;
     }
 }
+.ant-layout.forgot-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    > .ant-card {
+        width: 400px;
+    }
+}
 
 .ant-layout-sider {
     div.logo {
@@ -172,7 +181,7 @@
             padding: 0 3rem;
         }
         &.settings {
-            padding: 0 5rem;
+            // padding: 0 5rem;
 
             > .workspace-setting-content {
                 padding: 0 2rem;
@@ -196,6 +205,17 @@
                         margin-top: 1rem;
                         margin-bottom: 0;
                     }
+                }
+            }
+
+            > .ant-form > .settings-tags {
+                display: flex;
+                flex-direction: row;
+
+                > .ant-card.settings-value {
+                    width: 320px;
+                    margin-left: 0.3rem;
+                    margin-right: 0.3rem;
                 }
             }
         }

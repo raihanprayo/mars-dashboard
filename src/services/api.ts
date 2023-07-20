@@ -1,14 +1,14 @@
 import axios, { Axios, AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import qs from 'qs';
 import { HttpHeader, isArr, Properties } from '@mars/common';
-import { isDate } from 'date-fns';
 import { Session } from 'next-auth';
-import { isServer } from '_utils/constants';
+import { isBrowser, isServer } from '_utils/constants';
 import config from '_config';
 import { PathBuilder, RequestPath } from './service';
 
 const api: CoreService = axios.create({
     baseURL: isServer ? config.service.url : null,
+    withCredentials: isBrowser,
     paramsSerializer(params) {
         return api.serializeParam(params);
     },
@@ -16,6 +16,15 @@ const api: CoreService = axios.create({
 
 if (isServer) {
     api.defaults.baseURL = config.service.url;
+    let transformRequest = api.defaults.transformRequest;
+    if (!isArr(transformRequest)) transformRequest = [transformRequest];
+
+    // api.defaults.transformRequest =[
+    //     ...transformRequest,
+    //     (data, headers) => {
+            
+    //     }
+    // ]
 }
 
 api.auhtHeader = (session, config = {}) => {
@@ -57,13 +66,18 @@ api.serializeParam = (params = {}) => {
         })
         .slice(1);
 };
+api.setAuthorization = (bearer) => {
+    if (bearer)
+        api.defaults.headers.common[HttpHeader.AUTHORIZATION] = `Bearer ${bearer}`;
+    else delete api.defaults.headers.common[HttpHeader.AUTHORIZATION];
+};
 
 globalThis.api = Object.assign(api, {
     get ticket() {
-        return RequestPath.r(api.defaults.baseURL).ticket;
+        return RequestPath.r(api, api.defaults.baseURL).ticket;
     },
     get auth() {
-        return RequestPath.r(api.defaults.baseURL).auth;
+        return RequestPath.r(api, api.defaults.baseURL).auth;
     },
 });
 
@@ -84,6 +98,8 @@ export interface CoreService extends Axios {
     serverSideErrorLog(err: any): any;
 
     serializeParam(o?: map): string;
+
+    setAuthorization(bearer: string): void;
 
     readonly auth: PathBuilder;
     readonly ticket: PathBuilder;

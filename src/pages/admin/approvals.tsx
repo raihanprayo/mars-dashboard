@@ -59,8 +59,6 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
 
         const s = selectedRows.map((e) => e.id);
         setSelected(s);
-        console.log('Selected Keys', selectedRowKeys);
-        console.log('Selected Rows', selectedRows);
     };
 
     const onAcceptClick = useCallback((r: DTO.UserApproval, approved: boolean) => {
@@ -154,7 +152,6 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
                     // }}
                     pagination={MarsTablePagination({
                         pageable: pageable,
-                        refresh,
                         setPageable,
                         total: props.total,
                     })}

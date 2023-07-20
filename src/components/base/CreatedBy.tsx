@@ -61,9 +61,7 @@ const inRequest: string[] = [];
 CreatedBy.Provider = function CreatedByProvider(props: HasChild) {
     const [details, setDetails] = useState<map<Partial<DTO.Users>>>({});
 
-    console.log('Current Details --', details);
     const includeDetail = useCallback((identifier: string) => {
-        console.log('Get Detail --', identifier);
 
         if (inRequest.includes(identifier)) return;
         else if (isDefined(details[identifier])) return;

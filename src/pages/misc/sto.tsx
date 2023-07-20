@@ -143,12 +143,10 @@ export async function getServerSideProps(ctx: NextPageContext) {
         },
     });
 
-    console.log(config.params);
 
     const res = await api.manage(api.get('/sto', config));
     if (axios.isAxiosError(res)) return api.serverSideError(res);
     else {
-        console.log(res.data);
 
         const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
         console.log('Total STO:', total);

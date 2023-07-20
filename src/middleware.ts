@@ -9,6 +9,7 @@ const rootMiddleware: NextMiddleware = async (req, event) => {
     const authMiddeware: any = withAuth(
         function (req, event) {
             console.log('INCOMING REQUEST TO', req.nextUrl.pathname);
+            console.log('REQUEST COOKIE', req.cookies.getAll());
         },
         {
             pages: {
@@ -21,4 +22,3 @@ const rootMiddleware: NextMiddleware = async (req, event) => {
 export default rootMiddleware;
 
 const IGNORED = ['/api/shared', '/api/info'];
-// export default NextAuthMiddleware;

@@ -1,7 +1,7 @@
-import { randomString } from '@mars/common';
+import { isStr, randomString } from '@mars/common';
 import { useBool } from '_hook/util.hook';
 import notif from '_service/notif';
-import { Button, Form, Input, Layout, Space } from 'antd';
+import { Button, Card, Form, Input, Layout, Space } from 'antd';
 import axios from 'axios';
 import { NextPageContext } from 'next';
 import { useRouter } from 'next/router';
@@ -10,6 +10,8 @@ import { ForgotLayout } from '.';
 
 function ForgotConfirmOTP(props: ForgotConfirmOTP.Props) {
     const loading = useBool();
+    const reset = useBool(true);
+
     const router = useRouter();
     const [form] = Form.useForm();
     const [length, setLength] = useState(props.length);
@@ -46,27 +48,37 @@ function ForgotConfirmOTP(props: ForgotConfirmOTP.Props) {
 
     return (
         <ForgotLayout>
-            <Form
-                form={form}
-                layout="vertical"
-                onFinish={onFinish}
-                initialValues={{ token: props.token }}
-            >
-                <Form.Item name="token" hidden>
-                    <Input disabled />
-                </Form.Item>
+            <Card>
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={onFinish}
+                    initialValues={{ token: props.token }}
+                >
+                    <Form.Item name="token" hidden>
+                        <Input disabled />
+                    </Form.Item>
 
-                <Form.Item name="otp">
-                    <OtpInput length={length} />
-                </Form.Item>
+                    <Form.Item name="otp">
+                        <OtpInput length={length} />
+                    </Form.Item>
 
-                <Form.Item>
-                    <Button onClick={resetOtp}>Reset OTP</Button>
-                    <Button type="primary" htmlType="submit" loading={loading.value}>
-                        Submit
-                    </Button>
-                </Form.Item>
-            </Form>
+                    <Form.Item>
+                        <Space>
+                            <Button onClick={resetOtp} disabled={reset.value}>
+                                Reset OTP
+                            </Button>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                loading={loading.value}
+                            >
+                                Submit
+                            </Button>
+                        </Space>
+                    </Form.Item>
+                </Form>
+            </Card>
         </ForgotLayout>
     );
 }
@@ -120,6 +132,17 @@ function OtpInput(props: OtpInputProps) {
         props.onChange?.(newValue.join(''));
     };
 
+    const onPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        const text = e.clipboardData.getData('text');
+        if (isStr(text) && text.trim().length > 0) {
+            const t = text.trim();
+
+            if (t.length > props.length) return;
+            setValue(t);
+            props.onChange?.(t);
+        }
+    };
+
     return (
         <>
             <Space id={id} align="center">
@@ -131,10 +154,11 @@ function OtpInput(props: OtpInputProps) {
                                 key={`${id}-otp:${i}`}
                                 type="text"
                                 maxLength={1}
-                                value={value[i]}
+                                value={value?.[i]}
                                 onChange={(event) =>
                                     onChange(i, event.currentTarget.value)
                                 }
+                                onPaste={onPaste}
                             />
                         );
                     })}

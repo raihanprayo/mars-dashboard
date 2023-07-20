@@ -201,12 +201,21 @@ declare global {
         }
 
         export interface Setting {
-            id: number;
-            name: string;
-            title: string;
-            type: SettingType;
+            // id: number;
+            // name: string;
+            // title: string;
+            // type: SettingType;
+            // value: string;
+            // description: string;
+            key: string;
             value: string;
-            description: string;
+            tag?: string;
+            type: SettingTypDetail;
+        }
+
+        export interface SettingTypDetail {
+            class: string;
+            enum: SettingType;
         }
 
         export interface Agent extends Auditable {
@@ -235,7 +244,7 @@ declare global {
                 status: Mars.Status;
                 createdAt: Date;
                 updatedAt: Date;
-            }
+            };
         }
     }
 

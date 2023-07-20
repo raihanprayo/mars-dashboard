@@ -50,7 +50,7 @@ const PageRoutes: PageRoute[] = [
         name: 'Miscellaneous',
         icon: createElement(ApartmentOutlined),
         access: {
-            hasRole: [ROLE_ADMIN]
+            hasRole: [ROLE_ADMIN],
         },
         children: [
             {
@@ -159,7 +159,7 @@ function accessible(session: Session, opt?: RouteAccessOpt) {
     if (!opt) return true;
     if (opt.disable) return false;
 
-    const appRoles = session.roles;
+    const appRoles = session?.roles || [];
     const checkRole =
         opt.hasRole && opt.hasRole.findIndex((role) => appRoles.includes(role)) !== -1;
     return checkRole;

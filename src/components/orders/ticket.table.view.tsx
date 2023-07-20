@@ -41,7 +41,6 @@ export function TicketTable(props: TicketTableProps) {
 
     const [selected, setSelected] = useState<string[]>([]);
     const hasSelected = useMemo(() => selected.length > 0, [selected]);
-    console.log('Has Selection', hasSelected, selected);
 
     const watchedProductFilter = Form.useWatch(
         ['product', 'in'],
@@ -178,8 +177,6 @@ export function TicketTable(props: TicketTableProps) {
     const rowSelection: TableRowSelection<DTO.Ticket> = {
         selectedRowKeys: selected,
         onChange(selectedRowKeys, selectedRows, info) {
-            console.log(`selectedRowKeys:`, selectedRowKeys);
-            console.log('selectedRows: ', selectedRows);
             setSelected(selectedRows.map((e, i) => e.id));
         },
     };
@@ -315,8 +312,6 @@ TicketTable.getServerSideProps = function getServerSidePropsInitilizer(
                 ...ctx.query,
             },
         });
-
-        console.log(config.params);
 
         const res = await api.manage<DTO.Ticket[]>(api.get(url, config));
         if (axios.isAxiosError(res)) {

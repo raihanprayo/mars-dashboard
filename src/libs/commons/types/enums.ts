@@ -1,11 +1,17 @@
 namespace DTO {
     export enum SettingType {
         STRING = 'STRING',
-        NUMBER = 'NUMBER',
         BOOLEAN = 'BOOLEAN',
-        JSON = 'JSON',
-        ARRAY = 'ARRAY',
-        DURATION="DURATION"
+        // JSON = 'JSON',
+        // ARRAY = 'ARRAY',
+        DURATION = 'DURATION',
+        CHARACTER = 'CHARACTER',
+        INTEGER = 'INTEGER',
+        LONG = 'LONG',
+        DOUBLE = 'DOUBLE',
+        SHORT = 'SHORT',
+        FLOAT = 'FLOAT',
+        LIST = 'LIST',
     }
 }
 

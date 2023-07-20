@@ -4,12 +4,13 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 
 import { HttpHeader, isDefined, MimeType, upperCase } from '@mars/common';
 import axios, { AxiosResponse } from 'axios';
+import { NextApiHandler } from 'next';
 
 const route = NextAuth({
     pages: {
         signIn: '/auth/login',
     },
-
+    debug: process.env.NODE_ENV !== 'production',
     providers: [
         CredentialsProvider({
             id: 'mars-roc',
@@ -20,13 +21,15 @@ const route = NextAuth({
                 refreshToken: { type: 'input', label: 'Refresh Token' },
             },
             async authorize(credential, req) {
-                console.log('Whoami', credential);
+                const cookies = parseCookie(req.headers);
+                console.log(cookies);
 
                 const bearer = credential.token;
                 const res: AxiosResponse<any> = await api
                     .get('/auth/whoami', {
+                        withCredentials: true,
                         headers: {
-                            [HttpHeader.AUTHORIZATION]: 'Bearer ' + bearer,
+                            [HttpHeader.COOKIE]: req.headers.cookie,
                         },
                     })
                     .catch(api.serverSideErrorLog);
@@ -37,7 +40,6 @@ const route = NextAuth({
                     );
                 }
                 const data = res.data;
-
 
                 console.log('Whoami', data);
                 return {
@@ -50,27 +52,23 @@ const route = NextAuth({
                     witel: data.witel,
                     sto: data.sto,
                     roles: data.roles || [],
-                    group: {
-                        id: data.group.id,
-                        name: data.group.name,
-                        roles: data.group.roles || [],
-                    },
-                    token: bearer,
+                    accessToken: bearer,
                     refreshToken: credential.refreshToken,
                 };
             },
         }),
     ],
     jwt: {
-        maxAge: 60 * 60 * 18,
+        maxAge: 60 * 60 * 2,
     },
     session: {
-        maxAge: 60 * 60 * 18,
+        maxAge: 60 * 60 * 2,
         strategy: 'jwt',
     },
 
     callbacks: {
         async jwt({ token, user }) {
+            console.log('Next-Auth: Generate JWT');
             if (user) {
                 // console.log('User Login', user);
                 token.tg = user.tg;
@@ -81,16 +79,15 @@ const route = NextAuth({
                 token.witel = user.witel;
                 token.sto = user.sto;
                 token.roles = user.roles;
-                token.group = user.group;
 
-                token.bearer = user.token;
-                token.refresher = user.refreshToken;
+                token.accessToken = user.accessToken;
+                token.refreshToken = user.refreshToken;
             }
 
             const authorize = await api
-                .get('/auth/authorize', {
+                .get('/auth/whoami', {
                     headers: {
-                        [HttpHeader.AUTHORIZATION]: `Bearer ${token.bearer}`,
+                        [HttpHeader.AUTHORIZATION]: `Bearer ${token.accessToken}`,
                     },
                 })
                 .catch(api.serverSideErrorLog);
@@ -100,10 +97,10 @@ const route = NextAuth({
                 if (status === 400 || status === 401) {
                     const { code } = (authorize.response.data || {}) as any;
                     if (code === 'refresh-required')
-                        await refreshToken(token, token.refresher);
+                        await refreshToken(token, token.refreshToken);
                     else {
-                        token.bearer = null;
-                        token.refresher = null;
+                        token.accessToken = null;
+                        token.refreshToken = null;
                     }
                 }
             }
@@ -111,6 +108,7 @@ const route = NextAuth({
             return token;
         },
         session({ session, token, user }) {
+            console.log('Next-Auth: Generate Session');
             if (token) {
                 // console.log('Mapping Session From Token', token);
 
@@ -125,11 +123,10 @@ const route = NextAuth({
                     nik: token.nik,
                     witel: token.witel,
                     sto: token.sto,
-                    group: token.group.id,
                 };
             }
 
-            session.bearer = token.bearer;
+            session.bearer = token.accessToken;
             if (isDefined(session.bearer)) return session;
             return Promise.reject(Error('Unauthorized'));
         },
@@ -151,6 +148,20 @@ async function refreshToken(token: JWT, refresher: string) {
     }
 }
 
+function parseCookie(headers: Record<string, any>) {
+    const cookie: string = headers.cookie;
+    if (cookie) {
+        return Object.fromEntries(
+            cookie.split('; ').map((e) => {
+                const [key, value] = e.split('=');
+                return [key, value] as const;
+            })
+        );
+    }
+
+    return {};
+}
+
 export default route;
 
 declare module 'next-auth' {
@@ -168,17 +179,23 @@ declare module 'next-auth' {
         email: string;
         username: string;
         roles: string[];
-        group: { id: string; name: string; roles: string[] };
-        token: string;
+
+        accessToken: string;
         refreshToken: string;
     }
 }
 
 declare module 'next-auth/jwt' {
     export interface JWT extends map, DefaultJWT {
-        [x: string]: any;
-        bearer: string;
-        refresher: string;
+        accessToken: string;
+        refreshToken: string;
+
+        tg: number;
+        name: string;
+        nik: string;
+        roles: string[];
+        witel: Mars.Witel;
+        sto: string;
     }
 }
 
@@ -188,7 +205,6 @@ declare global {
         nik: string;
         name: string;
         email: string;
-        group: string;
         sto: string;
         witel: Mars.Witel;
     }

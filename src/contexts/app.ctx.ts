@@ -8,7 +8,7 @@ export const AppContext = createContext<AppContext>(null);
 AppContext.displayName = 'MarsApplicationContext';
 
 export interface AppContext extends MarsApplicationInfo {
-    settings: AppSetting[];
+    settings: map<AppSetting[]>;
 }
 
 export function useApp() {
@@ -20,19 +20,23 @@ export function getWitel() {
 }
 
 export function AppProvider(props: AppProviderProps) {
-    api.defaults.baseURL = props.info.service.url;
-    const [settings, setSettings] = useState<AppSetting[]>([]);
+    if (!api.defaults.baseURL) api.defaults.baseURL = props.info.service.url;
+    const [settings, setSettings] = useState<map<AppSetting[]>>({});
 
     const getSettings = useCallback(() => {
         api.get<DTO.Setting[]>('/app/config')
             .then((res) => {
-                setSettings(
-                    res.data
-                        .filter((s) => !EXCLUDED_IDS.includes(s.id))
-                        .map((s) => new AppSetting(s))
-                );
+                const result: map<AppSetting[]> = {};
+
+                for (const config of res.data) {
+                    const tag = config.tag || '#';
+                    (result[tag] ||= []).push(new AppSetting(config));
+                }
+
+                setSettings(result);
             })
-            .catch(notif.error.bind(notif));
+            .catch(notif.error.bind(notif))
+            // .finally(() => );
     }, []);
 
     onAuthenticated(() => {
@@ -54,24 +58,58 @@ export interface AppProviderProps extends HasChild {
 }
 
 export class AppSetting implements DTO.Setting {
-    id: number;
-    name: string;
-    title: string;
-    type: DTO.SettingType;
-    value: string;
-    description: string;
+    #key: string;
+    #value: string;
+    #type: DTO.SettingTypDetail;
+
+    #tag?: string;
+
+    get key() {
+        return this.#key;
+    }
+    get value() {
+        return this.#value;
+    }
+    get type() {
+        return this.#type;
+    }
+    get tag() {
+        return this.#tag;
+    }
+
+    set key(key) {
+        this.#key = key;
+    }
+    set value(value) {
+        this.#value = value;
+    }
+    set type(type) {
+        this.#type = type;
+    }
+    set tag(tag) {
+        this.#tag = tag;
+    }
+    // id: number;
+    // name: string;
+    // title: string;
+    // type: DTO.SettingType;
+    // value: string;
+    // description: string;
 
     constructor(setting: DTO.Setting) {
-        Object.keys(setting).forEach((k) => {
-            this[k] = setting[k];
-        });
+        this.#key = setting.key;
+        this.#type = setting.type;
+        this.#value = setting.value;
+        this.#tag = setting.tag;
     }
 
     getAsNumber() {
-        switch (this.type) {
-            case DTO.SettingType.DURATION:
-                return Duration.from(this.value).toMilis();
-            case DTO.SettingType.NUMBER:
+        switch (this.type.enum) {
+            case DTO.SettingType.INTEGER:
+            case DTO.SettingType.LONG:
+            case DTO.SettingType.DOUBLE:
+            case DTO.SettingType.SHORT:
+            case DTO.SettingType.FLOAT:
                 return Number(this.value);
             default:
                 return null;
@@ -79,22 +117,17 @@ export class AppSetting implements DTO.Setting {
     }
 
     getAsDuration() {
-        if (this.type !== DTO.SettingType.DURATION) return null;
+        if (this.type.enum !== DTO.SettingType.DURATION) return null;
         return Duration.from(this.value);
     }
 
     getAsArray() {
-        if (this.type !== DTO.SettingType.ARRAY) return null;
+        if (this.type.enum !== DTO.SettingType.LIST) return null;
         return this.value.split('|');
     }
 
     getAsBoolean() {
-        if (this.type !== DTO.SettingType.BOOLEAN) return null;
+        if (this.type.enum !== DTO.SettingType.BOOLEAN) return null;
         return ['true', 't'].includes(this.value.trim().toLowerCase());
-    }
-
-    getAsJson() {
-        if (this.type !== DTO.SettingType.JSON) return null;
-        return JSON.parse(this.value);
     }
 }

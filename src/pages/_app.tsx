@@ -16,7 +16,7 @@ import { AppProvider } from '_ctx/app.ctx';
 import config from '_config';
 import { CreatedBy } from '_comp/base/CreatedBy';
 
-const dash = ['/auth/login', '/auth/register', '/_error', '/dashboard'];
+const dash = ['/auth/login', '/auth/register', '/auth/forgot', '/_error', '/dashboard'];
 const isExcluded = (t: string) => dash.findIndex((e) => t.startsWith(e)) !== -1;
 
 setDefaultOptions({
@@ -26,11 +26,6 @@ setDefaultOptions({
 function MarsRocApp({ Component, pageProps, router }: AppProps) {
     const session = useSession();
     const isUnauthenticated = session.status !== 'authenticated';
-
-    if (isBrowser && !isUnauthenticated)
-        api.defaults.headers.common[
-            HttpHeader.AUTHORIZATION
-        ] = `Bearer ${session.data.bearer}`;
 
     useEffect(() => {
         if (isUnauthenticated && !isExcluded(router.pathname)) {

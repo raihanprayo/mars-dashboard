@@ -1,95 +1,80 @@
 import {
-    EditOutlined,
     MinusCircleOutlined,
     PlusOutlined,
-    QuestionCircleOutlined,
     ReloadOutlined,
     SaveOutlined,
 } from '@ant-design/icons';
-import { Duration, isStr } from '@mars/common';
+import { Duration, isArr } from '@mars/common';
 import {
     Input,
-    InputNumber,
     Switch,
     Card,
     Typography,
     Divider,
-    List,
-    Tooltip,
-    message,
     Form,
     Space,
     Button,
+    message,
+    Select,
+    InputProps,
 } from 'antd';
-import { Rule } from 'antd/lib/form/index';
-import deepEqual from 'deep-equal';
 import Head from 'next/head';
-import { useRouter } from 'next/router';
-import { createContext, useContext, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { DurationInput } from '_comp/table/input.fields';
 import { THeader } from '_comp/table/table.header';
-import { AppSetting, useApp } from '_ctx/app.ctx';
+import { useApp } from '_ctx/app.ctx';
 import { usePage } from '_ctx/page.ctx';
 import notif from '_service/notif';
-import { RefreshSettingEvent } from '_utils/events';
 
-const SettingItemCtx = createContext<SettingItemCtx>(null);
-interface SettingItemCtx {
-    readonly hover: boolean;
-}
 
 export default function SettingPage() {
-    const router = useRouter();
+    console.log(api.defaults);
+
     const app = useApp();
     const page = usePage();
-    const [configs] = Form.useForm<map<Setting.Value>>();
+    const [form] = Form.useForm();
 
-    const origin = useMemo<Setting.MapValue>(
-        () => Object.fromEntries(app.settings.map(Setting.convert)),
+    const keyValuePair = (s: DTO.Setting) => {
+        return [s.key, deserialize(s)] as const;
+    };
+
+    const origin = useMemo(
+        () =>
+            Object.fromEntries(
+                Object.keys(app.settings)
+                    .flatMap((e) => app.settings[e])
+                    .map(keyValuePair)
+            ),
         [app.settings]
     );
 
-    const [hasValueChanged, setHasValueChanged] = useState(false);
+    const onSubmit = (values: map) => {
+        page.setLoading(true);
+        const raw = Object.fromEntries(
+            Object.values(app.settings)
+                .flatMap((e) => e)
+                .map((e) => [e.key, e] as const)
+        );
 
-    const onResetClick = () => {
-        configs.resetFields();
-        setHasValueChanged(false);
-    };
+        const configs: DTO.Setting[] = [];
+        for (const key in values) {
+            const config = raw[key];
+            const value = values[key];
 
-    const onSaveClick = async () => {
-        if (!hasValueChanged) return message.warn('No content changed');
-
-        await configs.validateFields();
-
-        const values = configs.getFieldsValue();
-        const newSets: DTO.Setting[] = [];
-
-        for (const sett of app.settings) {
-            let { title, value } = values[sett.name];
-            switch (sett.type) {
-                case DTO.SettingType.ARRAY:
-                    value = (value as string[]).join('|');
-                    break;
-                case DTO.SettingType.JSON:
-                    value = JSON.stringify(value);
-                    break;
-                case DTO.SettingType.DURATION:
-                    if (value instanceof Duration) value = value.toJSON();
-                    break;
-                default:
-                    value = String(value);
-                    break;
-            }
-            newSets.push({ ...sett, title: title, value });
+            configs.push({
+                key: config.key,
+                value: serialize(config, value),
+                type: config.type,
+                tag: config.tag,
+            });
         }
 
-        page.setLoading(true);
-        api.put('/app/config', newSets)
-            .then((res) => message.success('Updated'))
-            .catch((err) => notif.axiosError(err))
+        api.put('/app/config', configs)
+            .then(() => message.success('configuration updated'))
+            .catch(notif.axiosError)
             .finally(() => {
-                RefreshSettingEvent.emit();
-                router.reload();
+                page.setLoading(false);
+                window.dispatchEvent(new Event('refresh-setting'));
             });
     };
 
@@ -106,280 +91,195 @@ export default function SettingPage() {
                     </>
                 }
             />
-
-            {app.settings.length > 0 && (
-                <Form
-                    form={configs}
-                    size="small"
-                    initialValues={origin}
-                    className="workspace-setting-content"
-                    onReset={() => {
-                        const values = configs.getFieldsValue();
-                        const result = deepEqual(origin, values);
-                        setHasValueChanged(!result);
-                    }}
-                    onValuesChange={(changed, values) => {
-                        const result = deepEqual(origin, values);
-                        setHasValueChanged(!result);
-                    }}
-                >
-                    <List
-                        grid={{ gutter: 16, column: 3 }}
-                        dataSource={app.settings}
-                        renderItem={(item) => <RenderConfig {...item} />}
-                    />
-                </Form>
-            )}
-
-            <THeader className="footer bg-primary">
-                <THeader.Action
-                    pos="right"
-                    type="default"
-                    icon={<ReloadOutlined />}
-                    onClick={onResetClick}
-                    disabled={!hasValueChanged}
-                >
-                    Reset
-                </THeader.Action>
-                <THeader.Action
-                    pos="right"
-                    type="default"
-                    icon={<SaveOutlined />}
-                    onClick={onSaveClick}
-                    disabled={!hasValueChanged}
-                >
-                    Save
-                </THeader.Action>
-            </THeader>
+            <Form
+                form={form}
+                layout="vertical"
+                initialValues={origin}
+                onFinish={onSubmit}
+            >
+                <Form.Item>
+                    <Space align="baseline">
+                        <Button type="default" htmlType="reset" icon={<ReloadOutlined />}>
+                            Reset
+                        </Button>
+                        <Button htmlType="submit" type="primary" icon={<SaveOutlined />}>
+                            Simpan
+                        </Button>
+                    </Space>
+                </Form.Item>
+                <div className="settings-tags">
+                    <SettingTagApplication />
+                    <SettingTagAccount />
+                    {/* <SettingTagCredential /> */}
+                </div>
+            </Form>
         </div>
     );
 }
-export function RenderConfig(config: DTO.Setting & { title?: string }) {
-    const [hover, setHover] = useState(false);
-    const tooltip = (
-        <Tooltip title={config.description}>
-            <QuestionCircleOutlined />
-        </Tooltip>
-    );
 
-    const isObjType = [DTO.SettingType.ARRAY, DTO.SettingType.JSON].includes(config.type);
-    const path = isObjType ? config.name : [config.name, 'value'];
+function deserialize(config: DTO.Setting) {
+    const value = config.value;
+    switch (config.type.enum) {
+        case DTO.SettingType.BOOLEAN:
+            return 't' === value.toLowerCase();
+        case DTO.SettingType.INTEGER:
+        case DTO.SettingType.LONG:
+        case DTO.SettingType.DOUBLE:
+        case DTO.SettingType.FLOAT:
+        case DTO.SettingType.SHORT:
+            return Number(value);
+        case DTO.SettingType.DURATION:
+            return Duration.from(value);
+        case DTO.SettingType.LIST:
+            return value.split('|').filter((e) => !!e);
+    }
+    return value;
+}
+function serialize(config: DTO.Setting, value: any) {
+    switch (config.type.enum) {
+        case DTO.SettingType.DURATION:
+            return (value as Duration).toString();
+        case DTO.SettingType.LIST:
+            return (value as string[]).join('|');
+        case DTO.SettingType.BOOLEAN:
+            return value ? 't' : 'f';
+        default:
+            return String(value);
+    }
+}
+
+
+function SettingTagApplication() {
+    // const app = useApp();
+    // const form = Form.useFormInstance();
     return (
-        <List.Item>
-            <SettingItemCtx.Provider value={{ hover }}>
-                <Card
-                    hoverable
-                    size="small"
-                    extra={tooltip}
-                    title={
-                        <Form.Item name={[config.name, 'title']} noStyle>
-                            <Setting.EditableTitle config={config} />
-                        </Form.Item>
-                    }
-                    onMouseOver={() => setHover(true)}
-                    onMouseLeave={() => setHover(false)}
-                >
-                    {!isObjType && (
-                        <Form.Item name={[config.name, 'value']}>
-                            <Setting.ConfigInput config={config} />
-                        </Form.Item>
-                    )}
-
-                    {isObjType && <Setting.ConfigInput config={config} />}
-                </Card>
-            </SettingItemCtx.Provider>
-        </List.Item>
+        <Card className="settings-value">
+            {/* <Form form={form}> */}
+            <Form.Item
+                label="Agent membuat tiket sendiri"
+                name="agent-allowed-to-create-ticket"
+            >
+                <Switch size="default" checkedChildren="Ya" unCheckedChildren="Tidak" />
+            </Form.Item>
+            <Form.Item
+                label="Registrasi Diperlukan Approval"
+                name="user-registration-approval"
+            >
+                <Switch size="default" checkedChildren="Ya" unCheckedChildren="Tidak" />
+            </Form.Item>
+            <Form.Item
+                label="Registrasi Durasi Persetujuan"
+                name="user-registration-approval-duration"
+            >
+                <DurationInput />
+            </Form.Item>
+            <Form.Item label="Durasi Konfirmasi" name="confirmation-duration">
+                <DurationInput />
+            </Form.Item>
+            <Form.Item
+                label="Durasi Konfirmasi Pending"
+                name="confirmation-pending-duration"
+            >
+                <DurationInput />
+            </Form.Item>
+            {/* </Form> */}
+        </Card>
     );
 }
-
-namespace Setting {
-    export type Value<T = any> = { title: string; value: T };
-    export type TuppleValue = [string, Value];
-    export type MapValue = map<Value>;
-
-    export function convert(item: DTO.Setting): TuppleValue {
-        const get = (value: any) =>
-            [item.name, { title: item.title, value }] satisfies TuppleValue;
-
-        const instance = new AppSetting(item);
-        switch (item.type) {
-            case DTO.SettingType.BOOLEAN:
-                return get(instance.getAsBoolean());
-            case DTO.SettingType.NUMBER:
-                return get(instance.getAsNumber());
-            case DTO.SettingType.ARRAY:
-                return get(instance.getAsArray());
-            case DTO.SettingType.JSON:
-                return get(instance.getAsJson());
-            case DTO.SettingType.DURATION:
-                return get(instance.getAsDuration());
-        }
-        return get(item.value);
-    }
-
-    export function EditableTitle(props: {
-        config: DTO.Setting;
-        value?: string;
-        onChange?(t: string): void;
-    }) {
-        const itemCtx = useContext(SettingItemCtx);
-        const [edit, setEdit] = useState(false);
-
-        return (
-            <Space>
-                {!edit && props.value}
-                {edit && (
-                    <Input
-                        size="small"
-                        value={props.value}
-                        onChange={(v) => props.onChange(v.currentTarget.value)}
-                    />
-                )}
-                <EditOutlined
-                    title="Edit Nama"
-                    style={{ opacity: edit ? 1 : !itemCtx.hover ? 0 : 1 }}
-                    onClick={() => setEdit(!edit)}
-                />
-            </Space>
-        );
-    }
-    export function ConfigInput(props: {
-        config: DTO.Setting;
-        value?: any;
-        onChange?(v: any): void;
-    }) {
-        const { config } = props;
-        let comp: React.ReactElement;
-
-        switch (config.type) {
-            case DTO.SettingType.STRING:
-                comp = (
-                    <Input
-                        value={props.value}
-                        onChange={(e) => props.onChange(e.currentTarget.value)}
-                    />
-                );
-                break;
-            case DTO.SettingType.NUMBER:
-                comp = <InputNumber value={props.value} onChange={props.onChange} />;
-                break;
-            case DTO.SettingType.BOOLEAN:
-                comp = (
-                    <Switch
-                        size="default"
-                        checked={props.value}
-                        checkedChildren="Ya"
-                        unCheckedChildren="Tidak"
-                        onChange={(c) => props.onChange(c)}
-                    />
-                );
-                break;
-            case DTO.SettingType.DURATION:
-                comp = <DurationInput value={props.value} onChange={props.onChange} />;
-                break;
-            case DTO.SettingType.ARRAY:
-                comp = <InputArray config={config} />;
-                break;
-        }
-
-        return (
-            <Space align="baseline">
-                {comp}
-                {_suffix(config)}
-            </Space>
-        );
-    }
-
-    export function _suffix(config: DTO.Setting): string | undefined {
-        // switch (config.id) {
-        //     case 1:
-        //         return 'Menit';
-        //     case 5:
-        //         return 'Menit';
-        //     case 6:
-        //         return 'Jam';
-        // }
-
-        return;
-    }
-
-    function _rules_arr(config: DTO.Setting): Rule[] {
-        switch (config.id) {
-            case 7:
-                return [
-                    {
-                        type: 'email',
-                        required: true,
-                        message: 'Email tidak boleh kosong',
-                    },
-                ];
-        }
-        return null;
-    }
-
-    interface ObjectInput {
-        config: DTO.Setting;
-    }
-
-    function InputJson() {}
-
-    function InputArray(props: ObjectInput) {
-        return (
-            <Form.List name={[props.config.name, 'value']}>
-                {(fields, { add, remove }, meta) => (
-                    <>
-                        {fields.map((field) => {
-                            const { key, name, ...others } = field;
-                            return (
-                                <Space key={key} align="baseline">
+function SettingTagAccount() {
+    const app = useApp();
+    const form = Form.useFormInstance();
+    return (
+        <Card className="settings-value">
+            <Form.Item label="Akun Kadaluarsa" name="account-expireable">
+                <Switch size="default" checkedChildren="Ya" unCheckedChildren="Tidak" />
+            </Form.Item>
+            <Form.Item
+                label="Durasi Akun sebelum Kadaluarsa"
+                name="account-expired-duration"
+            >
+                <DurationInput />
+            </Form.Item>
+            <Form.Item
+                className="settings-list-view"
+                label="Email yang ditampilkan saat registrasi"
+            >
+                <Form.List name="account-registration-approval-email">
+                    {(fields, { add, remove }) => (
+                        <>
+                            {fields.map(({ key, name, ...restField }) => {
+                                return (
                                     <Form.Item
-                                        {...others}
-                                        name={name}
-                                        rules={_rules_arr(props.config)}
+                                        key={key}
+                                        noStyle
+                                        className="settings-list-item"
                                     >
-                                        <Input allowClear />
+                                        <Space align="baseline">
+                                            <Form.Item
+                                                name={name}
+                                                {...restField}
+                                                validateTrigger={['onChange', 'onBlur']}
+                                                rules={[
+                                                    {
+                                                        type: 'email',
+                                                        required: true,
+                                                        message:
+                                                            'Email tidak boleh kosong',
+                                                    },
+                                                ]}
+                                            >
+                                                <Input
+                                                    type="email"
+                                                    placeholder="email"
+                                                    allowClear
+                                                />
+                                            </Form.Item>
+                                            <MinusCircleOutlined
+                                                onClick={() => remove(name)}
+                                            />
+                                        </Space>
                                     </Form.Item>
-                                    <MinusCircleOutlined onClick={() => remove(name)} />
-                                </Space>
-                            );
-                        })}
-                        <Form.Item>
-                            <Button onClick={() => add()} icon={<PlusOutlined />}>
-                                Tambah
-                            </Button>
-                        </Form.Item>
-                    </>
-                )}
-            </Form.List>
-        );
-    }
+                                );
+                            })}
+                            <Form.Item>
+                                <Button
+                                    type="dashed"
+                                    icon={<PlusOutlined />}
+                                    onClick={() => add()}
+                                >
+                                    Tambah Email
+                                </Button>
+                            </Form.Item>
+                        </>
+                    )}
+                </Form.List>
+            </Form.Item>
+        </Card>
+    );
 }
+function SettingTagCredential() {
+    // CRD_DEFAULT_PASSWORD_ALGO_STR = "password-algo",
+    // CRD_DEFAULT_PASSWORD_SECRET_STR = "password-secret",
+    // CRD_DEFAULT_PASSWORD_ITERATION_INT = "password-hash-iteration";
 
-// export async function getServerSideProps(ctx: NextPageContext) {
-//     const session = await getSession(ctx);
-//     const config = api.auhtHeader(session);
-
-//     const res = await api.manage<DTO.Setting[]>(api.get('/app/config', config));
-//     if (axios.isAxiosError(res)) return api.serverSideError(res);
-
-//     return {
-//         props: {
-//             data: res.data
-//                 .sort((a, b) => a.id - b.id)
-//                 .filter((s) => !Setting.EXCLUDED_IDS.includes(s.id)),
-//         },
-//     };
-// }
-
-// interface SettingPageProps extends CoreService.ErrorDTO {
-//     data: DTO.Setting[];
-// }
-
-// interface SettingDTO {
-//     id: number;
-//     name: string;
-//     title: string;
-//     type: Setting.Type;
-//     value: string;
-//     description: string;
-// }
+    //     bcrypt
+    // ldap
+    // pbkdf2
+    // scrypt
+    return (
+        <Card className="settings-value">
+            <Form.Item label="Password Algoritma" name="password-algo">
+                <Select
+                    options={[
+                        { label: 'BCrypt', value: 'bcrypt' },
+                        { label: 'LDap', value: 'ldap' },
+                        { label: 'PBKDF2 SHA256', value: 'pbkdf2-sha256' },
+                        { label: 'PBKDF2 SHA1', value: 'pbkdf2-sha1' },
+                        { label: 'PBKDF2 SHA512', value: 'pbkdf2-sha512' },
+                        { label: 'SCrypt', value: 'scrypt' },
+                    ]}
+                />
+            </Form.Item>
+        </Card>
+    );
+}

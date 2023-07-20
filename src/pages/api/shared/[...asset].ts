@@ -10,7 +10,6 @@ const SharedAssetRoute: NextApiHandler = (req, res) => {
     const reqPath = isArr(req.query.asset) ? req.query.asset.join('/') : req.query.asset;
     const filePath = join(sharedAssetDir, reqPath);
 
-    console.log('Get Shared File:', filePath);
 
     if (!existsSync(filePath)) {
         return res.status(404).json({

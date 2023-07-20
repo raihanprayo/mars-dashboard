@@ -90,7 +90,6 @@ function ReportsPage(props: ReportsPageProps) {
                 params: filter.getFieldsValue(),
             })
                 .then((res) => {
-                    console.log(res.headers);
 
                     const blob: Blob = res.data;
                     const href = URL.createObjectURL(blob);

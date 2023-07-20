@@ -67,6 +67,15 @@ export class Duration {
         return convert(this, Duration.Unit.MILI);
     }
 
+    equal(other: Duration) {
+        return (
+            this._d === other._d &&
+            this._h === other._h &&
+            this._m === other._m &&
+            this._s === other._s
+        );
+    }
+
     static from(input: string) {
         const result = input.matchAll(Duration.DURATION_REGX);
         if (!isDefined(result))

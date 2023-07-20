@@ -42,7 +42,7 @@ export function PageHeader() {
                 setBadge(Number(res.data?.total ?? res.data ?? 0));
             })
             .catch((err) => console.error('Fetch Badge Counter: ' + err.message));
-    }, []);
+    }, [badge]);
 
     const LoginLogoutIcon =
         session.status === 'authenticated' ? LogoutOutlined : LoginOutlined;

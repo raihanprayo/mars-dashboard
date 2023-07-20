@@ -1,4 +1,4 @@
-import { Duration, isBool, isDefined, isStr, randomString } from '@mars/common';
+import { Duration, isBool, isDefined, isStr, isUndef, randomString } from '@mars/common';
 import {
     DatePicker,
     InputNumber,
@@ -205,7 +205,6 @@ export function SolutionSelect(props: SolutionSelectProps) {
             params: { size: 1000 },
         })
             .then(({ data }) => {
-                console.log(data);
                 setList(data.map((e) => ({ label: e.name, value: e.id })));
             })
             .catch(notif.axiosError)
@@ -222,7 +221,11 @@ export function DurationInput(props: DurationInputProps) {
     const id = useMemo(() => randomString(12), []);
     const width = 60;
     const [value, setValue] = useState<Duration>(
-        isStr(props.value) ? Duration.from(props.value) : props.value
+        isStr(props.value)
+            ? Duration.from(props.value)
+            : isDefined(props.value)
+            ? props.value
+            : new Duration()
     );
 
     const dayPop = useBool();
@@ -258,22 +261,28 @@ export function DurationInput(props: DurationInputProps) {
         [value]
     );
 
+    const time = {
+        day: value?.day || 0,
+        hour: value?.hour || 0,
+        minute: value?.minute || 0,
+        second: value?.second || 0,
+    };
     return (
         <Space align="baseline">
-            <Popover content={`${value.day} Hari`}>
+            <Popover content={`${time.day} Hari`}>
                 <InputNumber
                     key={`Duration:${id}--Day`}
                     min={0}
                     size="small"
                     style={{ width }}
                     placeholder="Hari"
-                    value={value.day}
+                    value={time.day}
                     onChange={(v) => onSegmentChange('day', v)}
                     onFocus={() => dayPop.setValue(true)}
                     onBlur={() => dayPop.setValue(false)}
                 />
             </Popover>
-            <Popover content={`${value.hour} Jam`}>
+            <Popover content={`${time.hour} Jam`}>
                 <InputNumber
                     key={`Duration:${id}--Hour`}
                     min={0}
@@ -281,13 +290,13 @@ export function DurationInput(props: DurationInputProps) {
                     size="small"
                     style={{ width }}
                     placeholder="Jam"
-                    value={value.hour}
+                    value={time.hour}
                     onChange={(v) => onSegmentChange('hour', v)}
                     onFocus={() => hourPop.setValue(true)}
                     onBlur={() => hourPop.setValue(false)}
                 />
             </Popover>
-            <Popover content={`${value.minute} Menit`}>
+            <Popover content={`${time.minute} Menit`}>
                 <InputNumber
                     key={`Duration:${id}--Minute`}
                     min={0}
@@ -295,13 +304,13 @@ export function DurationInput(props: DurationInputProps) {
                     size="small"
                     style={{ width }}
                     placeholder="Menit"
-                    value={value.minute}
+                    value={time.minute}
                     onChange={(v) => onSegmentChange('minute', v)}
                     onFocus={() => minutePop.setValue(true)}
                     onBlur={() => minutePop.setValue(false)}
                 />
             </Popover>
-            <Popover content={`${value.second} Detik`}>
+            <Popover content={`${time.second} Detik`}>
                 <InputNumber
                     key={`Duration:${id}--Second`}
                     min={0}
@@ -309,7 +318,7 @@ export function DurationInput(props: DurationInputProps) {
                     size="small"
                     style={{ width }}
                     placeholder="Detik"
-                    value={value.second}
+                    value={time.second}
                     onChange={(v) => onSegmentChange('second', v)}
                     onFocus={() => secondPop.setValue(true)}
                     onBlur={() => secondPop.setValue(false)}

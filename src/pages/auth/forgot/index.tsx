@@ -10,24 +10,22 @@ export default function ForgotIndex() {
     const route = useRouter();
     const loading = useBool();
 
-    const send = (v: any) => {
+    const send = async (v: any) => {
         loading.setValue(true);
         const username = v.username;
 
         api.get('/auth/forgot', { params: { u: username } })
             .then(({ data }) => {
                 if (data.telegram) {
-                    route.push({
-                        pathname: route.pathname + '/confirm',
-                        query: { u: username },
-                    });
+                    route.push(`${route.pathname}/confirm?u=${username}`);
                 } else {
                     message.error(
-                        'Akun tersebut tidak memiliki/terintegrasi dengan akun telegram'
+                        'Akun tersebut tidak ada atau tidak terintegrasi dengan akun telegram'
                     );
                 }
             })
-            .catch(notif.axiosError);
+            .catch(notif.axiosError)
+            .finally(() => loading.setValue(false));
     };
 
     return (
@@ -39,11 +37,17 @@ export default function ForgotIndex() {
                 onFinish={send}
             >
                 <Typography>
-                    <Typography.Paragraph>Pengecekan username/nik</Typography.Paragraph>
+                    <Typography.Paragraph>Silahkan masukkan NIK akun yang akan direset</Typography.Paragraph>
                 </Typography>
 
-                <Form.Item name="username">
-                    <Input placeholder="nik" />
+                <Form.Item
+                    name="username"
+                    label="NIK"
+                    rules={[
+                        { required: true, message: 'nama pencarian tidak boleh kosong' },
+                    ]}
+                >
+                    <Input placeholder="nik" required />
                 </Form.Item>
 
                 <Form.Item>

@@ -1,5 +1,5 @@
 import { isFalsy, isSymbol } from '@mars/common';
-import axios, { AxiosRequestConfig, AxiosResponse, Method } from 'axios';
+import axios, { Axios, AxiosRequestConfig, AxiosResponse, Method } from 'axios';
 
 const methods = ['get', 'put', 'post', 'delete', 'head', 'options'];
 
@@ -10,7 +10,7 @@ export class RequestPath {
 
     private query: map = {};
 
-    constructor(baseUrl: string) {
+    constructor(parent: Axios, baseUrl: string) {
         this.baseUrl = baseUrl;
     }
 
@@ -76,8 +76,8 @@ export class RequestPath {
         }
     }
 
-    static r(baseUrl: string): PathBuilder {
-        const rp = new Proxy(new RequestPath(baseUrl), {
+    static r(parent: Axios, baseUrl: string): PathBuilder {
+        const rp = new Proxy(new RequestPath(parent, baseUrl), {
             get(target, prop) {
                 if (isSymbol(prop))
                     throw new TypeError('Request path must be a readable type');
@@ -110,7 +110,9 @@ export class RequestPath {
 interface RecursePathBuilder extends map<PathBuilder> {}
 interface PathHelper {
     p(path: string | boolean | number): PathBuilder;
+    P(path: string | boolean | number): PathBuilder;
     q(query: map): RequestPath;
+    Q(query: map): RequestPath;
 }
 
 export type PathBuilder = RequestPath & PathHelper & RecursePathBuilder;
