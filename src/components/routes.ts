@@ -101,6 +101,15 @@ const PageRoutes: PageRoute[] = [
             },
             {
                 type: 'page',
+                name: 'User Event',
+                path: '/admin/events',
+                icon: createElement(UserOutlined),
+                access: {
+                    hasRole: [ROLE_ADMIN],
+                },
+            },
+            {
+                type: 'page',
                 name: 'User Approvals',
                 path: '/admin/approvals',
                 icon: createElement(AuditOutlined),

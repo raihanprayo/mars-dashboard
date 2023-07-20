@@ -7,8 +7,8 @@ export function usePageable(defaultSort?: PageableSort): PageableHook {
 
     const [sorter, setSorter] = useState<PageableSortTupple[]>([]);
     const [pageable, setPageable] = useState<Pageable>({
-        page: Number(router.query.page || 0),
-        size: Number(router.query.size || 10),
+        page: Number(router.query.page || usePageable.DEFAULT_PAGE),
+        size: Number(router.query.size || usePageable.DEFAULT_SIZE),
         sort: isArr(defaultSort) ? defaultSort : Pageable.Sorts.UNSORT,
     });
 
@@ -83,6 +83,8 @@ export function usePageable(defaultSort?: PageableSort): PageableHook {
         },
     };
 }
+usePageable.DEFAULT_SIZE = 50;
+usePageable.DEFAULT_PAGE = 0;
 
 export interface PageableHook {
     pageable: Pageable;

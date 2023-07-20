@@ -6,7 +6,9 @@ import { getSession } from 'next-auth/react';
 export function getServerSidePropsWrapper(cb: ServerSideCallback) {
     return async (ctx: NextPageContext) => {
         const session = await getSession(ctx);
-        const config = api.auhtHeader(session);
+        const config = api.auhtHeader(session, {
+            params: ctx.query,
+        });
         return cb(ctx, session, config);
     };
 }

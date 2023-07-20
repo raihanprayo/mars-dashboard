@@ -47,7 +47,7 @@ export function MarsTablePagination(
         pageSizeOptions: [10, 20, 50, 100, 200, 500, 1000],
         hideOnSinglePage: false,
         defaultCurrent: 1,
-        defaultPageSize: 10,
+        defaultPageSize: 50,
         showSizeChanger: true,
         onChange(page, pageSize) {
             const actualPage = page - 1;
