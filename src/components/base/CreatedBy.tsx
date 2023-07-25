@@ -61,38 +61,40 @@ const inRequest: string[] = [];
 CreatedBy.Provider = function CreatedByProvider(props: HasChild) {
     const [details, setDetails] = useState<map<Partial<DTO.Users>>>({});
 
-    const includeDetail = useCallback((identifier: string) => {
+    const includeDetail = useCallback(
+        (identifier: string) => {
+            if (inRequest.includes(identifier)) return;
+            else if (isDefined(details[identifier])) return;
 
-        if (inRequest.includes(identifier)) return;
-        else if (isDefined(details[identifier])) return;
+            inRequest.push(identifier);
+            api.get<DTO.Users>('/user/detail/' + identifier)
+                .then((res) => {
+                    setDetails((p) => ({
+                        ...p,
+                        [identifier]: {
+                            id: res.data.id,
+                            name: res.data.name,
+                            nik: res.data.nik,
+                            roles: res.data.roles,
+                        },
+                    }));
+                })
+                .catch((err) => {
+                    if (axios.isAxiosError(err)) {
+                        const response = err.response;
 
-        inRequest.push(identifier);
-        api.get<DTO.Users>('/user/detail/' + identifier)
-            .then((res) => {
-                setDetails((p) => ({
-                    ...p,
-                    [identifier]: {
-                        id: res.data.id,
-                        name: res.data.name,
-                        nik: res.data.nik,
-                        roles: res.data.roles,
-                    },
-                }));
-            })
-            .catch((err) => {
-                if (axios.isAxiosError(err)) {
-                    const response = err.response;
-
-                    if (response && response.status === 404) {
-                        setDetails((p) => ({
-                            ...p,
-                            [identifier]: { name: 'Deleted User' },
-                        }));
+                        if (response && response.status === 404) {
+                            setDetails((p) => ({
+                                ...p,
+                                [identifier]: { name: 'Deleted User' },
+                            }));
+                        }
                     }
-                }
-            })
-            .finally(() => inRequest.splice(inRequest.indexOf(identifier), 1));
-    }, []);
+                })
+                .finally(() => inRequest.splice(inRequest.indexOf(identifier), 1));
+        },
+        [details]
+    );
 
     const getName = (nik: string) => {
         if (!isDefined(details[nik])) return 'Unknown User';

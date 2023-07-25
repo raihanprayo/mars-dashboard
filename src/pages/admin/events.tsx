@@ -1,5 +1,6 @@
 import { ReloadOutlined } from '@ant-design/icons';
 import { HttpHeader } from '@mars/common';
+import { CreatedBy } from '_comp/base/CreatedBy';
 import { DateRangeFilter, DefaultCol, TFilter, THeader } from '_comp/table';
 import { Render } from '_comp/value-renderer';
 import { usePage } from '_ctx/page.ctx';
@@ -70,6 +71,9 @@ export default function UserEventPage(props: UserEventPageProps) {
                             align: 'center',
                             dataIndex: 'createdBy',
                             width: 120,
+                            render(value, record, index) {
+                                return <CreatedBy data={record} />
+                            },
                         },
                         {
                             title: 'Jenis',
