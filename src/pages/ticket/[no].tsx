@@ -11,6 +11,7 @@ import {
 } from '@ant-design/icons';
 import { HttpHeader, isDefined } from '@mars/common';
 import {
+    Button,
     Descriptions,
     Divider,
     Form,
@@ -144,6 +145,12 @@ function TicketDetail(props: TicketDetailProps) {
         }
     };
 
+    const onGetContact = async () => {
+        api.get('/telegram/send/contact/' + props.contact.nik)
+            .then(() => message.info('Kontak info berhasil dikirim'))
+            .catch(notif.axiosError);
+    };
+
     useEffect(() => {
         if (disableSubmit) return;
 
@@ -223,6 +230,19 @@ function TicketDetail(props: TicketDetailProps) {
     ];
 
     const watchStat = Form.useWatch('status', submission);
+
+    const contact = {
+        name: props.contact?.name,
+        phone: props.contact?.phone,
+        get link() {
+            if (!props.contact?.phone) return;
+            let phone = props.contact.phone;
+
+            if (phone.startsWith('+62')) phone = phone;
+            else phone = '+62' + phone.substring(1);
+            return 'https://t.me/' + phone;
+        },
+    };
     return (
         <DetailContext.Provider value={{ ticket: props.data, assets: props.assets }}>
             <div className="tc-detail-container">
@@ -279,6 +299,17 @@ function TicketDetail(props: TicketDetailProps) {
                             {ticket.note ?? <i>*Empty*</i>}
                         </Descriptions.Item>
 
+                        <Descriptions.Item label="Kontak Pelapor" span={5}>
+                            Nama: {contact.name}
+                            <br />
+                            No. HP: {contact.phone}
+                            <br />
+                            Telegram: <a href={contact.link} >{contact.phone}</a>
+                            <br />
+                            <Button type="primary" size="small" onClick={onGetContact}>
+                                Get Contact
+                            </Button>
+                        </Descriptions.Item>
                         <Descriptions.Item label="Attachments" span={5}>
                             <SharedImage assets={props.assets.assets} emptyWithText />
                         </Descriptions.Item>
@@ -459,6 +490,7 @@ export default TicketDetail;
 
 interface TicketDetailProps {
     data: DTO.Ticket;
+    contact: DTO.Users;
     logs: DTO.TicketLog[];
     workspaces: DTO.AgentWorkspace[];
     relation: DTO.Ticket[];
@@ -512,7 +544,7 @@ function SharedImage(props: SharedImageProps) {
                                         onClick={() => copyImage(src)}
                                     />
                                 </Space>
-                            )
+                            ),
                         }}
                     />
                 );

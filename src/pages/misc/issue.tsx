@@ -14,6 +14,7 @@ import { HttpHeader, isDefined, upperCase } from '@mars/common';
 import {
     Button,
     Card,
+    Checkbox,
     Descriptions,
     Divider,
     Drawer,
@@ -147,6 +148,17 @@ function IssuePage(props: IssuePageProps) {
             .finally(() => page.setLoading(false));
     };
 
+    const actionRestore = (ids: number[]) => {
+        if (ids.length === 0) return;
+
+        page.setLoading(true);
+        api.put('/issue/bulk', ids)
+            .then((res) => message.success(`Berhasil memulihkan ${ids.length} Kendala`))
+            .then(refresh)
+            .catch(notif.error.bind(notif))
+            .finally(() => page.setLoading(false));
+    };
+
     if (props.error) return <>{props.error.message}</>;
 
     // console.log('Selected:', selected);
@@ -253,17 +265,31 @@ function IssuePage(props: IssuePageProps) {
                                     align: 'center',
                                     width: 100,
                                     render(value, record, index) {
+                                        const deleted = record.deleted;
                                         const name = record.alias || record.name;
                                         return (
                                             <Space align="baseline">
-                                                <MarsButton
-                                                    type="primary"
-                                                    title={`Hapus ${name}`}
-                                                    icon={<DeleteOutlined />}
-                                                    onClick={() =>
-                                                        actionDelete([record.id])
-                                                    }
-                                                />
+                                                {!deleted && (
+                                                    <MarsButton
+                                                        type="primary"
+                                                        title={`Delete ${name}`}
+                                                        icon={<DeleteOutlined />}
+                                                        onClick={() =>
+                                                            actionDelete([record.id])
+                                                        }
+                                                    />
+                                                )}
+
+                                                {deleted && (
+                                                    <MarsButton
+                                                        type="primary"
+                                                        title={`Restore ${name}`}
+                                                        icon={<DeleteOutlined />}
+                                                        onClick={() =>
+                                                            actionDelete([record.id])
+                                                        }
+                                                    />
+                                                )}
                                             </Space>
                                         );
                                     },
@@ -319,12 +345,19 @@ function IssuePage(props: IssuePageProps) {
                     </div>
                 </div>
             </div>
-            <TFilter form={filter} title="Filter Kendala">
+            <TFilter
+                form={filter}
+                title="Filter Kendala"
+                initialValue={{ deleted: { eq: false } }}
+            >
                 <Form.Item label="Nama" name={['name', 'like']}>
                     <Input />
                 </Form.Item>
                 <Form.Item label="Product" name={['product', 'in']}>
                     <EnumSelect enums={Mars.Product} />
+                </Form.Item>
+                <Form.Item label="Terhapus" name={['deleted', 'eq']}>
+                    <Checkbox />
                 </Form.Item>
 
                 <Form.Item label="Dibuat Oleh" name={['createdBy', 'like']}>

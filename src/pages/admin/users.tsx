@@ -1,6 +1,6 @@
 import { ReloadOutlined, UserAddOutlined } from '@ant-design/icons';
 import { HttpHeader } from '@mars/common';
-import { Form, Input, Radio, Table } from 'antd';
+import { Form, Input, Radio, Select, Table } from 'antd';
 import axios from 'axios';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 import { AddUserDrawer, EditUserDrawer } from '_comp/admin/index';
 import { TableUserColms } from '_comp/table/table.definitions';
-import { DateRangeFilter } from '_comp/table/input.fields';
+import { DateRangeFilter, EnumSelect } from '_comp/table/input.fields';
 import { TFilter } from '_comp/table/table.filter';
 import { THeader } from '_comp/table/table.header';
 import { usePage } from '_ctx/page.ctx';
@@ -90,7 +90,6 @@ export default function UsersPage(props: UsersPageProps) {
                         MarsTablePagination({
                             pageable,
                             setPageable,
-                            refresh,
                             total: props.total,
                         })
                     }
@@ -104,6 +103,9 @@ export default function UsersPage(props: UsersPageProps) {
                     </Form.Item>
                     <Form.Item label="NIK" name={['nik', 'like']} colon>
                         <Input />
+                    </Form.Item>
+                    <Form.Item label="Witel" name={['witel', 'in']} colon>
+                        <EnumSelect enums={Mars.Witel} />
                     </Form.Item>
                     <Form.Item label="No HP" name={['phone', 'eq']} colon>
                         <Input />

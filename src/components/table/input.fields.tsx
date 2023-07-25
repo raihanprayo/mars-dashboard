@@ -1,5 +1,7 @@
 import { Duration, isBool, isDefined, isStr, isUndef, randomString } from '@mars/common';
 import {
+    AutoComplete,
+    AutoCompleteProps,
     DatePicker,
     InputNumber,
     Popover,
@@ -9,7 +11,7 @@ import {
     Space,
     Transfer,
 } from 'antd';
-import { DefaultOptionType } from 'antd/lib/select/index';
+import type { DefaultOptionType } from 'antd/lib/select/index';
 import type { TransferDirection, TransferItem } from 'antd/lib/transfer/index';
 import moment, { isMoment, Moment } from 'moment';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -331,3 +333,56 @@ export interface DurationInputProps extends BaseInputProps {
     value?: string | Duration;
     onChange?(value: Duration): void;
 }
+
+export function StoSelect(props: StoSelectProps) {
+    const [value, setValue] = useState(props.value);
+    const [options, setOptions] = useState<DefaultOptionType[]>([]);
+
+    const { value: rawValue, onChange: rawOnChange, ...others } = props;
+
+    const onChange = (value: string) => {
+        setValue(value);
+        props.onChange?.(value);
+    };
+
+    const onSearch = (key: string) => {
+        const params = {
+            'name.like': key,
+            'witel.opt': 'OR',
+            'witel.eq': key,
+            'datel.opt': 'OR',
+            'datel.like': key,
+            page: 0,
+            size: 3000,
+        };
+        api.get<DTO.Sto[]>('/sto', { params })
+            .then((res) => {
+                setOptions(
+                    res.data.map((sto) => {
+                        return {
+                            label: sto.name,
+                            value: sto.alias,
+                        };
+                    })
+                );
+            })
+            .catch(notif.axiosError);
+    };
+
+    return (
+        <AutoComplete
+            {...others}
+            value={value}
+            options={options}
+            onSearch={onSearch}
+            onSelect={onChange}
+            placeholder="Sto picker"
+        />
+    );
+}
+export interface StoSelectProps
+    extends BaseInputProps,
+        Omit<
+            AutoCompleteProps,
+            'onChange' | 'value' | 'options' | 'onSearch' | 'onSelect' | 'placeholder'
+        > {}

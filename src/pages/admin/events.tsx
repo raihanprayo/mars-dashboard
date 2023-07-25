@@ -124,6 +124,9 @@ export default function UserEventPage(props: UserEventPageProps) {
 
 export const getServerSideProps = getServerSidePropsWrapper(
     async (ctx, session, config) => {
+        config.params = config.params || {};
+        config.params.sort= ['createdAt', Pageable.Sorts.DESC];
+
         const res = await api.manage(api.get('/user/event', config));
         if (axios.isAxiosError(res)) return api.serverSideError(res);
         const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
