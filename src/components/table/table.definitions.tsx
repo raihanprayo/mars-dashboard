@@ -180,6 +180,11 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
         //     },
         // },
         {
+            title: 'Witel',
+            align: 'center',
+            render: Render.witel,
+        },
+        {
             title: 'Role',
             align: 'center',
             render(value, record, index) {

@@ -26,7 +26,6 @@ import { useApp } from '_ctx/app.ctx';
 import { usePage } from '_ctx/page.ctx';
 import notif from '_service/notif';
 
-
 export default function SettingPage() {
     console.log(api.defaults);
 
@@ -110,6 +109,7 @@ export default function SettingPage() {
                 <div className="settings-tags">
                     <SettingTagApplication />
                     <SettingTagAccount />
+                    <SettingTagTelegram />
                     {/* <SettingTagCredential /> */}
                 </div>
             </Form>
@@ -148,6 +148,9 @@ function serialize(config: DTO.Setting, value: any) {
     }
 }
 
+function Setting(props: HasChild) {
+    return <Card className="settings-value">{props.children}</Card>;
+}
 
 function SettingTagApplication() {
     // const app = useApp();
@@ -158,12 +161,14 @@ function SettingTagApplication() {
             <Form.Item
                 label="Agent membuat tiket sendiri"
                 name="agent-allowed-to-create-ticket"
+                extra="Agent diperbolehkan membuat tiket sendiri"
             >
                 <Switch size="default" checkedChildren="Ya" unCheckedChildren="Tidak" />
             </Form.Item>
             <Form.Item
-                label="Registrasi Diperlukan Approval"
+                label="Persetujuan Registrasi"
                 name="user-registration-approval"
+                extra="Registrasi diperlukan persetujuan dari admin"
             >
                 <Switch size="default" checkedChildren="Ya" unCheckedChildren="Tidak" />
             </Form.Item>
@@ -187,8 +192,6 @@ function SettingTagApplication() {
     );
 }
 function SettingTagAccount() {
-    const app = useApp();
-    const form = Form.useFormInstance();
     return (
         <Card className="settings-value">
             <Form.Item label="Akun Kadaluarsa" name="account-expireable">
@@ -255,6 +258,20 @@ function SettingTagAccount() {
                 </Form.List>
             </Form.Item>
         </Card>
+    );
+}
+function SettingTagTelegram() {
+    // TG_START_CMD_ISSUE_COLUMN_INT = "tg-stat-command-issue-col-count";
+    return (
+        <Setting>
+            <Form.Item
+                label="Jumlah Issue Command Telegram"
+                name="tg-stat-command-issue-col-count"
+                extra="Jumlah kolom perbaris pada command /start"
+            >
+                <Input type="number" min={0} max={5} />
+            </Form.Item>
+        </Setting>
     );
 }
 function SettingTagCredential() {

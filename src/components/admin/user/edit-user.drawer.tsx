@@ -1,6 +1,6 @@
 import { Form, message, Drawer, Space, Button, Input, Radio } from 'antd';
 import { useState, useEffect } from 'react';
-import { EnumSelect, RoleTransfer } from '_comp/table/input.fields';
+import { EnumSelect, RoleTransfer, StoSelect } from '_comp/table/input.fields';
 import notif from '_service/notif';
 
 export function EditUserDrawer(props: UserDetailDrawerProps) {
@@ -14,7 +14,8 @@ export function EditUserDrawer(props: UserDetailDrawerProps) {
     const onSaveClick = () => {
         // const { id, nik, phone, active, roles } = form.getFieldsValue();
         const values = form.getFieldsValue();
-        const { id, nik, phone, active, roles } = values;
+        const { id, nik, phone, active } = values;
+        const roles = values.roles || [];
 
         setLoading(true);
         api.put('/user/partial/' + id, { nik, phone, active, roles })
@@ -27,10 +28,10 @@ export function EditUserDrawer(props: UserDetailDrawerProps) {
             });
     };
 
-    useEffect(() => {
-        if (props.user) form.setFieldsValue({ ...props.user, roles: {} });
-        else form.setFieldsValue({});
-    }, [props.user]);
+    // useEffect(() => {
+    //     if (props.user) form.setFieldsValue({ ...props.user, roles: {} });
+    //     else form.setFieldsValue({});
+    // }, [props.user]);
 
     return (
         <Drawer
@@ -46,7 +47,7 @@ export function EditUserDrawer(props: UserDetailDrawerProps) {
                 </Space>,
             ]}
         >
-            <Form form={form} layout="vertical">
+            <Form form={form} layout="vertical" initialValues={props.user}>
                 <Form.Item label="ID" name="id">
                     <Input disabled />
                 </Form.Item>
@@ -60,10 +61,10 @@ export function EditUserDrawer(props: UserDetailDrawerProps) {
                     <Input />
                 </Form.Item>
                 <Form.Item label="Witel" name="witel">
-                    <EnumSelect enums={Mars.Witel} mode='single' allowClear />
+                    <EnumSelect enums={Mars.Witel} mode="single" />
                 </Form.Item>
                 <Form.Item label="STO" name="sto">
-                    <Input />
+                    <StoSelect />
                 </Form.Item>
                 <Form.Item label="Aktif" name="active">
                     <Radio.Group buttonStyle="solid">

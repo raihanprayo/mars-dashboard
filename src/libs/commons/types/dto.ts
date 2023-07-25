@@ -40,6 +40,7 @@ declare global {
             nik: string;
             phone: string;
             active: boolean;
+            witel: Mars.Witel;
             tg: {
                 id: number;
                 username: string;
@@ -180,6 +181,8 @@ declare global {
             updatedAt: Date;
 
             params: IssueParam[];
+
+            deleted: boolean;
         }
         export interface IssueParam {
             id: number;
@@ -245,6 +248,15 @@ declare global {
                 createdAt: Date;
                 updatedAt: Date;
             };
+        }
+
+
+        export interface Sto {
+            id: number;
+            witel: Mars.Witel;
+            datel: string;
+            alias: string;
+            name: string;
         }
     }
 

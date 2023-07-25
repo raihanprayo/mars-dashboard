@@ -29,7 +29,6 @@
         "typegram": "^4.0.0"
     },
     "devDependencies": {
-        "@types/axios": "^0.14.0",
         "@types/deep-equal": "^1.0.1",
         "@types/node": "18.7.14",
         "@types/react": "18.0.18",

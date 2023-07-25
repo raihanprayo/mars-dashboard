@@ -3,7 +3,7 @@ import { PageTitle } from '_utils/conversion';
 
 function IndexPage(props: TicketPageMetadata) {
     if (props.error) {
-        return <>Fail To get ticket datas</>;
+        return <>Fail To get ticket</>;
     }
 
     return (
