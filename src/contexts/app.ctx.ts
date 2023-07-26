@@ -9,6 +9,7 @@ AppContext.displayName = 'MarsApplicationContext';
 
 export interface AppContext extends MarsApplicationInfo {
     settings: map<AppSetting[]>;
+    // get(key: DTO.SettingKey): AppSetting;
 }
 
 export function useApp() {
@@ -19,6 +20,7 @@ export function getWitel() {
     return useApp().witel;
 }
 
+const CONFIG_CACHE: map<AppSetting> = {};
 export function AppProvider(props: AppProviderProps) {
     if (!api.defaults.baseURL) api.defaults.baseURL = props.info.service.url;
     const [settings, setSettings] = useState<map<AppSetting[]>>({});
@@ -30,13 +32,15 @@ export function AppProvider(props: AppProviderProps) {
 
                 for (const config of res.data) {
                     const tag = config.tag || '#';
-                    (result[tag] ||= []).push(new AppSetting(config));
+                    const configWrap = new AppSetting(config);
+                    (result[tag] ||= []).push(configWrap);
+                    CONFIG_CACHE[config.key] = configWrap;
                 }
 
                 setSettings(result);
             })
-            .catch(notif.error.bind(notif))
-            // .finally(() => );
+            .catch(notif.error.bind(notif));
+        // .finally(() => );
     }, []);
 
     onAuthenticated(() => {
@@ -49,7 +53,10 @@ export function AppProvider(props: AppProviderProps) {
 
     return createElement(AppContext.Provider, {
         children: props.children,
-        value: { ...props.info, settings },
+        value: {
+            ...props.info,
+            settings
+        },
     });
 }
 
@@ -60,6 +67,7 @@ export interface AppProviderProps extends HasChild {
 export class AppSetting implements DTO.Setting {
     #key: string;
     #value: string;
+    #description: string;
     #type: DTO.SettingTypDetail;
 
     #tag?: string;
@@ -75,6 +83,9 @@ export class AppSetting implements DTO.Setting {
     }
     get tag() {
         return this.#tag;
+    }
+    get description() {
+        return this.#description;
     }
 
     set key(key) {
@@ -101,6 +112,7 @@ export class AppSetting implements DTO.Setting {
         this.#type = setting.type;
         this.#value = setting.value;
         this.#tag = setting.tag;
+        this.#description = setting.description;
     }
 
     getAsNumber() {

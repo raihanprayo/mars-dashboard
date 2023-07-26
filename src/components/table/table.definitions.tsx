@@ -59,11 +59,13 @@ export const TableTicketColms = (opt: TableTickerColumnOptions) => {
             title: 'Gaul',
             dataIndex: 'gaul',
             align: 'center',
+            sorter: true,
             render: (v) => Render.bool(v),
         },
         {
             title: 'Umur Tiket',
             align: 'center',
+            sorter: true,
             render(value, record, index) {
                 return <Difference orderno={record.no} opentime={record.createdAt} />;
             },
@@ -181,6 +183,7 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
         // },
         {
             title: 'Witel',
+            dataIndex: 'witel',
             align: 'center',
             render: Render.witel,
         },
@@ -204,6 +207,7 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
             title: 'Aktif',
             align: 'center',
             dataIndex: 'active',
+            width: 150,
             render: (v) =>
                 Render.bool(v, {
                     trueText: 'Aktif',
@@ -213,8 +217,6 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
         },
         DefaultCol.CREATION_DATE_COL,
     ];
-
-    const actions: JSX.Element[] = [];
 
     if (opt.editUser) {
         cols.push({

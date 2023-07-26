@@ -214,6 +214,7 @@ declare global {
             value: string;
             tag?: string;
             type: SettingTypDetail;
+            description?: string;
         }
 
         export interface SettingTypDetail {
@@ -249,7 +250,6 @@ declare global {
                 updatedAt: Date;
             };
         }
-
 
         export interface Sto {
             id: number;

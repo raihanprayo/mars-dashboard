@@ -3,6 +3,7 @@ import {
     AutoComplete,
     AutoCompleteProps,
     DatePicker,
+    Input,
     InputNumber,
     Popover,
     Radio,
@@ -219,6 +220,7 @@ export interface SolutionSelectProps
     extends BaseInputProps,
         Omit<SelectProps, 'onChange' | 'options' | 'mode'> {}
 
+type DurationUnit = 'day' | 'hour' | 'minute' | 'second';
 export function DurationInput(props: DurationInputProps) {
     const id = useMemo(() => randomString(12), []);
     const width = 60;
@@ -236,7 +238,7 @@ export function DurationInput(props: DurationInputProps) {
     const secondPop = useBool();
 
     const onSegmentChange = useCallback(
-        (field: 'day' | 'hour' | 'minute' | 'second', v: number) => {
+        (field: DurationUnit, v: number) => {
             let newVal: Duration;
             switch (field) {
                 case 'day':
@@ -270,60 +272,80 @@ export function DurationInput(props: DurationInputProps) {
         second: value?.second || 0,
     };
     return (
-        <Space align="baseline">
+        <Space id={props.id} align="baseline">
             <Popover content={`${time.day} Hari`}>
-                <InputNumber
+                <Input
+                    type="number"
+                    suffix="H"
                     key={`Duration:${id}--Day`}
                     min={0}
                     size="small"
                     style={{ width }}
                     placeholder="Hari"
                     value={time.day}
-                    onChange={(v) => onSegmentChange('day', v)}
+                    disabled={props.disabled}
+                    onChange={(v) => onSegmentChange('day', Number(v))}
                     onFocus={() => dayPop.setValue(true)}
                     onBlur={() => dayPop.setValue(false)}
+                    onMouseOver={() => dayPop.setValue(true)}
+                    onMouseOut={() => dayPop.setValue(false)}
                 />
             </Popover>
             <Popover content={`${time.hour} Jam`}>
-                <InputNumber
+                <Input
                     key={`Duration:${id}--Hour`}
+                    type="number"
+                    suffix="J"
                     min={0}
                     max={23}
                     size="small"
                     style={{ width }}
                     placeholder="Jam"
                     value={time.hour}
-                    onChange={(v) => onSegmentChange('hour', v)}
+                    disabled={props.disabled}
+                    onChange={(v) => onSegmentChange('hour', Number(v))}
                     onFocus={() => hourPop.setValue(true)}
                     onBlur={() => hourPop.setValue(false)}
+                    onMouseOver={() => hourPop.setValue(true)}
+                    onMouseOut={() => hourPop.setValue(false)}
                 />
             </Popover>
             <Popover content={`${time.minute} Menit`}>
-                <InputNumber
+                <Input
                     key={`Duration:${id}--Minute`}
+                    type="number"
+                    suffix="M"
                     min={0}
                     max={59}
                     size="small"
                     style={{ width }}
                     placeholder="Menit"
                     value={time.minute}
-                    onChange={(v) => onSegmentChange('minute', v)}
+                    disabled={props.disabled}
+                    onChange={(v) => onSegmentChange('minute', Number(v))}
                     onFocus={() => minutePop.setValue(true)}
                     onBlur={() => minutePop.setValue(false)}
+                    onMouseOver={() => minutePop.setValue(true)}
+                    onMouseOut={() => minutePop.setValue(false)}
                 />
             </Popover>
             <Popover content={`${time.second} Detik`}>
-                <InputNumber
+                <Input
                     key={`Duration:${id}--Second`}
+                    type="number"
+                    suffix="D"
                     min={0}
                     max={59}
                     size="small"
                     style={{ width }}
                     placeholder="Detik"
                     value={time.second}
-                    onChange={(v) => onSegmentChange('second', v)}
+                    disabled={props.disabled}
+                    onChange={(v) => onSegmentChange('second', Number(v))}
                     onFocus={() => secondPop.setValue(true)}
                     onBlur={() => secondPop.setValue(false)}
+                    onMouseOver={() => secondPop.setValue(true)}
+                    onMouseOut={() => secondPop.setValue(false)}
                 />
             </Popover>
         </Space>
@@ -332,6 +354,7 @@ export function DurationInput(props: DurationInputProps) {
 export interface DurationInputProps extends BaseInputProps {
     value?: string | Duration;
     onChange?(value: Duration): void;
+    disabled?: boolean;
 }
 
 export function StoSelect(props: StoSelectProps) {
