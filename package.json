@@ -6,7 +6,7 @@
     "private": true,
     "scripts": {
         "dev": "next dev -p 9011",
-        "build": "rimraf .next && next build --no-lint",
+        "build": "rimraf .next && next build --no-lint && node ./scripts/build.js",
         "start": "next start -p 9011",
         "zipped": "node ./scripts/build.js",
         "lint": "next lint"
