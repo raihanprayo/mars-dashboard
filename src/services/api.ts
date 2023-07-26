@@ -22,7 +22,7 @@ if (isServer) {
     // api.defaults.transformRequest =[
     //     ...transformRequest,
     //     (data, headers) => {
-            
+
     //     }
     // ]
 }
@@ -54,7 +54,9 @@ api.serverSideErrorLog = (err) => {
     return err;
 };
 api.serializeParam = (params = {}) => {
-    return qs
+    // const { sort, ...others } = params;
+    let query = qs
+        // .stringify(others, {
         .stringify(params, {
             allowDots: true,
             arrayFormat: 'comma',
@@ -65,6 +67,25 @@ api.serializeParam = (params = {}) => {
             indices: true,
         })
         .slice(1);
+
+    // if (isArr(sort)) {
+    //     const multipleSort = (s: PageableSortTupple[]) => {
+    //         for (const [prop, direction] of s) query += `&sort=${prop},${direction.toLowerCase()}`;
+    //     };
+
+    //     const s: PageableSort = sort;
+    //     if (s.length === 2) {
+    //         const isSubArray = isArr(s[0]);
+    //         if (!isSubArray) {
+    //             const [prop, direction] = s;
+    //             query += `&sort=${prop},${direction}`;
+    //         }
+    //         else multipleSort(s);
+    //     }
+    //     else multipleSort(s);
+    // }
+
+    return query;
 };
 api.setAuthorization = (bearer) => {
     if (bearer)

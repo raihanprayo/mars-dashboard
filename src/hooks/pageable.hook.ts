@@ -1,7 +1,9 @@
 import { isArr, isNull, isStr } from '@mars/common';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
+import { useBool } from './util.hook';
 
+const disableMultipleSort = true;
 export function usePageable(defaultSort?: PageableSort): PageableHook {
     const router = useRouter();
 
@@ -25,13 +27,17 @@ export function usePageable(defaultSort?: PageableSort): PageableHook {
             const orderEnm =
                 order === 'ascend' ? Pageable.Sorts.ASC : Pageable.Sorts.DESC;
 
-            const indexField = findSortedField(field);
-            if (indexField > -1) {
-                const tempSorter = [...sorter];
-                tempSorter[indexField] = [field, orderEnm];
-                setSorter(tempSorter);
+            if (disableMultipleSort) {
+                setSorter([[field, orderEnm]]);
             } else {
-                setSorter([...sorter, [field, orderEnm]]);
+                const indexField = findSortedField(field);
+                if (indexField > -1) {
+                    const tempSorter = [...sorter];
+                    tempSorter[indexField] = [field, orderEnm];
+                    setSorter(tempSorter);
+                } else {
+                    setSorter([...sorter, [field, orderEnm]]);
+                }
             }
         },
         [pageable.sort]
@@ -50,13 +56,22 @@ export function usePageable(defaultSort?: PageableSort): PageableHook {
 
     useEffect(() => {
         if (sorter.length > 0) {
-            if (sorter.length === 1) {
-                setPageable((prev) => ({ ...prev, sort: sorter[0] }));
-            } else {
-                setPageable((prev) => ({ ...prev, sort: sorter }));
-            }
-        } else setPageable((prev) => ({ ...prev, sort: Pageable.Sorts.UNSORT }));
+            const p = { ...pageable };
+            if (sorter.length === 1) p.sort = sorter[0];
+            else p.sort = sorter;
+            setPageable({ ...p });
+            refreshPage(p);
+        } else {
+            const p = { ...pageable };
+            p.sort = Pageable.Sorts.UNSORT;
+            setPageable(p);
+            refreshPage(p);
+        }
     }, [sorter]);
+
+    // useEffect(() => {
+    //     if (!inited.value)
+    // }, [pageable]);
 
     const refreshPage = (pageable: Pageable) => {
         router.push({

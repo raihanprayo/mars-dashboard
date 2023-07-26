@@ -65,7 +65,6 @@ export const TableTicketColms = (opt: TableTickerColumnOptions) => {
         {
             title: 'Umur Tiket',
             align: 'center',
-            sorter: true,
             render(value, record, index) {
                 return <Difference orderno={record.no} opentime={record.createdAt} />;
             },

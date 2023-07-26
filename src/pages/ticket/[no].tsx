@@ -7,6 +7,7 @@ import {
     InfoCircleOutlined,
     LoginOutlined,
     RightSquareOutlined,
+    SendOutlined,
     UserOutlined,
 } from '@ant-design/icons';
 import { HttpHeader, isDefined } from '@mars/common';
@@ -53,6 +54,7 @@ import Head from 'next/head';
 import { CreatedBy } from '_comp/base/CreatedBy';
 import { scanAssets, ScannedAsset, WorklogAsset } from '_utils/fns/scan-asset';
 import { IMAGE_FILE_EXT } from '_utils/constants';
+import { useUser } from '_hook/credential.hook';
 
 // const AcceptableFileExt = ['.jpg', '.jpeg', '.png', '.webp'];
 const BlobCache = new Map<string, ImageHolder>();
@@ -71,6 +73,8 @@ function TicketDetail(props: TicketDetailProps) {
     const ticket: DTO.Ticket = props.data || ({} as any);
     const route = useRouter();
     const session = useSession();
+
+    const user = useUser();
 
     const pageCtx = usePage();
     const [submission] = Form.useForm();
@@ -146,6 +150,8 @@ function TicketDetail(props: TicketDetailProps) {
     };
 
     const onGetContact = async () => {
+        if (!props.contact) return;
+
         api.get('/telegram/send/contact/' + props.contact.nik)
             .then(() => message.info('Kontak info berhasil dikirim'))
             .catch(notif.axiosError);
@@ -232,10 +238,11 @@ function TicketDetail(props: TicketDetailProps) {
     const watchStat = Form.useWatch('status', submission);
 
     const contact = {
-        name: props.contact?.name,
-        phone: props.contact?.phone,
+        name: props.data.senderName || '-',
+        phone: props.contact?.phone || '-',
         get link() {
             if (!props.contact?.phone) return;
+
             let phone = props.contact.phone;
 
             if (phone.startsWith('+62')) phone = phone;
@@ -300,15 +307,30 @@ function TicketDetail(props: TicketDetailProps) {
                         </Descriptions.Item>
 
                         <Descriptions.Item label="Kontak Pelapor" span={5}>
-                            Nama: {contact.name}
-                            <br />
-                            No. HP: {contact.phone}
-                            <br />
-                            Telegram: <a href={contact.link} >{contact.phone}</a>
-                            <br />
-                            <Button type="primary" size="small" onClick={onGetContact}>
-                                Get Contact
-                            </Button>
+                            <Space direction="vertical">
+                                <span>Nama: {contact.name}</span>
+                                <span>No. HP: {contact.phone}</span>
+                                <Button.Group>
+                                    <Button
+                                        type="primary"
+                                        // size="small"
+                                        onClick={onGetContact}
+                                        icon={<UserOutlined />}
+                                    >
+                                        Get
+                                    </Button>
+                                    <Button
+                                        type="primary"
+                                        // size="small"
+                                        href={contact.link}
+                                        target='_blank'
+                                        rel="noreferrer noopener"
+                                        icon={<SendOutlined />}
+                                    >
+                                        Chat
+                                    </Button>
+                                </Button.Group>
+                            </Space>
                         </Descriptions.Item>
                         <Descriptions.Item label="Attachments" span={5}>
                             <SharedImage assets={props.assets.assets} emptyWithText />
@@ -471,9 +493,15 @@ export async function getServerSideProps(
                 { ...config, params: { full: true } }
             );
 
+            const contactRes = await api.get<DTO.Users>(
+                `/ticket/detail/${ticketNo}/contact`,
+                { ...config }
+            );
+
             const result: NextServerSideProps<TicketDetailProps> = {
                 props: {
                     data,
+                    contact: contactRes.data,
                     logs: logRes.data,
                     workspaces: workspacesRes.data,
                     relation: relatedRes.data.filter((e) => e.id !== data.id),

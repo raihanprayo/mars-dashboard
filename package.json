@@ -8,6 +8,7 @@
         "dev": "next dev -p 9011",
         "build": "rimraf .next && next build --no-lint",
         "start": "next start -p 9011",
+        "zipped": "node ./scripts/build.js",
         "lint": "next lint"
     },
     "dependencies": {

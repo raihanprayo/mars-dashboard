@@ -181,6 +181,7 @@ export function TicketTable(props: TicketTableProps) {
         },
     };
 
+    console.log(pageable)
     return (
         <MarsTableProvider refresh={refresh}>
             <div className="workspace table-view">
@@ -202,6 +203,7 @@ export function TicketTable(props: TicketTableProps) {
                     })}
                     onChange={(p, f, s, e) => {
                         if (e.action === 'sort') {
+                            console.log(s);
                             if (!isArr(s)) {
                                 const { column, order, field } = s;
                                 const f = !isArr(field) ? String(field) : field.join('.');
@@ -307,7 +309,7 @@ TicketTable.getServerSideProps = function getServerSidePropsInitilizer(
         const config = api.auhtHeader(session, {
             params: {
                 page: 0,
-                size: 10,
+                size: 50,
                 ...properties.inlined,
                 ...ctx.query,
             },
