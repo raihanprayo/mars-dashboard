@@ -181,10 +181,16 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
         //     },
         // },
         {
-            title: 'Witel',
+            title: 'Witel/STO',
             dataIndex: 'witel',
             align: 'center',
-            render: Render.witel,
+            render: (value, record) => {
+
+                return <Space align='center'>
+                    {Render.witel(value)}
+                    <Tag>{record['sto']}</Tag>
+                </Space>
+            },
         },
         {
             title: 'Role',

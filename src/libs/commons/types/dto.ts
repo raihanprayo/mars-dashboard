@@ -41,6 +41,7 @@ declare global {
             phone: string;
             active: boolean;
             witel: Mars.Witel;
+            sto: string;
             tg: {
                 id: number;
                 username: string;

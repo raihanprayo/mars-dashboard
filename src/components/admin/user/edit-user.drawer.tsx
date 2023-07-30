@@ -14,24 +14,21 @@ export function EditUserDrawer(props: UserDetailDrawerProps) {
     const onSaveClick = () => {
         // const { id, nik, phone, active, roles } = form.getFieldsValue();
         const values = form.getFieldsValue();
-        const { id, nik, phone, active } = values;
-        const roles = values.roles || [];
+        const { id, ...metadata } = values;
 
+        console.log(values);
         setLoading(true);
-        api.put('/user/partial/' + id, { nik, phone, active, roles })
+        api.put('/user/partial/' + id, metadata)
             .then((res) => message.success('Success'))
             .then(onClose(true))
             .catch((err) => notif.axiosError(err))
-            .finally(() => {
-                setLoading(false);
-                form.resetFields();
-            });
+            .finally(() => setLoading(false));
     };
 
-    // useEffect(() => {
-    //     if (props.user) form.setFieldsValue({ ...props.user, roles: {} });
-    //     else form.setFieldsValue({});
-    // }, [props.user]);
+    useEffect(() => {
+        if (props.user) form.setFieldsValue({ ...props.user });
+        else form.setFieldsValue({});
+    }, [props.user]);
 
     return (
         <Drawer
@@ -78,8 +75,8 @@ export function EditUserDrawer(props: UserDetailDrawerProps) {
                     rules={[
                         {
                             validator(rule, value, callback) {
-                                if (!value || value.selected.length <= 0)
-                                    return callback('minimum seleted role: 1');
+                                if (!value || value.length <= 0)
+                                    return callback('minimal 1 role terpilih');
 
                                 callback();
                             },

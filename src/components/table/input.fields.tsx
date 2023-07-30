@@ -3,6 +3,7 @@ import {
     AutoComplete,
     AutoCompleteProps,
     DatePicker,
+    Form,
     Input,
     InputNumber,
     Popover,
@@ -93,7 +94,7 @@ export function RoleTransfer(props: RoleTransferProps) {
                     res.data.map((role) => {
                         return {
                             id: role.id,
-                            key: role.id,
+                            key: role.name,
                             title: role.name,
                         };
                     })
@@ -106,7 +107,7 @@ export function RoleTransfer(props: RoleTransferProps) {
         if (!props.userId) return;
         api.get<DTO.Role[]>('/role/' + props.userId)
             .then((res) => {
-                const picked = res.data.map((e) => e.id);
+                const picked = res.data.map((e) => e.name);
                 setPicked(picked);
             })
             .catch((err) => {});
@@ -128,14 +129,17 @@ export function RoleTransfer(props: RoleTransferProps) {
         moveKeys: string[]
     ) => {
         setPicked(nextTargetKeys);
-        props.onChange?.({
-            [indexUnselectedField]: roles
-                .filter((e) => !nextTargetKeys.includes(e.id))
-                .map((e) => e.id),
-            [indexSelectedField]: nextTargetKeys,
-        });
+        console.log(nextTargetKeys);
+        props.onChange?.(nextTargetKeys);
+        // props.onChange?.({
+        //     [indexUnselectedField]: roles
+        //         .filter((e) => !nextTargetKeys.includes(e.id))
+        //         .map((e) => e.id),
+        //     [indexSelectedField]: nextTargetKeys,
+        // });
     };
 
+    // console.log(props.value);
     return (
         <Transfer
             dataSource={roles}
@@ -358,54 +362,64 @@ export interface DurationInputProps extends BaseInputProps {
 }
 
 export function StoSelect(props: StoSelectProps) {
-    const [value, setValue] = useState(props.value);
+    const loading = useBool(true);
     const [options, setOptions] = useState<DefaultOptionType[]>([]);
 
+    const witel = Form.useWatch<Mars.Witel>('witel');
     const { value: rawValue, onChange: rawOnChange, ...others } = props;
 
-    const onChange = (value: string) => {
-        setValue(value);
-        props.onChange?.(value);
+    const mapSto = (sto: DTO.Sto, container: Record<Mars.Witel, DefaultOptionType>) => {
+        if (sto.witel) {
+            if (sto.witel !== witel) return;
+        }
+
+        const subOpt = (container[sto.witel] = container[sto.witel] || {
+            label: sto.witel,
+            options: [],
+        });
+
+        subOpt.options.push({
+            label: `${sto.alias} - ${sto.name}`,
+            value: sto.alias,
+        });
     };
 
-    const onSearch = (key: string) => {
-        const params = {
-            'name.like': key,
-            'witel.opt': 'OR',
-            'witel.eq': key,
-            'datel.opt': 'OR',
-            'datel.like': key,
-            page: 0,
-            size: 3000,
-        };
-        api.get<DTO.Sto[]>('/sto', { params })
-            .then((res) => {
-                setOptions(
-                    res.data.map((sto) => {
-                        return {
-                            label: sto.name,
-                            value: sto.alias,
-                        };
-                    })
-                );
-            })
-            .catch(notif.axiosError);
+    const init = () => {
+        if (StoSelect.CACHE.size > 0) {
+            const options: Record<Mars.Witel, DefaultOptionType> = {} as any;
+            for (const [k, sto] of StoSelect.CACHE) mapSto(sto, options);
+
+            setOptions(Object.values(options));
+        } else {
+            api.get<DTO.Sto[]>('/sto', { params: { size: 1000 } })
+                .then((res) => {
+                    const options: Record<Mars.Witel, DefaultOptionType> = {} as any;
+
+                    for (const sto of res.data) {
+                        StoSelect.CACHE.set(sto.alias, sto);
+                        mapSto(sto, options);
+                    }
+
+                    setOptions(Object.values(options));
+                })
+                .catch(notif.axiosError);
+        }
+        loading.setValue(false);
     };
+
+    useEffect(() => init(), [witel]);
 
     return (
-        <AutoComplete
-            {...others}
-            value={value}
+        <Select
+            showSearch
+            id={props.id}
+            value={props.value}
+            loading={loading.value}
             options={options}
-            onSearch={onSearch}
-            onSelect={onChange}
-            placeholder="Sto picker"
+            onChange={props.onChange}
         />
     );
 }
-export interface StoSelectProps
-    extends BaseInputProps,
-        Omit<
-            AutoCompleteProps,
-            'onChange' | 'value' | 'options' | 'onSearch' | 'onSelect' | 'placeholder'
-        > {}
+StoSelect.CACHE = new Map<string, DTO.Sto>();
+
+export interface StoSelectProps extends BaseInputProps {}
