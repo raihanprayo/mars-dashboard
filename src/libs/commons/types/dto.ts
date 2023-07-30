@@ -1,3 +1,4 @@
+import { Duration } from '.';
 import { Filter } from '../utils/filter';
 
 declare global {
@@ -98,6 +99,9 @@ declare global {
             wip: boolean;
             wipBy?: string;
 
+            age: {
+                age: DurationSegment
+            }
             // assets?: string[];
         }
         export interface TicketAgent extends Auditable {

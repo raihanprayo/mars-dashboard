@@ -65,8 +65,18 @@ export const TableTicketColms = (opt: TableTickerColumnOptions) => {
         {
             title: 'Umur Tiket',
             align: 'center',
-            render(value, record, index) {
-                return <Difference orderno={record.no} opentime={record.createdAt} />;
+            sorter: true,
+            dataIndex: ['age', 'age'],
+            render(value: DurationSegment, record, index) {
+                if (!isDefined(value)) return null;
+                const [day, hour, minute] = value;
+                return (
+                    <Space align='center'>
+                        {!!day && `${Math.round(day)}H`}
+                        {!!hour && `${Math.round(hour)}J`}
+                        {!!minute && `${Math.round(minute)}M`}
+                    </Space>
+                );
             },
         },
         {
@@ -185,11 +195,12 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
             dataIndex: 'witel',
             align: 'center',
             render: (value, record) => {
-
-                return <Space align='center'>
-                    {Render.witel(value)}
-                    <Tag>{record['sto']}</Tag>
-                </Space>
+                return (
+                    <Space align="center">
+                        {Render.witel(value)}
+                        <Tag>{record['sto']}</Tag>
+                    </Space>
+                );
             },
         },
         {

@@ -181,7 +181,6 @@ export function TicketTable(props: TicketTableProps) {
         },
     };
 
-    console.log(pageable)
     return (
         <MarsTableProvider refresh={refresh}>
             <div className="workspace table-view">
