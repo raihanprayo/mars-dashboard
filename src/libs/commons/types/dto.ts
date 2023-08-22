@@ -191,7 +191,7 @@ declare global {
         }
         export interface IssueParam {
             id: number;
-            type: 'CAPTURE' | 'NOTE';
+            type: 'CAPTURE' | 'NOTE' | 'FILE';
             display: string;
             required: boolean;
         }

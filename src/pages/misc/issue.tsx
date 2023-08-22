@@ -58,6 +58,7 @@ import { PageTitle } from '_utils/conversion';
 enum ParamType {
     NOTE = 'NOTE',
     CAPTURE = 'CAPTURE',
+    FILE = 'FILE',
 }
 
 function IssuePage(props: IssuePageProps) {
@@ -581,6 +582,7 @@ function InfoIssueView() {
     const params: DTO.IssueParam[] = Form.useWatch(['params'], form) || [];
     const hasCaptureParam = params.findIndex((e) => e.type === ParamType.CAPTURE) !== -1;
     const hasNoteParam = params.findIndex((e) => e.type === ParamType.NOTE) !== -1;
+    const hasFileParam = params.findIndex((e) => e.type === ParamType.FILE) !== -1;
 
     return (
         <Form form={form} layout="vertical" initialValues={selected}>
@@ -623,34 +625,49 @@ function InfoIssueView() {
                                 />
                             ))}
                             {edit && (
-                                <Space>
-                                    <MarsButton
-                                        icon={<PlusCircleOutlined />}
-                                        onClick={() =>
-                                            add({
-                                                type: ParamType.NOTE,
-                                                display: null,
-                                                required: false,
-                                            })
-                                        }
-                                        disabled={hasNoteParam}
-                                    >
-                                        Text Param
-                                    </MarsButton>
-                                    <MarsButton
-                                        icon={<PlusCircleOutlined />}
-                                        onClick={() =>
-                                            add({
-                                                type: ParamType.CAPTURE,
-                                                display: null,
-                                                required: false,
-                                            })
-                                        }
-                                        disabled={hasCaptureParam}
-                                    >
-                                        Image Param
-                                    </MarsButton>
-                                </Space>
+                                <>
+                                    <Space>
+                                        <MarsButton
+                                            icon={<PlusCircleOutlined />}
+                                            onClick={() =>
+                                                add({
+                                                    type: ParamType.NOTE,
+                                                    display: null,
+                                                    required: false,
+                                                })
+                                            }
+                                            disabled={hasNoteParam}
+                                        >
+                                            Txt Param
+                                        </MarsButton>
+                                        <MarsButton
+                                            icon={<PlusCircleOutlined />}
+                                            onClick={() =>
+                                                add({
+                                                    type: ParamType.CAPTURE,
+                                                    display: null,
+                                                    required: false,
+                                                })
+                                            }
+                                            disabled={hasCaptureParam}
+                                        >
+                                            Img Param
+                                        </MarsButton>
+                                        <MarsButton
+                                            icon={<PlusCircleOutlined />}
+                                            onClick={() =>
+                                                add({
+                                                    type: ParamType.FILE,
+                                                    display: null,
+                                                    required: false,
+                                                })
+                                            }
+                                            disabled={hasFileParam}
+                                        >
+                                            File Param
+                                        </MarsButton>
+                                    </Space>
+                                </>
                             )}
                         </>
                     );

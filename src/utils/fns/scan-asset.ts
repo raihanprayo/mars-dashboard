@@ -24,7 +24,7 @@ export function scanAssets(
     // /<shared>/tickets/<tc-no>/files*
     for (const file of readdirSync(root, 'utf8')) {
         const ext = file.slice(file.lastIndexOf('.')).toLowerCase();
-        if (!IMAGE_FILE_EXT.includes(ext)) continue;
+        // if (!IMAGE_FILE_EXT.includes(ext)) continue;
         assets.push(getPath(tc, file));
     }
 
@@ -45,7 +45,6 @@ export function scanAssets(
                 worklogs[wl.id] ||= { assets: [], requestor: [] };
                 for (const file of readdirSync(wlPath, 'utf8')) {
                     const ext = file.slice(file.lastIndexOf('.')).toLowerCase();
-                    if (!IMAGE_FILE_EXT.includes(ext)) continue;
                     worklogs[wl.id].assets.push(getPath(tc, file, ws, wl));
                 }
             }
@@ -54,7 +53,6 @@ export function scanAssets(
                 worklogs[wl.id] ||= { assets: [], requestor: [] };
                 for (const file of readdirSync(wlReqPath, 'utf8')) {
                     const ext = file.slice(file.lastIndexOf('.')).toLowerCase();
-                    if (!IMAGE_FILE_EXT.includes(ext)) continue;
                     worklogs[wl.id].requestor.push(getPath(tc, file, ws, wl, true));
                 }
             }

@@ -17,6 +17,8 @@ namespace DTO {
         APP_ALLOW_AGENT_CREATE_TICKET_BOOL = "agent-allowed-to-create-ticket",
         APP_USER_REGISTRATION_APPROVAL_BOOL = "user-registration-approval",
         APP_USER_REGISTRATION_APPROVAL_DRT = "user-registration-approval-duration",
+        APP_ISSUE_GAUL_EXCLUDE_LIST = "issue-gaul-exclusion",
+        APP_SOLUTION_REPORT_EXCLUDE_LIST = "solution-report-exclusion",
     
         ACC_EXPIRED_BOOL = "account-expireable",
         ACC_EXPIRED_DRT = "account-expired-duration",

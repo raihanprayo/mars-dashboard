@@ -12,7 +12,7 @@ import { TableApprovalColms } from '_comp/table/table.definitions';
 import { TFilter } from '_comp/table/table.filter';
 import { THeader } from '_comp/table/table.header';
 import { PageContext } from '_ctx/page.ctx';
-import { MarsTablePagination, MarsTableProvider } from '_ctx/table.ctx';
+import { MarsTablePagination, MarsTableProvider, MarsTableSorter } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
 import { CoreService } from '_service/api';
 import { useBool } from '_hook/util.hook';
@@ -20,7 +20,7 @@ import { useBool } from '_hook/util.hook';
 export default function UserApprovalPage(props: UserApprovalPageProps) {
     const router = useRouter();
     const page = useContext(PageContext);
-    const { pageable, setPageable } = usePageable();
+    const { pageable, setPageable, updateSort } = usePageable();
 
     const [filter] = Form.useForm<ICriteria<DTO.UserApproval>>();
     const [selected, setSelected] = useState<string[]>([]);
@@ -132,29 +132,12 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
                         selectedRowKeys: selected,
                         onChange: onSelectedChanged,
                     }}
-                    // pagination={{
-                    //     total: props.total,
-                    //     current: pageable.page + 1,
-                    //     pageSizeOptions: [10, 20, 50],
-                    //     hideOnSinglePage: false,
-                    //     onChange(page, pageSize) {
-                    //         if (pageable.page !== page - 1) {
-                    //             setPageable({ page: page - 1 });
-                    //             refresh();
-                    //         }
-                    //     },
-                    //     onShowSizeChange(current, size) {
-                    //         if (current !== size) {
-                    //             setPageable({ size });
-                    //             refresh();
-                    //         }
-                    //     },
-                    // }}
                     pagination={MarsTablePagination({
                         pageable: pageable,
                         setPageable,
                         total: props.total,
                     })}
+                    onChange={MarsTableSorter({ updateSort })}
                 />
                 <TFilter form={filter} title="Approval Filter">
                     <Form.Item label="ID" name={['id', 'eq']} colon>

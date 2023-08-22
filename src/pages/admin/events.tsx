@@ -6,6 +6,7 @@ import { Render } from '_comp/value-renderer';
 import { usePage } from '_ctx/page.ctx';
 import { MarsTablePagination, MarsTableProvider } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
+import { useBool } from '_hook/util.hook';
 import { CoreService } from '_service/api';
 import { getServerSidePropsWrapper } from '_utils/fns/get-server-side-props';
 import { Form, Input, Table } from 'antd';
@@ -18,6 +19,7 @@ export default function UserEventPage(props: UserEventPageProps) {
     const page = usePage();
     const router = useRouter();
     const { pageable, setPageable } = usePageable();
+    const showContext = useBool(true);
 
     const [filter] = Form.useForm();
 
@@ -72,7 +74,7 @@ export default function UserEventPage(props: UserEventPageProps) {
                             dataIndex: 'createdBy',
                             width: 120,
                             render(value, record, index) {
-                                return <CreatedBy data={record} />
+                                return <CreatedBy data={record} />;
                             },
                         },
                         {
@@ -82,7 +84,7 @@ export default function UserEventPage(props: UserEventPageProps) {
                             width: 180,
                         },
                         DefaultCol.CREATION_DATE_COL,
-                        {
+                        showContext && {
                             title: 'Konteks',
                             render(value, record, index) {
                                 const json = JSON.stringify(
@@ -129,7 +131,7 @@ export default function UserEventPage(props: UserEventPageProps) {
 export const getServerSideProps = getServerSidePropsWrapper(
     async (ctx, session, config) => {
         config.params = config.params || {};
-        config.params.sort= ['createdAt', Pageable.Sorts.DESC];
+        config.params.sort = ['createdAt', Pageable.Sorts.DESC];
 
         const res = await api.manage(api.get('/user/event', config));
         if (axios.isAxiosError(res)) return api.serverSideError(res);

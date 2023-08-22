@@ -3,6 +3,13 @@ import {
     CheckOutlined,
     CopyOutlined,
     DoubleRightOutlined,
+    DownloadOutlined,
+    EyeOutlined,
+    FileExcelOutlined,
+    FileImageOutlined,
+    FileOutlined,
+    FilePdfOutlined,
+    FileZipOutlined,
     InboxOutlined,
     InfoCircleOutlined,
     LoginOutlined,
@@ -20,6 +27,7 @@ import {
     Input,
     List,
     message,
+    Modal,
     Radio,
     Space,
     Tabs,
@@ -34,6 +42,7 @@ import { getSession, useSession } from 'next-auth/react';
 import { Render } from '_comp/value-renderer';
 import Card from 'antd/lib/card/Card';
 import {
+    ReactNode,
     createContext,
     useCallback,
     useContext,
@@ -55,6 +64,7 @@ import { CreatedBy } from '_comp/base/CreatedBy';
 import { scanAssets, ScannedAsset, WorklogAsset } from '_utils/fns/scan-asset';
 import { IMAGE_FILE_EXT } from '_utils/constants';
 import { useUser } from '_hook/credential.hook';
+import { BoolHook, useBool } from '_hook/util.hook';
 
 // const AcceptableFileExt = ['.jpg', '.jpeg', '.png', '.webp'];
 const BlobCache = new Map<string, ImageHolder>();
@@ -74,12 +84,11 @@ function TicketDetail(props: TicketDetailProps) {
     const route = useRouter();
     const session = useSession();
 
-    const user = useUser();
-
     const pageCtx = usePage();
     const [submission] = Form.useForm();
     const [resolved, setResolved] = useState(false);
     const [files, setFiles] = useState<UploadFile[]>([]);
+    const openAsset = useBool();
 
     const description = Form.useWatch('description', submission);
     const status = Form.useWatch('status', submission);
@@ -250,6 +259,8 @@ function TicketDetail(props: TicketDetailProps) {
             return 'https://t.me/' + phone;
         },
     };
+
+    console.log(props.assets);
     return (
         <DetailContext.Provider value={{ ticket: props.data, assets: props.assets }}>
             <div className="tc-detail-container">
@@ -323,7 +334,7 @@ function TicketDetail(props: TicketDetailProps) {
                                         type="primary"
                                         // size="small"
                                         href={contact.link}
-                                        target='_blank'
+                                        target="_blank"
                                         rel="noreferrer noopener"
                                         icon={<SendOutlined />}
                                     >
@@ -333,7 +344,7 @@ function TicketDetail(props: TicketDetailProps) {
                             </Space>
                         </Descriptions.Item>
                         <Descriptions.Item label="Attachments" span={5}>
-                            <SharedImage assets={props.assets.assets} emptyWithText />
+                            <SharedAsset assets={props.assets.assets} emptyWithText />
                         </Descriptions.Item>
                     </Descriptions>
                     <Divider />
@@ -444,6 +455,8 @@ function TicketDetail(props: TicketDetailProps) {
                     </Card>
                 </div>
             </div>
+
+            {/* <ListAssets open={openAsset} /> */}
         </DetailContext.Provider>
     );
 }
@@ -526,22 +539,24 @@ interface TicketDetailProps {
     error: any;
 }
 
-function SharedImage(props: SharedImageProps) {
+function SharedAsset(props: SharedAssetProps) {
     const { assets = [] } = props;
     if (!isDefined(assets) || assets.length === 0) {
         if (!props.emptyWithText) return <></>;
-        return <i className="text-primary">* No Image</i>;
+        return <i className="text-primary">* No Attachment</i>;
     }
 
     const copyImage = useCallback(async (path: string) => {
+        const url = '/api/shared' + (path.startsWith('/') ? '' : '/') + path;
         try {
-            let img = BlobCache.get(path);
+            let img = BlobCache.get(url);
             if (!img) {
-                const res = await fetch(path);
+                img = {} as ImageHolder;
+                const res = await fetch(url);
 
                 img.type = res.headers.get(HttpHeader.CONTENT_TYPE);
                 img.data = await res.blob();
-                BlobCache.set(path, img);
+                BlobCache.set(url, img);
             }
 
             await navigator.clipboard.write([
@@ -549,41 +564,168 @@ function SharedImage(props: SharedImageProps) {
             ]);
             message.success('Image copied to clipboard');
         } catch (ex) {
+            console.error(ex);
             notif.error(ex);
         }
     }, []);
 
+    const previewImage = (asset: SharedAsset) => {
+        const url = '/api/shared' + (asset.path.startsWith('/') ? '' : '/') + asset.path;
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.click();
+    }
+
+    const downloadAction = (asset: SharedAsset) => {
+        const url = '/api/shared' + (asset.path.startsWith('/') ? '' : '/') + asset.path;
+        axios.get(url, { responseType: 'blob' }).then((res) => {
+            const href = URL.createObjectURL(res.data);
+            const link = document.createElement('a');
+            link.href = href;
+            link.setAttribute('download', asset.name);
+            link.click();
+
+            URL.revokeObjectURL(href);
+        });
+    };
+
+    const actions = (asset: SharedAsset) => {
+        const iconStyle = {
+            color: 'black',
+            fontSize: 18,
+        };
+
+        const actions: ReactNode[] = [];
+        if (asset.previewable) {
+            actions.push(
+                <Button
+                    type="text"
+                    title="Preview"
+                    icon={<EyeOutlined style={iconStyle} />}
+                    onClick={() => previewImage(asset)}
+                />,
+                <Button
+                    type="text"
+                    title="Copy"
+                    icon={<CopyOutlined style={iconStyle} />}
+                    onClick={() => copyImage(asset.path)}
+                />
+            );
+        } else {
+            actions.push(
+                <Button
+                    type="text"
+                    onClick={() => downloadAction(asset)}
+                    icon={<DownloadOutlined title="Download" style={iconStyle} />}
+                />
+            );
+        }
+        return actions;
+    };
+
+    const datasource: SharedAsset[] = assets.map<SharedAsset>((asset) => {
+        const name = asset.substring(asset.lastIndexOf('/') + 1);
+        const extension = name.substring(name.lastIndexOf('.') + 1);
+
+        let icon: any;
+        let previewable = false;
+        switch (extension) {
+            case 'jpg':
+            case 'jpeg':
+            case 'png':
+            case 'webp':
+                icon = FileImageOutlined;
+                previewable = true;
+                break;
+            case 'pdf':
+                icon = FilePdfOutlined;
+                break;
+            case 'xlsx':
+            case 'xls':
+                icon = FileExcelOutlined;
+                break;
+            case 'zip':
+            case 'rar':
+                icon = FileZipOutlined;
+                break;
+            default:
+                icon = FileOutlined;
+                break;
+        }
+        return {
+            name,
+            icon,
+            extension,
+            previewable,
+            path: asset,
+        };
+    });
+
     return (
-        <Image.PreviewGroup>
-            {assets.map((path) => {
-                const src = '/api/shared' + (path.startsWith('/') ? '' : '/') + path;
-                return (
-                    <Image
-                        key={path}
-                        alt={path}
-                        // width={200}
-                        height={85}
-                        src={src}
-                        preview={{
-                            title: (
-                                <Space>
-                                    <CopyOutlined
-                                        size={30}
-                                        onClick={() => copyImage(src)}
-                                    />
-                                </Space>
-                            ),
-                        }}
+        <List
+            className="ticket-shared-asset"
+            dataSource={datasource}
+            renderItem={(item, index) => (
+                <List.Item 
+                
+                title={`${item.previewable ? 'Image' : 'Dokumen'}: ${item.name}`}
+                actions={actions(item)}>
+                    <List.Item.Meta
+                        title={
+                            <Space>
+                                {item.icon ? (
+                                    <item.icon style={{ fontSize: 17 }} />
+                                ) : null}
+                                {item.name}
+                            </Space>
+                        }
                     />
-                );
-            })}
-        </Image.PreviewGroup>
+                </List.Item>
+            )}
+        />
     );
+    // return (
+    //     <Image.PreviewGroup>
+    //         {assets.map((path) => {
+    //             const src = '/api/shared' + (path.startsWith('/') ? '' : '/') + path;
+    //             return (
+    //                 <Image
+    //                     key={path}
+    //                     alt={path}
+    //                     // width={200}
+    //                     height={85}
+    //                     src={src}
+    //                     preview={{
+    //                         title: (
+    //                             <Space>
+    //                                 <CopyOutlined
+    //                                     size={30}
+    //                                     onClick={() => copyImage(src)}
+    //                                 />
+    //                             </Space>
+    //                         ),
+    //                     }}
+
+    //                     // fallback="data:image/png;base64,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"
+    //                 />
+    //             );
+    //         })}
+    //     </Image.PreviewGroup>
+    // );
 }
-interface SharedImageProps {
+interface SharedAssetProps {
     assets?: string[];
     emptyWithText?: boolean;
 }
+interface SharedAsset {
+    name: string;
+    extension: string;
+    path: string;
+    icon?: any;
+    previewable: boolean;
+}
+
 function GaulRelation(props: { relations: DTO.Ticket[] }) {
     const { relations = [] } = props;
 
@@ -682,15 +824,28 @@ function WorklogView(props: { ws: DTO.AgentWorkspace; wl: DTO.AgentWorklog }) {
         <>
             <Divider style={{ margin: '10px 0' }} />
             <p>{wl.reopenMessage || '-'}</p>
-            <SharedImage assets={assets?.requestor} />
+            <SharedAsset assets={assets?.requestor} />
         </>
     );
     return (
         <Card type="inner" size="small" title={title} extra={extra}>
             {wl.message && <p>{wl.message || '-'}</p>}
-            {assets.assets && <SharedImage assets={assets.assets} />}
+            {assets.assets && <SharedAsset assets={assets.assets} />}
 
             {isDefined(wl.reopenMessage) && messageFooter}
         </Card>
+    );
+}
+
+function ListAssets(props: { open: BoolHook }) {
+    const ctx = useContext(DetailContext);
+
+    return (
+        <Modal>
+            <List
+                dataSource={[{}]}
+                renderItem={(item, index) => <List.Item>Ini Item {index}</List.Item>}
+            />
+        </Modal>
     );
 }

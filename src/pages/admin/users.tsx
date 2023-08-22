@@ -12,7 +12,7 @@ import { DateRangeFilter, EnumSelect } from '_comp/table/input.fields';
 import { TFilter } from '_comp/table/table.filter';
 import { THeader } from '_comp/table/table.header';
 import { usePage } from '_ctx/page.ctx';
-import { MarsTablePagination, MarsTableProvider } from '_ctx/table.ctx';
+import { MarsTablePagination, MarsTableProvider, MarsTableSorter } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
 import type { CoreService } from '_service/api';
 import Head from 'next/head';
@@ -20,7 +20,7 @@ import Head from 'next/head';
 export default function UsersPage(props: UsersPageProps) {
     const router = useRouter();
     const pageCtx = usePage();
-    const { pageable, setPageable } = usePageable();
+    const { pageable, setPageable, updateSort } = usePageable();
     const [filter] = Form.useForm<ICriteria<DTO.Users>>();
 
     const [openRegister, setOpenRegister] = useState(false);
@@ -86,13 +86,12 @@ export default function UsersPage(props: UsersPageProps) {
                     size="small"
                     columns={TableUserColms({ editUser, pageable })}
                     dataSource={props.users ?? []}
-                    pagination={
-                        MarsTablePagination({
-                            pageable,
-                            setPageable,
-                            total: props.total,
-                        })
-                    }
+                    pagination={MarsTablePagination({
+                        pageable,
+                        setPageable,
+                        total: props.total,
+                    })}
+                    onChange={MarsTableSorter({ updateSort })}
                 />
                 <TFilter form={filter} title="User Filter">
                     <Form.Item label="ID" name={['id', 'eq']} colon>

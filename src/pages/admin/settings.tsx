@@ -23,8 +23,13 @@ import {
     Popover,
 } from 'antd';
 import Head from 'next/head';
-import { createContext, useContext, useMemo } from 'react';
-import { BaseInputProps, DurationInput } from '_comp/table/input.fields';
+import { createContext, useContext, useMemo, useState } from 'react';
+import {
+    BaseInputProps,
+    DurationInput,
+    SettingAcsolSelect,
+    SettingIssueSelect,
+} from '_comp/table/input.fields';
 import { THeader } from '_comp/table/table.header';
 import { useApp } from '_ctx/app.ctx';
 import { usePage } from '_ctx/page.ctx';
@@ -303,6 +308,7 @@ function SettingTagApplication() {
     const approvalEnabled: boolean = Form.useWatch(
         DTO.SettingKey.APP_USER_REGISTRATION_APPROVAL_BOOL
     );
+
     return (
         <SCard title="Aplikasi">
             {/* <Form form={form}> */}
@@ -323,6 +329,18 @@ function SettingTagApplication() {
                 field={DTO.SettingKey.APP_USER_REGISTRATION_APPROVAL_DRT}
             >
                 <DurationInput disabled={!approvalEnabled} />
+            </SField>
+            <SField
+                label="Issue/Masalah yang tidak termasuk GaUl"
+                field={DTO.SettingKey.APP_ISSUE_GAUL_EXCLUDE_LIST}
+            >
+                <SettingIssueSelect />
+            </SField>
+            <SField
+                label="Solusi yang tidak termasuk hitungan performasi"
+                field={DTO.SettingKey.APP_SOLUTION_REPORT_EXCLUDE_LIST}
+            >
+                <SettingAcsolSelect />
             </SField>
         </SCard>
     );

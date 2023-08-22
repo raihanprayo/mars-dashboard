@@ -3,7 +3,7 @@ import { HttpHeader } from '@mars/common';
 import { DefaultCol, EnumSelect, TFilter, THeader } from '_comp/table';
 import { Render } from '_comp/value-renderer';
 import { usePage } from '_ctx/page.ctx';
-import { MarsTablePagination, MarsTableProvider } from '_ctx/table.ctx';
+import { MarsTablePagination, MarsTableProvider, MarsTableSorter } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
 import { useBool } from '_hook/util.hook';
 import { CoreService } from '_service/api';
@@ -19,7 +19,7 @@ import { useEffect } from 'react';
 export default function StoPage(props: StoPageProps) {
     const router = useRouter();
     const pageCtx = usePage();
-    const { pageable, setPageable } = usePageable();
+    const { pageable, setPageable, updateSort } = usePageable();
 
     const [filter] = Form.useForm();
     const openCreateDrawer = useBool();
@@ -78,6 +78,7 @@ export default function StoPage(props: StoPageProps) {
                         setPageable,
                         total: props.total,
                     })}
+                    onChange={MarsTableSorter({ updateSort })}
                     columns={[
                         DefaultCol.INCREMENTAL_NO_COL(pageable),
                         {
@@ -85,6 +86,7 @@ export default function StoPage(props: StoPageProps) {
                             dataIndex: 'name',
                             align: 'center',
                             width: 300,
+                            sorter: true,
                             render: (v: string) => v?.toUpperCase(),
                         },
                         {
@@ -92,6 +94,7 @@ export default function StoPage(props: StoPageProps) {
                             dataIndex: 'alias',
                             align: 'center',
                             width: 100,
+                            sorter: true,
                             render: Render.tags({ bold: true }),
                         },
                         {
@@ -99,12 +102,14 @@ export default function StoPage(props: StoPageProps) {
                             dataIndex: 'witel',
                             align: 'center',
                             width: 150,
+                            sorter: true,
                             render: Render.witel,
                         },
                         {
                             title: 'Datel',
                             dataIndex: 'datel',
                             align: 'center',
+                            sorter: true,
                         },
                     ]}
                 />
@@ -143,11 +148,9 @@ export async function getServerSideProps(ctx: NextPageContext) {
         },
     });
 
-
     const res = await api.manage(api.get('/sto', config));
     if (axios.isAxiosError(res)) return api.serverSideError(res);
     else {
-
         const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
         console.log('Total STO:', total);
         return {

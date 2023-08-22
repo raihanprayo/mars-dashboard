@@ -19,6 +19,7 @@ import moment, { isMoment, Moment } from 'moment';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useBool } from '_hook/util.hook';
 import notif from '_service/notif';
+import { onAuthenticated } from '_hook/credential.hook';
 
 const DURATION_REGX =
     /^([-+]?)P(?:([-+]?[0-9]+)D)?(T(?:([-+]?[0-9]+)H)?(?:([-+]?[0-9]+)M)?(?:([-+]?[0-9]+)(?:[.,]([0-9]{0,9}))?S)?)?$/;
@@ -80,6 +81,7 @@ export interface DateFilterProps extends BaseInputProps {
     lessThanEqualName?: string;
 }
 
+// ==================================================================================================================
 export function RoleTransfer(props: RoleTransferProps) {
     const { indexSelectedField = 'selected', indexUnselectedField = 'removed' } = props;
 
@@ -162,6 +164,7 @@ interface RoleSelectionItem extends TransferItem {
     id: string;
 }
 
+// ==================================================================================================================
 export function BooleanInput(props: BooleanInputProps) {
     return (
         <Radio.Group
@@ -180,6 +183,7 @@ export interface BooleanInputProps extends BaseInputProps {
     falseText?: React.ReactNode;
 }
 
+// ==================================================================================================================
 export function EnumSelect(props: EnumSelectProps) {
     const { mode = 'multiple', ...rest } = props;
     const [options, setOptions] = useState<DefaultOptionType[]>([
@@ -202,6 +206,7 @@ export interface EnumSelectProps
     includeNull?: boolean;
 }
 
+// ==================================================================================================================
 export function SolutionSelect(props: SolutionSelectProps) {
     const loading = useBool();
     const [list, setList] = useState<DefaultOptionType[]>([]);
@@ -224,6 +229,7 @@ export interface SolutionSelectProps
     extends BaseInputProps,
         Omit<SelectProps, 'onChange' | 'options' | 'mode'> {}
 
+// ==================================================================================================================
 type DurationUnit = 'day' | 'hour' | 'minute' | 'second';
 export function DurationInput(props: DurationInputProps) {
     const id = useMemo(() => randomString(12), []);
@@ -361,6 +367,7 @@ export interface DurationInputProps extends BaseInputProps {
     disabled?: boolean;
 }
 
+// ==================================================================================================================
 export function StoSelect(props: StoSelectProps) {
     const loading = useBool(true);
     const [options, setOptions] = useState<DefaultOptionType[]>([]);
@@ -421,5 +428,83 @@ export function StoSelect(props: StoSelectProps) {
     );
 }
 StoSelect.CACHE = new Map<string, DTO.Sto>();
-
 export interface StoSelectProps extends BaseInputProps {}
+
+// ==================================================================================================================
+export function SettingIssueSelect(props: SettingIssueSelectProps) {
+    const [issues, setIssues] = useState<DefaultOptionType[]>([]);
+
+    const init = () => {
+        api.get<DTO.Issue[]>('/issue', {
+            params: {
+                size: 1000,
+                deleted: {
+                    eq: false,
+                },
+            },
+        })
+            .then((res) => {
+                setIssues(
+                    res.data.map((issue) => ({
+                        value: `${issue.id}`,
+                        label: issue.alias || issue.name,
+                    }))
+                );
+            })
+            .catch(notif.axiosError);
+    };
+
+    onAuthenticated(() => {
+        init();
+    });
+
+    return (
+        <Select
+            mode="tags"
+            options={issues}
+            tokenSeparators={['|']}
+            value={props.value}
+            onChange={props.onChange}
+        />
+    );
+}
+export interface SettingIssueSelectProps extends BaseInputProps {}
+
+// ==================================================================================================================
+export function SettingAcsolSelect(props: SettingAcsolSelectProps) {
+    const [acsols, setAcsols] = useState<DefaultOptionType[]>([]);
+
+    const init = () => {
+        api.get<DTO.Solution[]>('/solution', {
+            params: {
+                size: 1000,
+                deleted: {
+                    eq: false,
+                },
+            },
+        })
+            .then((res) => {
+                setAcsols(
+                    res.data.map((acsol) => ({
+                        value: `${acsol.id}`,
+                        label: acsol.name,
+                    }))
+                );
+            })
+            .catch(notif.axiosError);
+    };
+
+    onAuthenticated(() => {
+        init();
+    });
+    return (
+        <Select
+            mode="tags"
+            options={acsols}
+            tokenSeparators={['|']}
+            value={props.value}
+            onChange={props.onChange}
+        />
+    );
+}
+export interface SettingAcsolSelectProps extends BaseInputProps {}

@@ -17,7 +17,7 @@ import {
     TFilter,
 } from '_comp/table';
 import { PageContext, usePage } from '_ctx/page.ctx';
-import { MarsTablePagination, MarsTableProvider } from '_ctx/table.ctx';
+import { MarsTablePagination, MarsTableProvider, MarsTableSorter } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
 import { mapEnum } from '_utils/conversion';
 import { RefreshBadgeEvent } from '_utils/events';
@@ -200,24 +200,7 @@ export function TicketTable(props: TicketTableProps) {
                         pageable,
                         setPageable
                     })}
-                    onChange={(p, f, s, e) => {
-                        if (e.action === 'sort') {
-                            console.log(s);
-                            if (!isArr(s)) {
-                                const { column, order, field } = s;
-                                const f = !isArr(field) ? String(field) : field.join('.');
-                                updateSort(f, order);
-                            } else {
-                                for (const sortProp of s) {
-                                    const { column, order, field } = sortProp;
-                                    const f = !isArr(field)
-                                        ? String(field)
-                                        : field.join('.');
-                                    updateSort(f, order);
-                                }
-                            }
-                        }
-                    }}
+                    onChange={MarsTableSorter({ updateSort })}
                     rowSelection={props.withActionCol && rowSelection}
                 />
                 <TFilter form={formFilter} title="Tiket Filter">

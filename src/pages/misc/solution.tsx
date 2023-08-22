@@ -41,7 +41,7 @@ import { TFilter } from '_comp/table/table.filter';
 import { THeader } from '_comp/table/table.header';
 import { Render } from '_comp/value-renderer';
 import { usePage } from '_ctx/page.ctx';
-import { MarsTablePagination, MarsTableProvider } from '_ctx/table.ctx';
+import { MarsTablePagination, MarsTableProvider, MarsTableSorter } from '_ctx/table.ctx';
 import { usePageable } from '_hook/pageable.hook';
 import { useBool } from '_hook/util.hook';
 import { CoreService } from '_service/api';
@@ -51,7 +51,7 @@ import { PageTitle } from '_utils/conversion';
 function SolutionsPage(props: SolutionsPageProps) {
     const router = useRouter();
     const page = usePage();
-    const { pageable, setPageable } = usePageable();
+    const { pageable, setPageable, updateSort } = usePageable();
 
     const [filter] = Form.useForm<ICriteria<DTO.Solution>>();
     const [selected, setSelected] = useState<string[]>([]);
@@ -200,6 +200,7 @@ function SolutionsPage(props: SolutionsPageProps) {
                                 setPageable,
                                 total: props.total,
                             })}
+                            onChange={MarsTableSorter({ updateSort })}
                             onRow={(data, index) => {
                                 return {
                                     onClick: () => setDetail({ data, edit: false }),
@@ -299,7 +300,7 @@ export async function getServerSideProps(ctx: NextPageContext) {
         props: {
             total,
             // data: res.data,
-            data: res.data.map(e => {
+            data: res.data.map((e) => {
                 e['key'] = e.id;
                 return e;
             }),

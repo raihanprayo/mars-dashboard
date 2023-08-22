@@ -1,5 +1,10 @@
-import { isDefined } from '@mars/common';
-import { TablePaginationConfig } from 'antd';
+import { isArr, isDefined } from '@mars/common';
+import { Table, TablePaginationConfig } from 'antd';
+import {
+    FilterValue,
+    SorterResult,
+    TableCurrentDataSource,
+} from 'antd/lib/table/interface';
 import { createContext, createElement, useContext, useState } from 'react';
 import pages from 'src/pages';
 
@@ -55,7 +60,7 @@ export function MarsTablePagination(
             const n: Partial<Pageable> = {};
             if (pageable.page !== actualPage) n.page = actualPage;
             if (pageable.size !== pageSize) n.size = pageSize;
-            
+
             setPageable(n);
         },
     };
@@ -65,4 +70,35 @@ export interface MarsTablePaginationOptions {
     total: number;
     pageable: Pageable;
     setPageable(pageable: Partial<Pageable>): void;
+}
+
+type TableOnchange<R> = (
+    pagination: TablePaginationConfig,
+    filters: map<FilterValue | null>,
+    sorter: SorterResult<R> | SorterResult<R>[],
+    extra: TableCurrentDataSource<R>
+) => void;
+
+export function MarsTableSorter<R>(opt: MarsTableSorterOptions<R>): TableOnchange<R> {
+    // return TableProps
+    return (pagination, filters, sorter, extra) => {
+        if (extra.action === 'sort') {
+            if (!isArr(sorter)) {
+                const { column, order, field } = sorter;
+                const f = !isArr(field) ? String(field) : field.join('.');
+                opt.updateSort(f, order);
+            } else {
+                for (const sortProp of sorter) {
+                    const { column, order, field } = sortProp;
+                    const f = !isArr(field) ? String(field) : field.join('.');
+                    opt.updateSort(f, order);
+                }
+            }
+        } else opt.onChange?.(pagination, filters, sorter, extra);
+    };
+}
+
+export interface MarsTableSorterOptions<R> {
+    updateSort(field: string, direction: 'ascend' | 'descend'): void;
+    onChange?: TableOnchange<R>;
 }

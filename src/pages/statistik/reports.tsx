@@ -40,6 +40,7 @@ import { useBool } from '_hook/util.hook';
 import notif from '_service/notif';
 import { TableTicketColms } from '_comp/table';
 import { usePageable } from '_hook/pageable.hook';
+import { isArr } from '@mars/common';
 
 const Pie = dynamic(
     async () => {
@@ -66,7 +67,7 @@ function ReportsPage(props: ReportsPageProps) {
     const page = usePage();
     const switchView = useBool();
     const [filter] = Form.useForm<ICriteria<DTO.Ticket>>();
-    const { pageable, setPageable } = usePageable();
+    const { pageable, setPageable, updateSort } = usePageable();
 
     const refresh = () => {
         page.setLoading(true);
@@ -90,7 +91,6 @@ function ReportsPage(props: ReportsPageProps) {
                 params: filter.getFieldsValue(),
             })
                 .then((res) => {
-
                     const blob: Blob = res.data;
                     const href = URL.createObjectURL(blob);
                     const link = document.createElement('a');
@@ -126,12 +126,26 @@ function ReportsPage(props: ReportsPageProps) {
             dataSource={data.raw}
             size="small"
             style={{ marginTop: 10 }}
-            columns={TableTicketColms({ pageable })}
+            columns={TableTicketColms({ pageable, withActionCol: false })}
             pagination={MarsTablePagination({
                 pageable,
                 setPageable,
                 total: props.data.rawTotal,
             })}
+            onChange={(p, f, s, e) => {
+                if (e.action !== 'sort') return;
+                if (!isArr(s)) {
+                    const { column, order, field } = s;
+                    const f = !isArr(field) ? String(field) : field.join('.');
+                    updateSort(f, order);
+                } else {
+                    for (const sortProp of s) {
+                        const { column, order, field } = sortProp;
+                        const f = !isArr(field) ? String(field) : field.join('.');
+                        updateSort(f, order);
+                    }
+                }
+            }}
         />
     );
 
@@ -162,15 +176,7 @@ function ReportsPage(props: ReportsPageProps) {
                             title="Total Tiket"
                             value={data.chart.count.total}
                             prefix={<AuditOutlined />}
-                            onClick={(event) => {
-                                // router.push({
-                                //     pathname:
-                                //         router.pathname +
-                                //         '/closed?' +
-                                //         api.serializeParam(filter.getFieldsValue()),
-                                // });
-                                switchView.toggle();
-                            }}
+                            onClick={(event) => switchView.toggle()}
                         />
                         <CardInfo title="IPTV" value={data.chart.count.iptv} />
                         <CardInfo title="INTERNET" value={data.chart.count.internet} />
@@ -182,9 +188,7 @@ function ReportsPage(props: ReportsPageProps) {
                 <TFilter
                     form={filter}
                     title="Report"
-                    initialValue={{
-                        createdAt: initialDate,
-                    }}
+                    initialValue={{ createdAt: initialDate }}
                 >
                     <Form.Item label="Tanggal Dibuat" name="createdAt" required>
                         <DateRangeFilter withTime />

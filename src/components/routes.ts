@@ -47,7 +47,7 @@ const PageRoutes: PageRoute[] = [
     },
     {
         type: 'group',
-        name: 'Miscellaneous',
+        name: 'Lain - lain',
         icon: createElement(ApartmentOutlined),
         access: {
             hasRole: [ROLE_ADMIN],
@@ -78,12 +78,12 @@ const PageRoutes: PageRoute[] = [
     },
     {
         type: 'group',
-        name: 'Application',
+        name: 'Aplikasi',
         icon: createElement(ApartmentOutlined),
         children: [
             {
                 type: 'page',
-                name: 'Settings',
+                name: 'Pengaturan',
                 path: '/admin/settings',
                 icon: createElement(SettingOutlined),
                 access: {

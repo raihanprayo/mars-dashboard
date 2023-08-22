@@ -57,6 +57,8 @@ export default function ProfilePage(props: ProfilePageProps) {
                     newPass,
                     oldPass,
                 });
+
+                message.success("Update password berhasil")
             } catch (error) {
                 const err: AxiosError = error;
                 const res: any = err.response?.data;

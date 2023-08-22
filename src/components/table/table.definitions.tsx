@@ -174,11 +174,13 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
             title: 'Nama',
             align: 'center',
             dataIndex: 'name',
+            sorter: true,
         },
         {
             title: 'NIK',
             align: 'center',
             dataIndex: 'nik',
+            sorter: true,
         },
         // {
         //     title: 'Group',
@@ -194,6 +196,7 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
             title: 'Witel/STO',
             dataIndex: 'witel',
             align: 'center',
+            sorter: true,
             render: (value, record) => {
                 return (
                     <Space align="center">
@@ -223,6 +226,7 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
             title: 'Aktif',
             align: 'center',
             dataIndex: 'active',
+            sorter: true,
             width: 150,
             render: (v) =>
                 Render.bool(v, {
@@ -268,33 +272,39 @@ export const TableApprovalColms = (opt: TableApprovalColumnOptions) => {
             title: 'Reg No',
             align: 'center',
             dataIndex: 'no',
+            sorter: true,
         },
         {
             title: 'Nama',
             align: 'center',
             dataIndex: 'name',
+            sorter: true,
         },
         {
             title: 'NIK',
             align: 'center',
             dataIndex: 'nik',
+            sorter: true,
         },
         {
             title: 'Status',
             align: 'center',
             dataIndex: 'status',
+            sorter: true,
             render: Render.tags(),
         },
         {
             title: 'Witel',
             align: 'center',
             dataIndex: 'witel',
+            sorter: true,
             render: Render.witel,
         },
         {
             title: 'STO',
             align: 'center',
             dataIndex: 'sto',
+            sorter: true,
             render: Render.tags(),
         },
         DefaultCol.CREATION_DATE_COL,
