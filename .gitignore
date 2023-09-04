@@ -41,3 +41,5 @@ next-env.d.ts
 /server/package-lock.json
 /server/node_modules
 .env
+
+mars-ui.*.tar.gz

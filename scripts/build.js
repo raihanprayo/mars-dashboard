@@ -21,7 +21,7 @@ const dateStr = [
     padStart(month),
     padStart(day),
 ].join('');
-const archieveName = `.next.${dateStr}.tar.gz`;
+const archieveName = `mars-ui.${dateStr}.tar.gz`;
 execSync(`tar -cf ${archieveName} -z .next`, {
     cwd: ROOT,
     stdio: 'pipe',

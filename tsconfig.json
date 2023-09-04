@@ -8,10 +8,9 @@
         "forceConsistentCasingInFileNames": true,
         "noEmit": true,
         "esModuleInterop": true,
-        "module": "esnext",
+        "module": "nodenext",
         "moduleResolution": "nodenext",
         "resolveJsonModule": true,
-        "isolatedModules": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "jsx": "preserve",
@@ -42,7 +41,8 @@
         "global.d.ts",
         "**/*.ts",
         "**/*.tsx",
-        "src/configs/app.config.ts"
-, "scripts/build.js"    ],
+        "src/configs/app.config.ts", 
+        "scripts/build.js"
+    ],
     "exclude": ["node_modules"]
 }

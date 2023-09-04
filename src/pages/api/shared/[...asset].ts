@@ -1,6 +1,6 @@
 import { HttpHeader, isArr } from '@mars/common';
 import { existsSync, readFileSync, statSync } from 'fs';
-import mime from 'mime';
+import mime = require('mime');
 import { NextApiHandler } from 'next';
 import { detectContentType } from 'next/dist/server/image-optimizer';
 import { join } from 'path';
