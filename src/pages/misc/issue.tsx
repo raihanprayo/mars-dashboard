@@ -241,6 +241,11 @@ function IssuePage(props: IssuePageProps) {
                                     dataIndex: 'alias',
                                 },
                                 {
+                                    title: 'Skor',
+                                    align: 'center',
+                                    dataIndex: 'score',
+                                },
+                                {
                                     title: 'Parameter',
                                     align: 'center',
                                     width: 100,
@@ -603,6 +608,11 @@ function InfoIssueView() {
                         input={<EnumSelect mode="single" enums={Mars.Product} />}
                     >
                         {Render.product(selected.product)}
+                    </EditableValue>
+                </Descriptions.Item>
+                <Descriptions.Item span={5} label="Skor">
+                    <EditableValue name="product" input={<Input type="number" min={0} />}>
+                        {selected.score}
                     </EditableValue>
                 </Descriptions.Item>
                 <Descriptions.Item span={5} label="Cek List">

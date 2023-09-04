@@ -184,6 +184,7 @@ declare global {
             description: string;
             createdAt: Date;
             updatedAt: Date;
+            score: number;
 
             params: IssueParam[];
 
