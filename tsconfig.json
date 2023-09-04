@@ -1,48 +1,73 @@
 {
-    "compilerOptions": {
-        "target": "es2020",
-        "lib": ["dom", "dom.iterable", "esnext"],
-        "allowJs": true,
-        "skipLibCheck": true,
-        "allowUmdGlobalAccess": true,
-        "forceConsistentCasingInFileNames": true,
-        "noEmit": true,
-        "esModuleInterop": true,
-        "module": "nodenext",
-        "moduleResolution": "nodenext",
-        "resolveJsonModule": true,
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "jsx": "preserve",
-        "incremental": true,
-        "strictBindCallApply": true,
-        "strictFunctionTypes": true,
-        "strictNullChecks": false,
-        "strictPropertyInitialization": false,
-        "noImplicitAny": false,
-        "noImplicitOverride": true,
-        "noImplicitThis": true,
-        "strict": false,
-        "baseUrl": ".",
-        "paths": {
-            "@mars/common": ["src/libs/commons/index"],
-            "@mars/common/*": ["src/libs/commons/*"],
-            "_config": ["src/configs/index.ts"],
-            "_comp/*": ["src/components/*"],
-            "_ctx/*": ["src/contexts/*"],
-            "_hook/*": ["src/hooks/*"],
-            "_service/*": ["src/services/*"],
-            "_styles/*": ["styles/*"],
-            "_utils/*": ["src/utils/*"]
-        }
-    },
-    "include": [
-        "next-env.d.ts",
-        "global.d.ts",
-        "**/*.ts",
-        "**/*.tsx",
-        "src/configs/app.config.ts", 
-        "scripts/build.js"
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
     ],
-    "exclude": ["node_modules"]
+    "allowJs": true,
+    "skipLibCheck": true,
+    "allowUmdGlobalAccess": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
+    "noImplicitAny": false,
+    "noImplicitOverride": true,
+    "noImplicitThis": true,
+    "strict": false,
+    "baseUrl": ".",
+    "paths": {
+      "@mars/common": [
+        "src/libs/commons/index"
+      ],
+      "@mars/common/*": [
+        "src/libs/commons/*"
+      ],
+      "_config": [
+        "src/configs/index.ts"
+      ],
+      "_comp/*": [
+        "src/components/*"
+      ],
+      "_ctx/*": [
+        "src/contexts/*"
+      ],
+      "_hook/*": [
+        "src/hooks/*"
+      ],
+      "_service/*": [
+        "src/services/*"
+      ],
+      "_styles/*": [
+        "styles/*"
+      ],
+      "_utils/*": [
+        "src/utils/*"
+      ]
+    },
+    "isolatedModules": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "global.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "src/configs/app.config.ts",
+    "scripts/build.js"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
