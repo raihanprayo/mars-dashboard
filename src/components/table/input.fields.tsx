@@ -1,11 +1,8 @@
-import { Duration, isBool, isDefined, isStr, isUndef, randomString } from '@mars/common';
+import { Duration, isDefined, isStr, randomString } from '@mars/common';
 import {
-    AutoComplete,
-    AutoCompleteProps,
     DatePicker,
     Form,
     Input,
-    InputNumber,
     Popover,
     Radio,
     Select,
@@ -15,8 +12,8 @@ import {
 } from 'antd';
 import type { DefaultOptionType } from 'antd/lib/select/index';
 import type { TransferDirection, TransferItem } from 'antd/lib/transfer/index';
-import moment, { isMoment, Moment } from 'moment';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import moment, { Moment } from 'moment';
+import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useBool } from '_hook/util.hook';
 import notif from '_service/notif';
 import { onAuthenticated } from '_hook/credential.hook';
@@ -249,6 +246,7 @@ export function DurationInput(props: DurationInputProps) {
 
     const onSegmentChange = useCallback(
         (field: DurationUnit, v: number) => {
+            console.log('Duration Segment changed: %s', field, v);
             let newVal: Duration;
             switch (field) {
                 case 'day':
@@ -275,11 +273,15 @@ export function DurationInput(props: DurationInputProps) {
         [value]
     );
 
+    const getEventValue = (e: ChangeEvent<HTMLInputElement>) => {
+        return Number(e.currentTarget.value);
+    };
+
     const time = {
-        day: value?.day || 0,
-        hour: value?.hour || 0,
-        minute: value?.minute || 0,
-        second: value?.second || 0,
+        day: value?.day ?? 0,
+        hour: value?.hour ?? 0,
+        minute: value?.minute ?? 0,
+        second: value?.second ?? 0,
     };
     return (
         <Space id={props.id} align="baseline">
@@ -294,7 +296,7 @@ export function DurationInput(props: DurationInputProps) {
                     placeholder="Hari"
                     value={time.day}
                     disabled={props.disabled}
-                    onChange={(v) => onSegmentChange('day', Number(v))}
+                    onChange={(v) => onSegmentChange('day', getEventValue(v))}
                     onFocus={() => dayPop.setValue(true)}
                     onBlur={() => dayPop.setValue(false)}
                     onMouseOver={() => dayPop.setValue(true)}
@@ -313,7 +315,7 @@ export function DurationInput(props: DurationInputProps) {
                     placeholder="Jam"
                     value={time.hour}
                     disabled={props.disabled}
-                    onChange={(v) => onSegmentChange('hour', Number(v))}
+                    onChange={(v) => onSegmentChange('hour', getEventValue(v))}
                     onFocus={() => hourPop.setValue(true)}
                     onBlur={() => hourPop.setValue(false)}
                     onMouseOver={() => hourPop.setValue(true)}
@@ -332,7 +334,7 @@ export function DurationInput(props: DurationInputProps) {
                     placeholder="Menit"
                     value={time.minute}
                     disabled={props.disabled}
-                    onChange={(v) => onSegmentChange('minute', Number(v))}
+                    onChange={(v) => onSegmentChange('minute', getEventValue(v))}
                     onFocus={() => minutePop.setValue(true)}
                     onBlur={() => minutePop.setValue(false)}
                     onMouseOver={() => minutePop.setValue(true)}
@@ -351,7 +353,7 @@ export function DurationInput(props: DurationInputProps) {
                     placeholder="Detik"
                     value={time.second}
                     disabled={props.disabled}
-                    onChange={(v) => onSegmentChange('second', Number(v))}
+                    onChange={(v) => onSegmentChange('second', getEventValue(v))}
                     onFocus={() => secondPop.setValue(true)}
                     onBlur={() => secondPop.setValue(false)}
                     onMouseOver={() => secondPop.setValue(true)}

@@ -12,7 +12,7 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "nodenext",
+    "module": "esnext",
     "moduleResolution": "nodenext",
     "resolveJsonModule": true,
     "emitDecoratorMetadata": true,

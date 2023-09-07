@@ -8,7 +8,7 @@ const nextConfig = {
 
   poweredByHeader: false,
 
-  // output: 'standalone',
+  output: 'standalone',
   lessLoaderOptions: {
     lessOptions: {
       javascriptEnabled: true,
