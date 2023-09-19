@@ -46,6 +46,7 @@ export namespace THeader {
     interface ItemProps extends HasPositionProps, HasChild {
         className?: string;
         style?: React.CSSProperties;
+        title?: string;
     }
     interface ActionItemProps extends MarsButtonProps, HasPositionProps {
         badge?: number;
@@ -53,7 +54,7 @@ export namespace THeader {
 
     export function Item(props: ItemProps) {
         const cls = mergeClassName('workspace-act', props.className);
-        return <li className={cls}>{props.children}</li>;
+        return <li className={cls} title={props.title}>{props.children}</li>;
     }
 
     export function Action(props: ActionItemProps) {

@@ -1,6 +1,7 @@
 // import { exec, execSync } from 'child_process';
 // import { join } from 'path';
 const { exec, execSync } = require('child_process');
+const { existsSync, rmSync } = require('fs');
 const { join } = require('path')
 
 const ROOT = join(__dirname, '..');
@@ -22,6 +23,9 @@ const dateStr = [
     padStart(day),
 ].join('');
 const archieveName = `mars-ui.${dateStr}.tar.gz`;
+
+if (existsSync(archieveName)) rmSync(archieveName);
+
 execSync(`tar -cf ${archieveName} -z .next`, {
     cwd: ROOT,
     stdio: 'pipe',

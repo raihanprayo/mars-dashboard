@@ -1,12 +1,12 @@
 import { EditOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
 import { HttpHeader, isArr, isBool, isFn, isNull, isStr, Properties } from '@mars/common';
-import { Form, Input, InputNumber, message, Select, Table } from 'antd';
+import { Form, Input, InputNumber, message, Popover, Select, Space, Table } from 'antd';
 import type { TableRowSelection } from 'antd/lib/table/interface';
 import axios, { AxiosResponse } from 'axios';
 import { NextPageContext } from 'next';
 import { getSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useContext, useState, useMemo } from 'react';
+import { useCallback, useEffect, useContext, useState, useMemo, useRef } from 'react';
 import { MarsButton } from '_comp/base';
 import { useContextMenu } from '_comp/context-menu';
 import {
@@ -24,6 +24,15 @@ import { RefreshBadgeEvent } from '_utils/events';
 import { AddTicketDrawer } from './add-ticket.drawer.';
 import { ParsedUrlQuery } from 'querystring';
 
+type TimeUnit = 's' | 'm' | 'h';
+interface AutoRefresh {
+    time: number;
+    unit: TimeUnit;
+}
+
+const unitConversion = (u: TimeUnit) =>
+    u === 'h' ? 'jam' : u === 'm' ? 'menit' : 'detik';
+
 export function TicketTable(props: TicketTableProps) {
     const { data: tickets, products, total } = props.metadata;
     const router = useRouter();
@@ -38,6 +47,12 @@ export function TicketTable(props: TicketTableProps) {
     const [formFilter] = Form.useForm<ICriteria<DTO.Ticket>>();
     const [productFilter, setProductFilter] = useState<Mars.Product[]>([]);
     const [openAddTicket, setOpenAddTicket] = useState(false);
+
+    const [autoRefreshRate, setAutorRefreshRate] = useState<AutoRefresh>({
+        time: 0,
+        unit: 'm',
+    });
+    const autoRefreshRef = useRef<NodeJS.Timer>(null);
 
     const [selected, setSelected] = useState<string[]>([]);
     const hasSelected = useMemo(() => selected.length > 0, [selected]);
@@ -113,6 +128,16 @@ export function TicketTable(props: TicketTableProps) {
         RefreshBadgeEvent.emit();
     }, [selected]);
 
+    const onRefreshRateChange = (opt: Partial<AutoRefresh>) => {
+        // const rate = Number(element.value);
+        const newRefreshRate = {
+            ...autoRefreshRate,
+            ...opt,
+        };
+        localStorage.setItem('inbox-refresh-rate', JSON.stringify(newRefreshRate));
+        setAutorRefreshRate(newRefreshRate);
+    };
+
     useEffect(() => {
         menu.items = [
             {
@@ -139,11 +164,34 @@ export function TicketTable(props: TicketTableProps) {
             window.addEventListener('dup-ticket', duplicateGaulListener);
             return () => window.removeEventListener('dup-ticket', duplicateGaulListener);
         }
+
+        const refreshRateItem = localStorage.getItem('inbox-refresh-rate');
+        if (refreshRateItem != null) setAutorRefreshRate(JSON.parse(refreshRateItem));
     }, []);
 
     useEffect(() => {
         setProductFilter(watchedProductFilter ?? []);
     }, [watchedProductFilter]);
+
+    useEffect(() => {
+        if (autoRefreshRate.time > 0) {
+            let time = 0;
+            switch (autoRefreshRate.unit) {
+                case 'h':
+                    time = 1000 * 60 * 60 * autoRefreshRate.time;
+                    break;
+                case 'm':
+                    time = 1000 * 60 * autoRefreshRate.time;
+                    break;
+                case 's':
+                    time = 1000 * autoRefreshRate.time;
+                    break;
+            }
+
+            autoRefreshRef.current = setInterval(() => refresh(), time);
+            return () => clearInterval(autoRefreshRef.current);
+        }
+    }, [autoRefreshRate]);
 
     const actions = [
         props.withActionCol && (
@@ -172,6 +220,39 @@ export function TicketTable(props: TicketTableProps) {
         >
             Filter
         </THeader.FilterAction>,
+        props.withAutoRefreshData && (
+            <THeader.Item>
+                <Space>
+                    <span style={{ fontWeight: 650 }}>Auto Refresh:</span>
+                    <Popover
+                        content={`Refresh Rate ${autoRefreshRate.time} ${unitConversion(
+                            autoRefreshRate.unit
+                        )}`}
+                        placement="bottom"
+                    >
+                        <Input
+                            type="number"
+                            value={autoRefreshRate.time}
+                            style={{ width: 80 }}
+                            onChange={(e) =>
+                                onRefreshRateChange({
+                                    time: Number(e.currentTarget.value),
+                                })
+                            }
+                        />
+                    </Popover>
+                    <Select
+                        value={autoRefreshRate.unit}
+                        onChange={(e) => onRefreshRateChange({ unit: e })}
+                        options={[
+                            { label: 'Jam', value: 'h' },
+                            { label: 'Menit', value: 'm' },
+                            { label: 'Detik', value: 's' },
+                        ]}
+                    />
+                </Space>
+            </THeader.Item>
+        ),
     ].filter(isBool.non);
 
     const rowSelection: TableRowSelection<DTO.Ticket> = {
@@ -198,7 +279,7 @@ export function TicketTable(props: TicketTableProps) {
                     pagination={MarsTablePagination({
                         total,
                         pageable,
-                        setPageable
+                        setPageable,
                     })}
                     onChange={MarsTableSorter({ updateSort })}
                     rowSelection={props.withActionCol && rowSelection}
@@ -325,6 +406,7 @@ export interface TicketTableProps {
 
     withActionCol?: boolean;
     withLinkToDetail?: boolean;
+    withAutoRefreshData?: boolean;
     editAbleDetail?: boolean;
 
     editorDrawer?: boolean;
