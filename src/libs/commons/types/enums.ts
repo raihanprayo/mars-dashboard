@@ -1,4 +1,4 @@
-namespace DTO {
+export namespace DTO {
     export enum SettingType {
         STRING = 'STRING',
         BOOLEAN = 'BOOLEAN',
@@ -38,7 +38,7 @@ namespace DTO {
     }
 }
 
-namespace Pageable {
+export namespace Pageable {
     export enum Sorts {
         DESC = 'DESC',
         ASC = 'ASC',
