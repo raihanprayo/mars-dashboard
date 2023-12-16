@@ -16,8 +16,8 @@ import {
     RightSquareOutlined,
     SendOutlined,
     UserOutlined,
-} from '@ant-design/icons';
-import { HttpHeader, isDefined } from '@mars/common';
+} from "@ant-design/icons";
+import { HttpHeader, isDefined } from "@mars/common";
 import {
     Button,
     Descriptions,
@@ -34,13 +34,13 @@ import {
     Timeline,
     Typography,
     Upload,
-} from 'antd';
-import type { Tab } from 'rc-tabs/lib/interface';
-import axios from 'axios';
-import { NextPageContext } from 'next';
-import { getSession, useSession } from 'next-auth/react';
-import { Render } from '_comp/value-renderer';
-import Card from 'antd/lib/card/Card';
+} from "antd";
+import type { Tab } from "rc-tabs/lib/interface";
+import axios from "axios";
+import { NextPageContext } from "next";
+import { getSession, useSession } from "next-auth/react";
+import { Render } from "_comp/value-renderer";
+import Card from "antd/lib/card/Card";
 import {
     ReactNode,
     createContext,
@@ -49,22 +49,23 @@ import {
     useEffect,
     useMemo,
     useState,
-} from 'react';
-import type { RcFile, UploadFile } from 'antd/lib/upload';
-import { RefreshBadgeEvent } from '_utils/events';
-import { PageContext, usePage } from '_ctx/page.ctx';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
-import { format } from 'date-fns';
-import { CopyToClipboard, MarsButton } from '_comp/base';
-import notif from '_service/notif';
-import { SolutionSelect } from '_comp/table/input.fields';
-import Head from 'next/head';
-import { CreatedBy } from '_comp/base/CreatedBy';
-import { scanAssets, ScannedAsset, WorklogAsset } from '_utils/fns/scan-asset';
-import { IMAGE_FILE_EXT } from '_utils/constants';
-import { useUser } from '_hook/credential.hook';
-import { BoolHook, useBool } from '_hook/util.hook';
+} from "react";
+import type { RcFile, UploadFile } from "antd/lib/upload";
+import { RefreshBadgeEvent } from "_utils/events";
+import { PageContext, usePage } from "_ctx/page.ctx";
+import { useRouter } from "next/router";
+import Link from "next/link";
+import { format } from "date-fns";
+import { CopyToClipboard, MarsButton } from "_comp/base";
+import notif from "_service/notif";
+import { SolutionSelect } from "_comp/table/input.fields";
+import Head from "next/head";
+import { CreatedBy } from "_comp/base/CreatedBy";
+import { scanAssets, ScannedAsset, WorklogAsset } from "_utils/fns/scan-asset";
+import { IMAGE_FILE_EXT } from "_utils/constants";
+import { useUser } from "_hook/credential.hook";
+import { BoolHook, useBool } from "_hook/util.hook";
+import { Mars } from "@mars/common/types/mars";
 
 // const AcceptableFileExt = ['.jpg', '.jpeg', '.png', '.webp'];
 const BlobCache = new Map<string, ImageHolder>();
@@ -80,6 +81,7 @@ interface ImageHolder {
 }
 
 function TicketDetail(props: TicketDetailProps) {
+    console.log("View Only Mode?", props.viewOnly);
     const ticket: DTO.Ticket = props.data || ({} as any);
     const route = useRouter();
     const session = useSession();
@@ -90,8 +92,8 @@ function TicketDetail(props: TicketDetailProps) {
     const [files, setFiles] = useState<UploadFile[]>([]);
     const openAsset = useBool();
 
-    const description = Form.useWatch('description', submission);
-    const status = Form.useWatch('status', submission);
+    const description = Form.useWatch("description", submission);
+    const status = Form.useWatch("status", submission);
     const unsaved = useMemo(() => {
         if (description) return true;
         if (files.length) return true;
@@ -106,7 +108,8 @@ function TicketDetail(props: TicketDetailProps) {
         ].includes(ticket.status);
 
         const invalidProgress =
-            session.status === 'authenticated' && ticket.wipBy !== session.data?.user?.id;
+            session.status === "authenticated" &&
+            ticket.wipBy !== session.data?.user?.id;
 
         return invalidStat || invalidProgress;
     }, [ticket]);
@@ -119,18 +122,19 @@ function TicketDetail(props: TicketDetailProps) {
         }
 
         const form = new FormData();
-        const solution = submission.getFieldValue('solution')?.value;
+        const solution = submission.getFieldValue("solution")?.value;
 
-        form.set('note', description);
-        if (solution) form.set('solution', solution);
-        for (const file of files) form.append('files', file as RcFile, file.fileName);
+        form.set("note", description);
+        if (solution) form.set("solution", solution);
+        for (const file of files)
+            form.append("files", file as RcFile, file.fileName);
 
         const statusLink =
             status === Mars.Status.CLOSED
-                ? 'close'
+                ? "close"
                 : status === Mars.Status.DISPATCH
-                ? 'dispatch'
-                : 'pending';
+                ? "dispatch"
+                : "pending";
 
         const url = `/ticket/wip/${statusLink}/${ticket.id}`;
 
@@ -138,7 +142,7 @@ function TicketDetail(props: TicketDetailProps) {
         api.postForm(url, form)
             .then(() => RefreshBadgeEvent.emit())
             .then(() => setResolved(true))
-            .then(() => (window.location.href = '/inbox'))
+            .then(() => (window.location.href = "/inbox"))
             .catch((err) => notif.error(err))
             .finally(() => pageCtx.setLoading(false));
     };
@@ -148,7 +152,7 @@ function TicketDetail(props: TicketDetailProps) {
         if (data && !disableSubmit) {
             const files: File[] = [];
             for (const file of data.files) {
-                const isImage = file.type.toLowerCase().startsWith('image/');
+                const isImage = file.type.toLowerCase().startsWith("image/");
                 if (isImage) files.push(file);
             }
 
@@ -161,8 +165,8 @@ function TicketDetail(props: TicketDetailProps) {
     const onGetContact = async () => {
         if (!props.contact) return;
 
-        api.get('/telegram/send/contact/' + props.contact.nik)
-            .then(() => message.info('Kontak info berhasil dikirim'))
+        api.get("/telegram/send/contact/" + props.contact.nik)
+            .then(() => message.info("Kontak info berhasil dikirim"))
             .catch(notif.axiosError);
     };
 
@@ -179,21 +183,21 @@ function TicketDetail(props: TicketDetailProps) {
         const handleBrowseAway = () => {
             if (resolved || !unsaved) return;
             if (window.confirm(leaveMessage)) return;
-            route.events.emit('routeChangeError');
-            throw 'routeChange aborted';
+            route.events.emit("routeChangeError");
+            throw "routeChange aborted";
         };
 
-        addEventListener('beforeunload', handleWindowClose);
-        route.events.on('routeChangeStart', handleBrowseAway);
+        addEventListener("beforeunload", handleWindowClose);
+        route.events.on("routeChangeStart", handleBrowseAway);
         return () => {
-            removeEventListener('beforeunload', handleWindowClose);
-            route.events.off('routeChangeStart', handleBrowseAway);
+            removeEventListener("beforeunload", handleWindowClose);
+            route.events.off("routeChangeStart", handleBrowseAway);
         };
     }, [description, files]);
 
     useEffect(() => {
-        document.addEventListener('paste', onPaste);
-        return () => document.removeEventListener('paste', onPaste);
+        document.addEventListener("paste", onPaste);
+        return () => document.removeEventListener("paste", onPaste);
     }, []);
 
     if (props.error) {
@@ -204,12 +208,15 @@ function TicketDetail(props: TicketDetailProps) {
 
     const tabItems: Tab[] = [
         {
-            key: 'dt-timeline',
-            label: 'Timeline',
+            key: "dt-timeline",
+            label: "Timeline",
             children: (
                 <Timeline mode="left">
                     {logs.map((log, i) => {
-                        const d = Render.date(log.createdAt, Render.DATE_WITH_TIMESTAMP);
+                        const d = Render.date(
+                            log.createdAt,
+                            Render.DATE_WITH_TIMESTAMP
+                        );
                         return (
                             <Timeline.Item key={`tl:item-${i}`} label={d}>
                                 {log.message}
@@ -222,14 +229,14 @@ function TicketDetail(props: TicketDetailProps) {
             ),
         },
         {
-            key: 'dt-gaul',
-            label: 'Gaul Relation',
+            key: "dt-gaul",
+            label: "Gaul Relation",
             disabled: !ticket.gaul,
             children: <GaulRelation relations={props.relation} />,
         },
         {
-            key: 'dt-agent',
-            label: 'Workspaces',
+            key: "dt-agent",
+            label: "Workspaces",
             disabled: props.workspaces.length < 1,
             children: (
                 <>
@@ -237,32 +244,34 @@ function TicketDetail(props: TicketDetailProps) {
                         .sort((a, b) => a.id - b.id)
                         .reverse()
                         .map((ws) => (
-                            <Workspaces key={'workspace-' + ws.id} ws={ws} />
+                            <Workspaces key={"workspace-" + ws.id} ws={ws} />
                         ))}
                 </>
             ),
         },
     ];
 
-    const watchStat = Form.useWatch('status', submission);
+    const watchStat = Form.useWatch("status", submission);
 
     const contact = {
-        name: props.data.senderName || '-',
-        phone: props.contact?.phone || '-',
+        name: props.data.senderName || "-",
+        phone: props.contact?.phone || "-",
         get link() {
             if (!props.contact?.phone) return;
 
             let phone = props.contact.phone;
 
-            if (phone.startsWith('+62')) phone = phone;
-            else phone = '+62' + phone.substring(1);
-            return 'https://t.me/' + phone;
+            if (phone.startsWith("+62")) phone = phone;
+            else phone = "+62" + phone.substring(1);
+            return "https://t.me/" + phone;
         },
     };
 
     console.log(props.assets);
     return (
-        <DetailContext.Provider value={{ ticket: props.data, assets: props.assets }}>
+        <DetailContext.Provider
+            value={{ ticket: props.data, assets: props.assets }}
+        >
             <div className="tc-detail-container">
                 <Head>
                     <title>Mars - Detail Tiket {ticket.no}</title>
@@ -292,7 +301,10 @@ function TicketDetail(props: TicketDetailProps) {
                             <CopyToClipboard data={ticket.serviceNo} withIcon />
                         </Descriptions.Item>
                         <Descriptions.Item label="Tiket Nossa">
-                            <CopyToClipboard data={ticket.incidentNo} withIcon />
+                            <CopyToClipboard
+                                data={ticket.incidentNo}
+                                withIcon
+                            />
                         </Descriptions.Item>
                         <Descriptions.Item label="Kendala">
                             {ticket.issue.name}
@@ -305,7 +317,9 @@ function TicketDetail(props: TicketDetailProps) {
                             {Render.witel(ticket.witel)}
                         </Descriptions.Item>
                         <Descriptions.Item label="STO" span={2}>
-                            {Render.tags({ bold: true, statusDisplay: true })(ticket.sto)}
+                            {Render.tags({ bold: true, statusDisplay: true })(
+                                ticket.sto
+                            )}
                         </Descriptions.Item>
 
                         <Descriptions.Item label="Sumber">
@@ -344,7 +358,10 @@ function TicketDetail(props: TicketDetailProps) {
                             </Space>
                         </Descriptions.Item>
                         <Descriptions.Item label="Attachments" span={5}>
-                            <SharedAsset assets={props.assets.assets} emptyWithText />
+                            <SharedAsset
+                                assets={props.assets.assets}
+                                emptyWithText
+                            />
                         </Descriptions.Item>
                     </Descriptions>
                     <Divider />
@@ -383,10 +400,16 @@ function TicketDetail(props: TicketDetailProps) {
                                 label={<b>Status</b>}
                                 colon
                                 rules={[
-                                    { required: true, message: 'Status update required' },
+                                    {
+                                        required: true,
+                                        message: "Status update required",
+                                    },
                                 ]}
                             >
-                                <Radio.Group buttonStyle="solid" disabled={disableSubmit}>
+                                <Radio.Group
+                                    buttonStyle="solid"
+                                    disabled={disableSubmit}
+                                >
                                     <Radio.Button value={Mars.Status.CLOSED}>
                                         Close
                                     </Radio.Button>
@@ -399,25 +422,20 @@ function TicketDetail(props: TicketDetailProps) {
                                 </Radio.Group>
                             </Form.Item>
 
-                            <Form.Item label={<b>Actual Solution</b>} name="solution">
+                            <Form.Item
+                                label={<b>Actual Solution</b>}
+                                name="solution"
+                                // required={[Mars.Status.CLOSED].includes(status)}
+                                rules={[
+                                    {
+                                        required: [Mars.Status.CLOSED].includes(status),
+                                        message: 'Actsol tidak boleh kosong'
+                                    }
+                                ]}
+                            >
                                 <SolutionSelect disabled={disableSubmit} />
                             </Form.Item>
 
-                            <Form.Item
-                                label={<b>Worklog</b>}
-                                name="description"
-                                rules={[
-                                    {
-                                        required: watchStat !== Mars.Status.DISPATCH,
-                                        message: 'Worklog tidak boleh kosong',
-                                    },
-                                ]}
-                            >
-                                <Input.TextArea
-                                    placeholder="work description"
-                                    disabled={disableSubmit}
-                                />
-                            </Form.Item>
 
                             <Form.Item label={<b>Attachments</b>}>
                                 <Form.Item name="files" noStyle>
@@ -426,7 +444,7 @@ function TicketDetail(props: TicketDetailProps) {
                                         multiple
                                         fileList={files}
                                         name="files"
-                                        accept={IMAGE_FILE_EXT.join(', ')}
+                                        accept={IMAGE_FILE_EXT.join(", ")}
                                         onRemove={(file) => {
                                             const index = files.indexOf(file);
                                             const copy = [...files];
@@ -445,11 +463,29 @@ function TicketDetail(props: TicketDetailProps) {
                                         Click or drag file to this area to upload
                                     </p> */}
                                         <p className="ant-upload-hint">
-                                            Click or drag file to this area to upload
+                                            Click or drag file to this area to
+                                            upload
                                             {/* Support for a single or bulk upload. */}
                                         </p>
                                     </Upload.Dragger>
                                 </Form.Item>
+                            </Form.Item>
+
+                            <Form.Item
+                                label={<b>Worklog</b>}
+                                name="description"
+                                rules={[
+                                    {
+                                        required:
+                                            watchStat !== Mars.Status.DISPATCH,
+                                        message: "Worklog tidak boleh kosong",
+                                    },
+                                ]}
+                            >
+                                <Input.TextArea
+                                    placeholder="work description"
+                                    disabled={disableSubmit}
+                                />
                             </Form.Item>
                         </Form>
                     </Card>
@@ -472,8 +508,8 @@ export async function getServerSideProps(
             props: {
                 error: {
                     status: 401,
-                    title: 'Unauthorized',
-                    detail: 'Full authentication required to access this resource',
+                    title: "Unauthorized",
+                    detail: "Full authentication required to access this resource",
                 },
             },
         };
@@ -486,7 +522,7 @@ export async function getServerSideProps(
         if (axios.isAxiosError(res)) {
             const errorData = res.response?.data ?? {
                 status: res.status,
-                title: 'Internal Error',
+                title: "Internal Error",
                 detail: res.message,
             };
             return {
@@ -495,8 +531,12 @@ export async function getServerSideProps(
                 },
             };
         } else {
+            const viewOnly = "viewOnly" in ctx.query;
             const data: DTO.Ticket = res.data;
-            const logRes = await api.get(`/ticket/detail/${ticketNo}/logs`, config);
+            const logRes = await api.get(
+                `/ticket/detail/${ticketNo}/logs`,
+                config
+            );
             const relatedRes = await api.get<DTO.Ticket[]>(
                 `/ticket/detail/${ticketNo}/relation`,
                 { ...config, params: { wip: { in: [true, false] } } }
@@ -519,6 +559,7 @@ export async function getServerSideProps(
                     workspaces: workspacesRes.data,
                     relation: relatedRes.data.filter((e) => e.id !== data.id),
                     assets: scanAssets(data, workspacesRes.data),
+                    viewOnly,
                 },
             };
 
@@ -537,6 +578,7 @@ interface TicketDetailProps {
     relation: DTO.Ticket[];
     assets: ScannedAsset;
     error: any;
+    viewOnly: boolean;
 }
 
 function SharedAsset(props: SharedAssetProps) {
@@ -547,7 +589,7 @@ function SharedAsset(props: SharedAssetProps) {
     }
 
     const copyImage = useCallback(async (path: string) => {
-        const url = '/api/shared' + (path.startsWith('/') ? '' : '/') + path;
+        const url = "/api/shared" + (path.startsWith("/") ? "" : "/") + path;
         try {
             let img = BlobCache.get(url);
             if (!img) {
@@ -562,7 +604,7 @@ function SharedAsset(props: SharedAssetProps) {
             await navigator.clipboard.write([
                 new ClipboardItem({ [img.type]: img.data }),
             ]);
-            message.success('Image copied to clipboard');
+            message.success("Image copied to clipboard");
         } catch (ex) {
             console.error(ex);
             notif.error(ex);
@@ -570,20 +612,26 @@ function SharedAsset(props: SharedAssetProps) {
     }, []);
 
     const previewImage = (asset: SharedAsset) => {
-        const url = '/api/shared' + (asset.path.startsWith('/') ? '' : '/') + asset.path;
-        const link = document.createElement('a');
+        const url =
+            "/api/shared" +
+            (asset.path.startsWith("/") ? "" : "/") +
+            asset.path;
+        const link = document.createElement("a");
         link.href = url;
-        link.target = '_blank';
+        link.target = "_blank";
         link.click();
-    }
+    };
 
     const downloadAction = (asset: SharedAsset) => {
-        const url = '/api/shared' + (asset.path.startsWith('/') ? '' : '/') + asset.path;
-        axios.get(url, { responseType: 'blob' }).then((res) => {
+        const url =
+            "/api/shared" +
+            (asset.path.startsWith("/") ? "" : "/") +
+            asset.path;
+        axios.get(url, { responseType: "blob" }).then((res) => {
             const href = URL.createObjectURL(res.data);
-            const link = document.createElement('a');
+            const link = document.createElement("a");
             link.href = href;
-            link.setAttribute('download', asset.name);
+            link.setAttribute("download", asset.name);
             link.click();
 
             URL.revokeObjectURL(href);
@@ -592,7 +640,7 @@ function SharedAsset(props: SharedAssetProps) {
 
     const actions = (asset: SharedAsset) => {
         const iconStyle = {
-            color: 'black',
+            color: "black",
             fontSize: 18,
         };
 
@@ -617,7 +665,9 @@ function SharedAsset(props: SharedAssetProps) {
                 <Button
                     type="text"
                     onClick={() => downloadAction(asset)}
-                    icon={<DownloadOutlined title="Download" style={iconStyle} />}
+                    icon={
+                        <DownloadOutlined title="Download" style={iconStyle} />
+                    }
                 />
             );
         }
@@ -625,28 +675,28 @@ function SharedAsset(props: SharedAssetProps) {
     };
 
     const datasource: SharedAsset[] = assets.map<SharedAsset>((asset) => {
-        const name = asset.substring(asset.lastIndexOf('/') + 1);
-        const extension = name.substring(name.lastIndexOf('.') + 1);
+        const name = asset.substring(asset.lastIndexOf("/") + 1);
+        const extension = name.substring(name.lastIndexOf(".") + 1);
 
         let icon: any;
         let previewable = false;
         switch (extension) {
-            case 'jpg':
-            case 'jpeg':
-            case 'png':
-            case 'webp':
+            case "jpg":
+            case "jpeg":
+            case "png":
+            case "webp":
                 icon = FileImageOutlined;
                 previewable = true;
                 break;
-            case 'pdf':
+            case "pdf":
                 icon = FilePdfOutlined;
                 break;
-            case 'xlsx':
-            case 'xls':
+            case "xlsx":
+            case "xls":
                 icon = FileExcelOutlined;
                 break;
-            case 'zip':
-            case 'rar':
+            case "zip":
+            case "rar":
                 icon = FileZipOutlined;
                 break;
             default:
@@ -667,10 +717,12 @@ function SharedAsset(props: SharedAssetProps) {
             className="ticket-shared-asset"
             dataSource={datasource}
             renderItem={(item, index) => (
-                <List.Item 
-                
-                title={`${item.previewable ? 'Image' : 'Dokumen'}: ${item.name}`}
-                actions={actions(item)}>
+                <List.Item
+                    title={`${item.previewable ? "Image" : "Dokumen"}: ${
+                        item.name
+                    }`}
+                    actions={actions(item)}
+                >
                     <List.Item.Meta
                         title={
                             <Space>
@@ -735,13 +787,18 @@ function GaulRelation(props: { relations: DTO.Ticket[] }) {
             itemLayout="vertical"
             dataSource={relations}
             renderItem={(item) => {
-                const title = <Link href={`/ticket/${item.no}`}>Tiket - {item.no}</Link>;
+                const title = (
+                    <Link href={`/ticket/${item.no}`}>Tiket - {item.no}</Link>
+                );
 
                 const description = (
                     <p className="text-primary">
-                        Created:{' '}
-                        {format(new Date(item.createdAt), Render.DATE_WITH_TIMESTAMP)},
-                        By: {item.createdBy}
+                        Created:{" "}
+                        {format(
+                            new Date(item.createdAt),
+                            Render.DATE_WITH_TIMESTAMP
+                        )}
+                        , By: {item.createdBy}
                     </p>
                 );
                 const actionStatus = (
@@ -790,14 +847,25 @@ function Workspaces(props: { ws: DTO.AgentWorkspace }) {
             <CreatedBy data={{ nik: ws.agent.nik }} field="nik" replace />
         </Space>
     );
-    const extra = <Space>{Render.date(ws.createdAt, Render.DATE_WITH_TIMESTAMP)}</Space>;
+    const extra = (
+        <Space>{Render.date(ws.createdAt, Render.DATE_WITH_TIMESTAMP)}</Space>
+    );
     return (
-        <Card title={title} size="small" extra={extra} style={{ marginBottom: '1rem' }}>
+        <Card
+            title={title}
+            size="small"
+            extra={extra}
+            style={{ marginBottom: "1rem" }}
+        >
             {ws.worklogs
                 .sort((a, b) => a.id - b.id)
                 .reverse()
                 .map((wl) => (
-                    <WorklogView key={`worklog:${ws.id}-` + wl.id} ws={ws} wl={wl} />
+                    <WorklogView
+                        key={`worklog:${ws.id}-` + wl.id}
+                        ws={ws}
+                        wl={wl}
+                    />
                 ))}
         </Card>
     );
@@ -815,21 +883,25 @@ function WorklogView(props: { ws: DTO.AgentWorkspace; wl: DTO.AgentWorklog }) {
         <Space>
             {wl.takeStatus}
             <RightSquareOutlined />
-            {wl.closeStatus || <span className="text-primary">* Sedang Dikerjakan</span>}
+            {wl.closeStatus || (
+                <span className="text-primary">* Sedang Dikerjakan</span>
+            )}
         </Space>
     );
 
-    const extra = <Space>{Render.date(wl.createdAt, Render.DATE_WITH_TIMESTAMP)}</Space>;
+    const extra = (
+        <Space>{Render.date(wl.createdAt, Render.DATE_WITH_TIMESTAMP)}</Space>
+    );
     const messageFooter = (
         <>
-            <Divider style={{ margin: '10px 0' }} />
-            <p>{wl.reopenMessage || '-'}</p>
+            <Divider style={{ margin: "10px 0" }} />
+            <p>{wl.reopenMessage || "-"}</p>
             <SharedAsset assets={assets?.requestor} />
         </>
     );
     return (
         <Card type="inner" size="small" title={title} extra={extra}>
-            {wl.message && <p>{wl.message || '-'}</p>}
+            {wl.message && <p>{wl.message || "-"}</p>}
             {assets.assets && <SharedAsset assets={assets.assets} />}
 
             {isDefined(wl.reopenMessage) && messageFooter}
@@ -844,7 +916,9 @@ function ListAssets(props: { open: BoolHook }) {
         <Modal>
             <List
                 dataSource={[{}]}
-                renderItem={(item, index) => <List.Item>Ini Item {index}</List.Item>}
+                renderItem={(item, index) => (
+                    <List.Item>Ini Item {index}</List.Item>
+                )}
             />
         </Modal>
     );

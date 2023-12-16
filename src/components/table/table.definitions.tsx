@@ -13,6 +13,7 @@ import { useCallback, useState, useEffect } from 'react';
 import { MarsButton } from '_comp/base/Button';
 import { Render } from '_comp/value-renderer';
 import { CopyAsGaulTicketEvent } from '_utils/events';
+import { Mars } from '@mars/common/types/mars';
 
 export interface TableTickerColumnOptions {
     takeOrder?(ticket: DTO.Ticket): void;
@@ -63,7 +64,7 @@ export const TableTicketColms = (opt: TableTickerColumnOptions) => {
             render: (v) => Render.bool(v),
         },
         {
-            title: 'Umur Tiket',
+            title: 'TTR',
             align: 'center',
             sorter: true,
             dataIndex: ['age', 'age'],

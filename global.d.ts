@@ -1,3 +1,4 @@
+import "./src/libs"
 import { BaseContext, NextPageContext } from 'next/dist/shared/lib/utils';
 import { ComponentType } from 'react';
 

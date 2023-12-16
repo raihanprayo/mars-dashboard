@@ -9,8 +9,9 @@ import {
     SaveOutlined,
     ImportOutlined,
     FileAddOutlined,
-} from '@ant-design/icons';
-import { HttpHeader, isDefined, upperCase } from '@mars/common';
+    SnippetsOutlined,
+} from "@ant-design/icons";
+import { HttpHeader, isDefined, upperCase } from "@mars/common";
 import {
     Button,
     Card,
@@ -24,14 +25,14 @@ import {
     message,
     Space,
     Table,
-} from 'antd';
+} from "antd";
 // import { FormInstance } from 'antd/es/form/Form';
-import type { Rule, FormInstance } from 'antd/lib/form/index';
-import type { NamePath } from 'antd/lib/form/interface';
-import axios from 'axios';
-import { NextPageContext } from 'next';
-import { getSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
+import type { Rule, FormInstance } from "antd/lib/form/index";
+import type { NamePath } from "antd/lib/form/interface";
+import axios from "axios";
+import { NextPageContext } from "next";
+import { getSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import {
     createContext,
     ReactElement,
@@ -40,25 +41,32 @@ import {
     useEffect,
     useMemo,
     useState,
-} from 'react';
-import { MarsButton } from '_comp/base/Button';
-import { BooleanInput, DateRangeFilter, EnumSelect } from '_comp/table/input.fields';
-import { DefaultCol } from '_comp/table/table.definitions';
-import { TFilter } from '_comp/table/table.filter';
-import { THeader } from '_comp/table/table.header';
-import { Render } from '_comp/value-renderer';
-import { usePage } from '_ctx/page.ctx';
-import { MarsTablePagination, MarsTableProvider } from '_ctx/table.ctx';
-import { usePageable } from '_hook/pageable.hook';
-import { useBool } from '_hook/util.hook';
-import { CoreService } from '_service/api';
-import notif from '_service/notif';
-import { PageTitle } from '_utils/conversion';
+} from "react";
+import { MarsButton } from "_comp/base/Button";
+import {
+    BooleanInput,
+    DateRangeFilter,
+    EnumSelect,
+} from "_comp/table/input.fields";
+import { DefaultCol } from "_comp/table/table.definitions";
+import { TFilter } from "_comp/table/table.filter";
+import { THeader } from "_comp/table/table.header";
+import { Render } from "_comp/value-renderer";
+import { usePage } from "_ctx/page.ctx";
+import { MarsTablePagination, MarsTableProvider } from "_ctx/table.ctx";
+import { usePageable } from "_hook/pageable.hook";
+import { useBool } from "_hook/util.hook";
+import { CoreService } from "_service/api";
+import notif from "_service/notif";
+import { PageTitle } from "_utils/conversion";
+import { Pageable } from "@mars/common/types/enums";
+import { Mars } from "@mars/common/types/mars";
+import Link from "next/link";
 
 enum ParamType {
-    NOTE = 'NOTE',
-    CAPTURE = 'CAPTURE',
-    FILE = 'FILE',
+    NOTE = "NOTE",
+    CAPTURE = "CAPTURE",
+    FILE = "FILE",
 }
 
 function IssuePage(props: IssuePageProps) {
@@ -104,7 +112,8 @@ function IssuePage(props: IssuePageProps) {
     const onRowClick = useCallback(
         (record: DTO.Issue) => {
             if (detail.data) {
-                if (detail.data.id === record.id) setDetail({ data: null, edit: false });
+                if (detail.data.id === record.id)
+                    setDetail({ data: null, edit: false });
                 else {
                     setDetail({ data: record, edit: false });
                 }
@@ -128,8 +137,8 @@ function IssuePage(props: IssuePageProps) {
             if (index === -1) deletedParams.push(param.id);
         }
 
-        api.put('/issue/' + detail.data.id, { ...value, deletedParams })
-            .then((res) => message.success('Issue updated'))
+        api.put("/issue/" + detail.data.id, { ...value, deletedParams })
+            .then((res) => message.success("Issue updated"))
             .then(() => refresh())
             .catch(notif.error.bind(notif))
             .finally(() => {
@@ -142,8 +151,10 @@ function IssuePage(props: IssuePageProps) {
         if (ids.length === 0) return;
 
         page.setLoading(true);
-        api.delete('/issue/bulk', { data: ids })
-            .then((res) => message.success(`Berhasil menghapus ${ids.length} Kendala`))
+        api.delete("/issue/bulk", { data: ids })
+            .then((res) =>
+                message.success(`Berhasil menghapus ${ids.length} Kendala`)
+            )
             .then(refresh)
             .catch(notif.error.bind(notif))
             .finally(() => page.setLoading(false));
@@ -153,28 +164,26 @@ function IssuePage(props: IssuePageProps) {
         if (ids.length === 0) return;
 
         page.setLoading(true);
-        api.put('/issue/bulk', ids)
-            .then((res) => message.success(`Berhasil memulihkan ${ids.length} Kendala`))
+        api.put("/issue/bulk", ids)
+            .then((res) =>
+                message.success(`Berhasil memulihkan ${ids.length} Kendala`)
+            )
             .then(refresh)
             .catch(notif.error.bind(notif))
             .finally(() => page.setLoading(false));
     };
 
+    const isFilterDeletedActive =
+        "deleted.eq" in router.query && router.query["deleted.eq"] === "true";
+    // Form.useWatch<boolean>("deleted.eq", filter);
+    // console.log(router.query)
     if (props.error) return <>{props.error.message}</>;
-
-    // console.log('Selected:', selected);
     return (
         <MarsTableProvider refresh={refresh}>
             <div className="workspace solution">
                 <div className="solution-wrap">
                     <div className="solution-content">
                         <THeader>
-                            {/* TODO: CSV IMPORT
-                            <THeader.Action
-                                title="Import CSV"
-                                icon={<FileAddOutlined />}
-                            />
-                             */}
                             <THeader.Action
                                 title="Buat"
                                 icon={<PlusOutlined />}
@@ -182,13 +191,15 @@ function IssuePage(props: IssuePageProps) {
                             >
                                 Buat Kendala
                             </THeader.Action>
-                            <THeader.Action
-                                pos="right"
-                                icon={<DeleteOutlined />}
-                                title={`Hapus Kendala Terpilih (${countSelected})`}
-                                disabled={!hasSelected}
-                                onClick={() => actionDelete(selected)}
-                            />
+                            {!isFilterDeletedActive && (
+                                <THeader.Action
+                                    pos="right"
+                                    icon={<DeleteOutlined />}
+                                    title={`Hapus Kendala Terpilih (${countSelected})`}
+                                    disabled={!hasSelected}
+                                    onClick={() => actionDelete(selected)}
+                                />
+                            )}
                             <THeader.FilterAction
                                 title="Filter Issue"
                                 pos="right"
@@ -206,7 +217,10 @@ function IssuePage(props: IssuePageProps) {
                             dataSource={props.data}
                             onRow={(data, index) => {
                                 return {
-                                    onClick: () => onRowClick(data),
+                                    onClick: () => {
+                                        if (isFilterDeletedActive) return;
+                                        onRowClick(data);
+                                    },
                                 };
                             }}
                             pagination={MarsTablePagination({
@@ -215,7 +229,7 @@ function IssuePage(props: IssuePageProps) {
                                 total: props.total,
                             })}
                             rowSelection={{
-                                type: 'checkbox',
+                                type: "checkbox",
                                 onChange(selectedRowKeys, selectedRows, info) {
                                     setSelected(selectedRowKeys as number[]);
                                 },
@@ -223,38 +237,38 @@ function IssuePage(props: IssuePageProps) {
                             columns={[
                                 DefaultCol.INCREMENTAL_NO_COL(pageable),
                                 {
-                                    title: 'Kode',
-                                    align: 'center',
+                                    title: "Kode",
+                                    align: "center",
                                     width: 150,
-                                    dataIndex: 'name',
+                                    dataIndex: "name",
                                 },
                                 {
-                                    title: 'Product',
-                                    align: 'center',
-                                    dataIndex: 'product',
+                                    title: "Product",
+                                    align: "center",
+                                    dataIndex: "product",
                                     width: 150,
                                     render: Render.product,
                                 },
                                 {
-                                    title: 'Alias',
-                                    align: 'center',
-                                    dataIndex: 'alias',
+                                    title: "Alias",
+                                    align: "center",
+                                    dataIndex: "alias",
                                 },
                                 {
-                                    title: 'Skor',
-                                    align: 'center',
-                                    dataIndex: 'score',
+                                    title: "Skor",
+                                    align: "center",
+                                    dataIndex: "score",
                                 },
                                 {
-                                    title: 'Parameter',
-                                    align: 'center',
+                                    title: "Parameter",
+                                    align: "center",
                                     width: 100,
                                     render(value, record, index) {
                                         return (
                                             <>
                                                 {record.params.map((e) => {
                                                     const color = e.required
-                                                        ? 'red'
+                                                        ? "red"
                                                         : undefined;
                                                     return Render.tags({
                                                         bold: true,
@@ -267,88 +281,105 @@ function IssuePage(props: IssuePageProps) {
                                 },
                                 DefaultCol.CREATION_DATE_COL,
                                 {
-                                    title: 'Aksi',
-                                    align: 'center',
+                                    title: "Aksi",
+                                    align: "center",
                                     width: 100,
+
                                     render(value, record, index) {
                                         const deleted = record.deleted;
-                                        const name = record.alias || record.name;
-                                        return (
-                                            <Space align="baseline">
-                                                {!deleted && (
-                                                    <MarsButton
-                                                        type="primary"
-                                                        title={`Delete ${name}`}
-                                                        icon={<DeleteOutlined />}
-                                                        onClick={() =>
-                                                            actionDelete([record.id])
-                                                        }
-                                                    />
-                                                )}
+                                        const name =
+                                            record.alias || record.name;
 
-                                                {deleted && (
+                                        if (!record.deleted) {
+                                            return (
+                                                <MarsButton
+                                                    type="primary"
+                                                    title={`Hapus Isu ${name}`}
+                                                    icon={<DeleteOutlined />}
+                                                    onClick={() =>
+                                                        actionDelete([
+                                                            record.id,
+                                                        ])
+                                                    }
+                                                />
+                                            );
+                                        } else {
+                                            return (
+                                                <Space align="baseline">
                                                     <MarsButton
                                                         type="primary"
-                                                        title={`Restore ${name}`}
-                                                        icon={<DeleteOutlined />}
+                                                        title={`Pulihkan Isu ${name}`}
+                                                        icon={
+                                                            <SnippetsOutlined />
+                                                        }
                                                         onClick={() =>
-                                                            actionDelete([record.id])
+                                                            actionRestore([
+                                                                record.id,
+                                                            ])
                                                         }
                                                     />
-                                                )}
-                                            </Space>
-                                        );
+                                                </Space>
+                                            );
+                                        }
                                     },
                                 },
                             ]}
                         />
                     </div>
-                    <div className="solution-sider">
-                        <InfoIssueContext.Provider
-                            value={{
-                                selected: detail.data,
-                                edit: detail.edit,
-                                form: editForm,
-                            }}
-                        >
-                            <Card
-                                size="small"
-                                className="card-editable"
-                                title={
-                                    'Detail ' +
-                                    (detail.data?.name ? detail.data.name : 'Kendala')
-                                }
-                                hoverable
-                                extra={
-                                    <Space>
-                                        {detail.edit && (
-                                            <MarsButton
-                                                children="Save"
-                                                size="small"
-                                                icon={<SaveOutlined />}
-                                                onClick={onEditSubmit}
-                                            />
-                                        )}
-                                        <MarsButton
-                                            children="Edit"
-                                            size="small"
-                                            icon={<EditOutlined />}
-                                            onClick={() =>
-                                                setDetail({
-                                                    ...detail,
-                                                    edit: !detail.edit,
-                                                })
-                                            }
-                                            disabled={!isDefined(detail.data)}
-                                        />
-                                    </Space>
-                                }
+                    {!isFilterDeletedActive && (
+                        <div className="solution-sider">
+                            <InfoIssueContext.Provider
+                                value={{
+                                    selected: detail.data,
+                                    edit: detail.edit,
+                                    form: editForm,
+                                }}
                             >
-                                {!hasFocusDetail && <i>* No Data Selected</i>}
-                                {hasFocusDetail && <InfoIssueView />}
-                            </Card>
-                        </InfoIssueContext.Provider>
-                    </div>
+                                <Card
+                                    size="small"
+                                    className="card-editable"
+                                    title={
+                                        "Detail " +
+                                        (detail.data?.name
+                                            ? detail.data.name
+                                            : "Kendala")
+                                    }
+                                    hoverable
+                                    extra={
+                                        <Space>
+                                            {detail.edit && (
+                                                <MarsButton
+                                                    children="Save"
+                                                    size="small"
+                                                    icon={<SaveOutlined />}
+                                                    onClick={onEditSubmit}
+                                                />
+                                            )}
+                                            <MarsButton
+                                                children="Edit"
+                                                size="small"
+                                                icon={<EditOutlined />}
+                                                onClick={() =>
+                                                    setDetail({
+                                                        ...detail,
+                                                        edit: !detail.edit,
+                                                    })
+                                                }
+                                                disabled={
+                                                    !isDefined(detail.data)
+                                                }
+                                            />
+                                        </Space>
+                                    }
+                                >
+                                    {!hasFocusDetail && (
+                                        <i>* No Data Selected</i>
+                                    )}
+                                    {hasFocusDetail && <InfoIssueView />}
+                                </Card>
+                            </InfoIssueContext.Provider>
+                        </div>
+                    )}
                 </div>
             </div>
             <TFilter
@@ -356,17 +387,21 @@ function IssuePage(props: IssuePageProps) {
                 title="Filter Kendala"
                 initialValue={{ deleted: { eq: false } }}
             >
-                <Form.Item label="Nama" name={['name', 'like']}>
+                <Form.Item label="Nama" name={["name", "like"]}>
                     <Input />
                 </Form.Item>
-                <Form.Item label="Product" name={['product', 'in']}>
+                <Form.Item label="Product" name={["product", "in"]}>
                     <EnumSelect enums={Mars.Product} />
                 </Form.Item>
-                <Form.Item label="Terhapus" name={['deleted', 'eq']}>
+                <Form.Item
+                    label="Terhapus"
+                    name={["deleted", "eq"]}
+                    valuePropName="checked"
+                >
                     <Checkbox />
                 </Form.Item>
 
-                <Form.Item label="Dibuat Oleh" name={['createdBy', 'like']}>
+                <Form.Item label="Dibuat Oleh" name={["createdBy", "like"]}>
                     <Input />
                 </Form.Item>
                 <Form.Item label="Dibuat Tanggal" name="createdAt">
@@ -387,7 +422,7 @@ export async function getServerSideProps(ctx: NextPageContext) {
         params: ctx.query,
     });
 
-    const res = await api.manage(api.get<DTO.Issue[]>('/issue', config));
+    const res = await api.manage(api.get<DTO.Issue[]>("/issue", config));
     if (axios.isAxiosError(res)) return api.serverSideError(res);
 
     const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
@@ -395,7 +430,7 @@ export async function getServerSideProps(ctx: NextPageContext) {
         props: {
             total,
             data: res.data.map((d) => {
-                d['key'] = d.id;
+                d["key"] = d.id;
                 return d;
             }),
         },
@@ -407,7 +442,7 @@ export interface IssuePageProps extends CoreService.ErrorDTO {
     total: number;
 }
 
-export default PageTitle('Kendala', IssuePage);
+export default PageTitle("Kendala", IssuePage);
 
 // Drawer ---------------------------------------------------------------------
 function AddIssueDrawer(props: AddIssueDrawerProps) {
@@ -419,9 +454,11 @@ function AddIssueDrawer(props: AddIssueDrawerProps) {
         await form.validateFields().then(() => loading.setValue(true));
         const values = form.getFieldsValue();
 
-        api.post('/issue', values)
+        api.post("/issue", values)
             .then(() =>
-                message.success(`Berhasil menambah Kendala/Issue "${values.name}"`)
+                message.success(
+                    `Berhasil menambah Kendala/Issue "${values.name}"`
+                )
             )
             .catch(notif.error)
             .finally(() => loading.setValue(false));
@@ -432,11 +469,13 @@ function AddIssueDrawer(props: AddIssueDrawerProps) {
         props.onClose?.();
     }, [props.onClose]);
 
-    const allParams = Form.useWatch<any[]>('params', form) || [];
-    const hasNoteParam = allParams.findIndex((e) => e.type === ParamType.NOTE) !== -1;
+    const allParams = Form.useWatch<any[]>("params", form) || [];
+    const hasNoteParam =
+        allParams.findIndex((e) => e.type === ParamType.NOTE) !== -1;
     const hasCaptureParam =
-        allParams.findIndex((e) => (e.type?.value || e.type) === ParamType.CAPTURE) !==
-        -1;
+        allParams.findIndex(
+            (e) => (e.type?.value || e.type) === ParamType.CAPTURE
+        ) !== -1;
 
     return (
         <Drawer
@@ -446,7 +485,11 @@ function AddIssueDrawer(props: AddIssueDrawerProps) {
             onClose={onClose}
             extra={[
                 <Space key="edit-submit-btn">
-                    <Button type="primary" loading={loading.value} onClick={onSubmit}>
+                    <Button
+                        type="primary"
+                        loading={loading.value}
+                        onClick={onSubmit}
+                    >
                         Tambah
                     </Button>
                 </Space>,
@@ -456,7 +499,12 @@ function AddIssueDrawer(props: AddIssueDrawerProps) {
                 <Form.Item
                     label="Produk"
                     name="product"
-                    rules={[{ required: true, message: 'Produk tidak boleh kosong' }]}
+                    rules={[
+                        {
+                            required: true,
+                            message: "Produk tidak boleh kosong",
+                        },
+                    ]}
                 >
                     <EnumSelect enums={Mars.Product} mode={null} />
                 </Form.Item>
@@ -464,14 +512,24 @@ function AddIssueDrawer(props: AddIssueDrawerProps) {
                     label="Nama"
                     name="name"
                     tooltip="Kode nama kendala"
-                    rules={[{ required: true, message: 'Kode Nama tidak boleh kosong' }]}
+                    rules={[
+                        {
+                            required: true,
+                            message: "Kode Nama tidak boleh kosong",
+                        },
+                    ]}
                 >
                     <Input />
                 </Form.Item>
                 <Form.Item
                     label="Cek List"
                     name="description"
-                    rules={[{ required: true, message: 'Deskripsi tidak boleh kosong' }]}
+                    rules={[
+                        {
+                            required: true,
+                            message: "Deskripsi tidak boleh kosong",
+                        },
+                    ]}
                     tooltip="Cek List parameter yang nantinya digunakan sebagai cek list sebelum melakukan pembuatan order"
                 >
                     <Input.TextArea />
@@ -557,7 +615,7 @@ function EditableValue(props: EditableValueProps) {
     const { edit } = useContext(InfoIssueContext);
 
     const InputElm = props.input.type;
-    const InputProps = { ...props.input.props, size: 'small' };
+    const InputProps = { ...props.input.props, size: "small" };
     return (
         <>
             {!edit && props.children}
@@ -584,14 +642,22 @@ function InfoIssueView() {
         else form.setFieldsValue(selected ?? {});
     }, [edit, selected]);
 
-    const params: DTO.IssueParam[] = Form.useWatch(['params'], form) || [];
-    const hasCaptureParam = params.findIndex((e) => e.type === ParamType.CAPTURE) !== -1;
-    const hasNoteParam = params.findIndex((e) => e.type === ParamType.NOTE) !== -1;
-    const hasFileParam = params.findIndex((e) => e.type === ParamType.FILE) !== -1;
+    const params: DTO.IssueParam[] = Form.useWatch(["params"], form) || [];
+    const hasCaptureParam =
+        params.findIndex((e) => e.type === ParamType.CAPTURE) !== -1;
+    const hasNoteParam =
+        params.findIndex((e) => e.type === ParamType.NOTE) !== -1;
+    const hasFileParam =
+        params.findIndex((e) => e.type === ParamType.FILE) !== -1;
 
     return (
         <Form form={form} layout="vertical" initialValues={selected}>
-            <Descriptions bordered size="small" column={2} labelStyle={{ width: 90 }}>
+            <Descriptions
+                bordered
+                size="small"
+                column={2}
+                labelStyle={{ width: 90 }}
+            >
                 <Descriptions.Item span={5} label="Kode">
                     <EditableValue name="name" input={<Input />}>
                         {selected.name}
@@ -599,24 +665,32 @@ function InfoIssueView() {
                 </Descriptions.Item>
                 <Descriptions.Item span={5} label="Alias">
                     <EditableValue name="alias" input={<Input />}>
-                        {selected.alias || '-'}
+                        {selected.alias || "-"}
                     </EditableValue>
                 </Descriptions.Item>
                 <Descriptions.Item span={5} label="Produk">
                     <EditableValue
                         name="product"
-                        input={<EnumSelect mode="single" enums={Mars.Product} />}
+                        input={
+                            <EnumSelect mode="single" enums={Mars.Product} />
+                        }
                     >
                         {Render.product(selected.product)}
                     </EditableValue>
                 </Descriptions.Item>
                 <Descriptions.Item span={5} label="Skor">
-                    <EditableValue name="product" input={<Input type="number" min={0} />}>
+                    <EditableValue
+                        name="product"
+                        input={<Input type="number" min={0} />}
+                    >
                         {selected.score}
                     </EditableValue>
                 </Descriptions.Item>
                 <Descriptions.Item span={5} label="Cek List">
-                    <EditableValue name="description" input={<Input.TextArea />}>
+                    <EditableValue
+                        name="description"
+                        input={<Input.TextArea />}
+                    >
                         {selected.description}
                     </EditableValue>
                 </Descriptions.Item>
@@ -689,7 +763,7 @@ function InfoIssueView() {
 function ParameterDescriptorItem(props: ParameterDescriptorItemProps) {
     const { form, edit } = useContext(InfoIssueContext);
     const param: Partial<DTO.IssueParam> =
-        Form.useWatch(['params', props.name], form) || {};
+        Form.useWatch(["params", props.name], form) || {};
 
     const extra = !edit ? null : (
         <Space>
@@ -700,29 +774,29 @@ function ParameterDescriptorItem(props: ParameterDescriptorItemProps) {
         </Space>
     );
 
-    const title = param.type === 'NOTE' ? 'TEXT' : 'IMAGE';
+    const title = param.type === "NOTE" ? "TEXT" : "IMAGE";
     return (
         <>
-            <Form.Item hidden name={[props.name, 'id']}>
+            <Form.Item hidden name={[props.name, "id"]}>
                 <InputNumber />
             </Form.Item>
-            <Form.Item hidden name={[props.name, 'type']}>
+            <Form.Item hidden name={[props.name, "type"]}>
                 <Input />
             </Form.Item>
             <Descriptions
                 bordered
-                key={'issue-param:' + props.name + '_' + param.type}
-                title={param.type && upperCase(title, true) + ' Parameter'}
+                key={"issue-param:" + props.name + "_" + param.type}
+                title={param.type && upperCase(title, true) + " Parameter"}
                 size="small"
                 column={2}
                 labelStyle={{ width: 90 }}
                 extra={extra}
-                style={{ marginBottom: '1rem' }}
+                style={{ marginBottom: "1rem" }}
                 // className="issue-param"
             >
                 <Descriptions.Item label="Nama Display" span={5}>
                     <EditableValue
-                        name={[props.name, 'display']}
+                        name={[props.name, "display"]}
                         input={<Input />}
                         rules={[
                             {
@@ -739,7 +813,7 @@ function ParameterDescriptorItem(props: ParameterDescriptorItemProps) {
 
                 <Descriptions.Item label="Required" span={5}>
                     <EditableValue
-                        name={[props.name, 'required']}
+                        name={[props.name, "required"]}
                         input={<BooleanInput />}
                     >
                         {Render.bool(param.required)}

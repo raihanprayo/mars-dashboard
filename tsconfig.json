@@ -28,6 +28,7 @@
     "noImplicitThis": true,
     "strict": false,
     "baseUrl": ".",
+    
     "paths": {
       "@mars/common": [
         "src/libs/commons/index"

@@ -1,4 +1,9 @@
-import { AuditOutlined, DownloadOutlined } from '@ant-design/icons';
+import {
+    AuditOutlined,
+    DownloadOutlined,
+    PieChartOutlined,
+    TableOutlined,
+} from "@ant-design/icons";
 import {
     Col,
     Form,
@@ -11,11 +16,11 @@ import {
     Table,
     Typography,
     message,
-} from 'antd';
-import axios from 'axios';
-import { endOfDay, startOfToday } from 'date-fns';
-import { NextPageContext } from 'next';
-import { getSession } from 'next-auth/react';
+} from "antd";
+import axios from "axios";
+import { endOfDay, startOfToday } from "date-fns";
+import { NextPageContext } from "next";
+import { getSession } from "next-auth/react";
 import {
     createContext,
     MouseEvent,
@@ -23,28 +28,33 @@ import {
     ReactNode,
     useContext,
     useMemo,
-} from 'react';
-import dynamic from 'next/dynamic';
-import { isBrowser } from '_utils/constants';
-import { TFilter } from '_comp/table/table.filter';
+} from "react";
+import dynamic from "next/dynamic";
+import { isBrowser } from "_utils/constants";
+import { TFilter } from "_comp/table/table.filter";
 import {
     MarsTableConsumer,
     MarsTablePagination,
     MarsTableProvider,
-} from '_ctx/table.ctx';
-import { BooleanInput, DateRangeFilter, EnumSelect } from '_comp/table/input.fields';
-import { useRouter } from 'next/router';
-import { usePage } from '_ctx/page.ctx';
-import { PageTitle } from '_utils/conversion';
-import { useBool } from '_hook/util.hook';
-import notif from '_service/notif';
-import { TableTicketColms } from '_comp/table';
-import { usePageable } from '_hook/pageable.hook';
-import { isArr } from '@mars/common';
+} from "_ctx/table.ctx";
+import {
+    BooleanInput,
+    DateRangeFilter,
+    EnumSelect,
+} from "_comp/table/input.fields";
+import { useRouter } from "next/router";
+import { usePage } from "_ctx/page.ctx";
+import { PageTitle } from "_utils/conversion";
+import { useBool } from "_hook/util.hook";
+import notif from "_service/notif";
+import { TableTicketColms } from "_comp/table";
+import { usePageable } from "_hook/pageable.hook";
+import { isArr } from "@mars/common";
+import { Mars } from "@mars/common/types/mars";
 
 const Pie = dynamic(
     async () => {
-        const mod = await import('@ant-design/plots');
+        const mod = await import("@ant-design/plots");
         return mod.Pie;
     },
     { ssr: false }
@@ -83,19 +93,19 @@ function ReportsPage(props: ReportsPageProps) {
 
     const downloadCsv = () => {
         if (data.chart.count.total === 0) {
-            message.info('Total tiket pada report berjumlah 0');
+            message.info("Total tiket pada report berjumlah 0");
         } else {
             page.setLoading(true);
-            api.get('/chart/ticket/report/download', {
-                responseType: 'blob',
+            api.get("/chart/ticket/report/download", {
+                responseType: "blob",
                 params: filter.getFieldsValue(),
             })
                 .then((res) => {
                     const blob: Blob = res.data;
                     const href = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
+                    const link = document.createElement("a");
                     link.href = href;
-                    link.setAttribute('download', res.headers.filename);
+                    link.setAttribute("download", res.headers.filename);
                     link.click();
 
                     URL.revokeObjectURL(href);
@@ -126,22 +136,28 @@ function ReportsPage(props: ReportsPageProps) {
             dataSource={data.raw}
             size="small"
             style={{ marginTop: 10 }}
-            columns={TableTicketColms({ pageable, withActionCol: false })}
+            columns={TableTicketColms({
+                pageable,
+                withActionCol: false,
+                withLinkToDetail: true,
+            })}
             pagination={MarsTablePagination({
                 pageable,
                 setPageable,
                 total: props.data.rawTotal,
             })}
             onChange={(p, f, s, e) => {
-                if (e.action !== 'sort') return;
+                if (e.action !== "sort") return;
                 if (!isArr(s)) {
                     const { column, order, field } = s;
-                    const f = !isArr(field) ? String(field) : field.join('.');
+                    const f = !isArr(field) ? String(field) : field.join(".");
                     updateSort(f, order);
                 } else {
                     for (const sortProp of s) {
                         const { column, order, field } = sortProp;
-                        const f = !isArr(field) ? String(field) : field.join('.');
+                        const f = !isArr(field)
+                            ? String(field)
+                            : field.join(".");
                         updateSort(f, order);
                     }
                 }
@@ -157,13 +173,24 @@ function ReportsPage(props: ReportsPageProps) {
                         <MarsTableConsumer>
                             {(value) => (
                                 <Radio.Group>
+                                    <Radio.Button
+                                        onClick={() => switchView.toggle()}
+                                    >
+                                        {switchView.value ? (
+                                            <TableOutlined />
+                                        ) : (
+                                            <PieChartOutlined />
+                                        )}
+                                    </Radio.Button>
                                     <Radio.Button onClick={downloadCsv}>
                                         <Space>
-                                            <DownloadOutlined />
+                                            <DownloadOutlined rev={{}} />
                                             CSV
                                         </Space>
                                     </Radio.Button>
-                                    <Radio.Button onClick={() => value.toggleFilter()}>
+                                    <Radio.Button
+                                        onClick={() => value.toggleFilter()}
+                                    >
                                         Filter
                                     </Radio.Button>
                                 </Radio.Group>
@@ -176,11 +203,16 @@ function ReportsPage(props: ReportsPageProps) {
                             title="Total Tiket"
                             value={data.chart.count.total}
                             prefix={<AuditOutlined />}
-                            onClick={(event) => switchView.toggle()}
                         />
                         <CardInfo title="IPTV" value={data.chart.count.iptv} />
-                        <CardInfo title="INTERNET" value={data.chart.count.internet} />
-                        <CardInfo title="VOICE" value={data.chart.count.voice} />
+                        <CardInfo
+                            title="INTERNET"
+                            value={data.chart.count.internet}
+                        />
+                        <CardInfo
+                            title="VOICE"
+                            value={data.chart.count.voice}
+                        />
                     </Row>
                     {!switchView.value && charts}
                     {switchView.value && tables}
@@ -193,31 +225,34 @@ function ReportsPage(props: ReportsPageProps) {
                     <Form.Item label="Tanggal Dibuat" name="createdAt" required>
                         <DateRangeFilter withTime />
                     </Form.Item>
-                    <Form.Item label="Sedang Dikerjakan" name={['wip', 'eq']}>
+                    <Form.Item label="Sedang Dikerjakan" name={["wip", "eq"]}>
                         <BooleanInput />
                     </Form.Item>
-                    <Form.Item label="Produk" name={['product', 'in']}>
+                    <Form.Item label="Produk" name={["product", "in"]}>
                         <EnumSelect enums={Mars.Product} />
                     </Form.Item>
-                    <Form.Item label="STO" name={['sto', 'like']}>
+                    <Form.Item label="STO" name={["sto", "like"]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item label="Witel" name={['witel', 'in']}>
+                    <Form.Item label="Witel" name={["witel", "in"]}>
                         <EnumSelect enums={Mars.Witel} />
                     </Form.Item>
-                    <Form.Item label="Tiket NOSSA" name={['incidentNo', 'like']}>
+                    <Form.Item
+                        label="Tiket NOSSA"
+                        name={["incidentNo", "like"]}
+                    >
                         <Input />
                     </Form.Item>
-                    <Form.Item label="Service No" name={['serviceNo', 'like']}>
+                    <Form.Item label="Service No" name={["serviceNo", "like"]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item label="Status" name={['status', 'in']}>
+                    <Form.Item label="Status" name={["status", "in"]}>
                         <EnumSelect enums={Mars.Status} />
                     </Form.Item>
-                    <Form.Item label="Sumber" name={['source', 'in']}>
+                    <Form.Item label="Sumber" name={["source", "in"]}>
                         <EnumSelect enums={Mars.Source} />
                     </Form.Item>
-                    <Form.Item label="Gaul" name={['gaul', 'eq']}>
+                    <Form.Item label="Gaul" name={["gaul", "eq"]}>
                         <BooleanInput />
                     </Form.Item>
                 </TFilter>
@@ -239,7 +274,11 @@ function CardInfo(props: CardInfoProps) {
         </Col>
     );
 }
-function ChartView(props: { data: PieChartData[]; title?: string; span?: number }) {
+function ChartView(props: {
+    data: PieChartData[];
+    title?: string;
+    span?: number;
+}) {
     const data = props.data;
     return (
         <Col className="mars-chart-view" span={props.span ?? 7}>
@@ -255,18 +294,18 @@ function ChartView(props: { data: PieChartData[]; title?: string; span?: number 
                     data={data}
                     radius={0.9}
                     label={{
-                        type: 'inner',
-                        offset: '-30%',
+                        type: "inner",
+                        offset: "-30%",
                         // content: ({ percent }) => `${(percent * 100).toFixed(0)}%`,
                         // content: ({ percent }) => `${percent}`,
                         style: {
                             fontSize: 14,
-                            textAlign: 'center',
+                            textAlign: "center",
                         },
                     }}
                     interactions={[
-                        { type: 'pie-legend-active' },
-                        { type: 'element-active' },
+                        { type: "pie-legend-active" },
+                        { type: "element-active" },
                     ]}
                 />
             )}
@@ -274,7 +313,7 @@ function ChartView(props: { data: PieChartData[]; title?: string; span?: number 
     );
 }
 
-export default PageTitle('Chart Report', ReportsPage);
+export default PageTitle("Chart Report", ReportsPage);
 
 export async function getServerSideProps(
     ctx: NextPageContext
@@ -286,29 +325,32 @@ export async function getServerSideProps(
 
     const config = api.auhtHeader(session, {
         params: {
-            'createdAt.gte': startDay,
-            'createdAt.lte': endDay,
+            "createdAt.gte": startDay,
+            "createdAt.lte": endDay,
             ...ctx.query,
         },
     });
-    const res = await api.manage(api.get('/chart/ticket/report', config));
+    const res = await api.manage(api.get("/chart/ticket/report", config));
 
     if (axios.isAxiosError(res)) {
         return {
-            props: { data: res.response?.data, error: true },
+            props: {
+                data: res.response?.data as any,
+                error: true,
+            },
+        };
+    } else {
+        return {
+            props: {
+                error: false,
+                data: {
+                    chart: res.data.chart,
+                    raw: res.data.raw,
+                    rawTotal: Number(res.headers["x-total-count"] || 0),
+                },
+            },
         };
     }
-
-    return {
-        props: {
-            error: false,
-            data: {
-                chart: res.data.chart,
-                raw: res.data.raw,
-                rawTotal: Number(res.headers['x-total-count'] || 0),
-            },
-        },
-    };
 }
 
 interface ReportsPageProps {

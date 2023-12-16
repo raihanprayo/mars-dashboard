@@ -114,7 +114,7 @@ export interface CoreService extends Axios {
 
     manage<T = any>(
         respon: Promise<AxiosResponse<T>> | AxiosResponse<T>
-    ): Promise<AxiosResponse<T> | AxiosError<any>>;
+    ): Promise<AxiosResponse<T> | AxiosError>;
     serverSideError(err: AxiosError<any>, status?: number): any;
     serverSideErrorLog(err: any): any;
 

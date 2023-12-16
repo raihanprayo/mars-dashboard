@@ -1,16 +1,17 @@
-import { ReloadOutlined } from '@ant-design/icons';
-import { Button, Form, Space, Table } from 'antd';
-import { useCallback } from 'react';
-import { THeader } from '_comp/table/table.header';
-import { NextPageContext } from 'next';
-import { getSession } from 'next-auth/react';
-import { CoreService } from '_service/api';
-import axios from 'axios';
-import { useRouter } from 'next/router';
-import { usePage } from '_ctx/page.ctx';
-import { DateRangeFilter } from '_comp/table/input.fields';
-import { DefaultCol } from '_comp/table/table.definitions';
-import { PageTitle } from '_utils/conversion';
+import { ReloadOutlined } from "@ant-design/icons";
+import { Button, Form, Space, Table } from "antd";
+import { useCallback } from "react";
+import { THeader } from "_comp/table/table.header";
+import { NextPageContext } from "next";
+import { getSession } from "next-auth/react";
+import { CoreService } from "_service/api";
+import axios from "axios";
+import { useRouter } from "next/router";
+import { usePage } from "_ctx/page.ctx";
+import { DateRangeFilter } from "_comp/table/input.fields";
+import { DefaultCol } from "_comp/table/table.definitions";
+import { PageTitle } from "_utils/conversion";
+import { Mars } from "@mars/common/types/mars";
 
 function LeaderboardPage(props: LeaderboardPageProps) {
     const router = useRouter();
@@ -20,7 +21,7 @@ function LeaderboardPage(props: LeaderboardPageProps) {
     const [filter] = Form.useForm<LeaderboardCriteria>();
 
     const refresh = useCallback(() => {
-        page.setLoading(true, 'Complicated query, please wait');
+        page.setLoading(true, "Complicated query, please wait");
         return router
             .push({
                 pathname: router.pathname,
@@ -54,36 +55,54 @@ function LeaderboardPage(props: LeaderboardPageProps) {
                 columns={[
                     DefaultCol.NO_COL,
                     {
-                        title: 'NIK',
-                        align: 'center',
-                        dataIndex: 'nik',
-                    },
-                    {
-                        title: 'Nama',
-                        align: 'center',
-                        dataIndex: 'name',
-                    },
-                    {
-                        title: 'Avg Action',
-                        align: 'center',
-                        dataIndex: 'avgAction',
-                        render: (v: number) => {
-                            return calcTime(v);
+                        title: "NIK",
+                        align: "center",
+                        dataIndex: "nik",
+                        sorter: {
+                            multiple: 0
                         },
                     },
                     {
-                        title: 'Total Dispatch',
-                        align: 'center',
-                        dataIndex: 'totalDispatch',
+                        title: "Nama",
+                        align: "center",
+                        dataIndex: "name",
+                        sorter: {
+                            multiple: 1
+                        },
                     },
                     {
-                        title: 'Handle Dispatch',
-                        align: 'center',
-                        dataIndex: 'totalHandleDispatch',
+                        title: "Avg Action",
+                        align: "center",
+                        dataIndex: "avgAction",
+                        render: (v: number) => {
+                            return calcTime(v);
+                        },
+                        sorter: {
+                            multiple: 2
+                        },
                     },
                     {
-                        title: 'Skor',
-                        align: 'center',
+                        title: "Total Dispatch",
+                        align: "center",
+                        dataIndex: "totalDispatch",
+                        sorter: {
+                            multiple: 3
+                        },
+                    },
+                    {
+                        title: "Handle Dispatch",
+                        align: "center",
+                        dataIndex: "totalHandleDispatch",
+                        sorter: {
+                            multiple: 4
+                        },
+                    },
+                    {
+                        title: "Skor",
+                        align: "center",
+                        sorter: {
+                            multiple: 5
+                        },
                         render(v, record) {
                             const score =
                                 record.total -
@@ -93,9 +112,12 @@ function LeaderboardPage(props: LeaderboardPageProps) {
                         },
                     },
                     {
-                        title: 'Total',
-                        align: 'center',
-                        dataIndex: 'total',
+                        title: "Total",
+                        align: "center",
+                        dataIndex: "total",
+                        sorter: {
+                            multiple: 6
+                        },
                     },
                 ]}
             />
@@ -108,7 +130,7 @@ export async function getServerSideProps(ctx: NextPageContext) {
         params: ctx.query,
     });
 
-    const res = await api.manage(api.get('/chart/leaderboard', config));
+    const res = await api.manage(api.get("/chart/leaderboard", config));
     if (axios.isAxiosError(res)) return api.serverSideError(res);
     else {
         return {
@@ -124,7 +146,7 @@ interface LeaderboardPageProps extends CoreService.ErrorDTO {
     total: number;
 }
 
-export default PageTitle('Leaderboard', LeaderboardPage);
+export default PageTitle("Leaderboard", LeaderboardPage);
 
 interface LeaderboardCriteria {
     product: IFilter.Readable<Mars.Product>;
@@ -146,12 +168,12 @@ interface LeaderboardDTO {
     worklogs: DTO.AgentWorklog[];
 }
 
-function calcTime(time: number, unit: 'ms' | 's' | 'm' = 'm') {
-    if (unit === 'ms') return time + ' Mili';
+function calcTime(time: number, unit: "ms" | "s" | "m" = "m") {
+    if (unit === "ms") return time + " Mili";
 
     const second = time / 1000;
-    if (unit === 's') return Math.round(second) + ' Detik';
+    if (unit === "s") return Math.round(second) + " Detik";
 
     const minute = second / 60;
-    return Math.round(minute) + ' Menit';
+    return Math.round(minute) + " Menit";
 }

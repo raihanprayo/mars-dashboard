@@ -1,6 +1,8 @@
-namespace Mars {
+export namespace Mars {
     export enum Witel {
         ROC = 'ROC',
+        ROC_VOICE = 'ROC_VOICE',
+        ROC_TIAL = 'ROC_TIAL',
         BANTEN = 'BANTEN',
         BEKASI = 'BEKASI',
         BOGOR = 'BOGOR',
