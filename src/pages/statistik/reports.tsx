@@ -2,9 +2,11 @@ import {
     AuditOutlined,
     DownloadOutlined,
     PieChartOutlined,
+    ReloadOutlined,
     TableOutlined,
 } from "@ant-design/icons";
 import {
+    AutoComplete,
     Col,
     Form,
     Input,
@@ -28,6 +30,7 @@ import {
     ReactNode,
     useContext,
     useMemo,
+    useState,
 } from "react";
 import dynamic from "next/dynamic";
 import { isBrowser } from "_utils/constants";
@@ -49,7 +52,7 @@ import { useBool } from "_hook/util.hook";
 import notif from "_service/notif";
 import { TableTicketColms } from "_comp/table";
 import { usePageable } from "_hook/pageable.hook";
-import { isArr } from "@mars/common";
+import { isArr, isStr } from "@mars/common";
 import { Mars } from "@mars/common/types/mars";
 
 const Pie = dynamic(
@@ -75,15 +78,32 @@ function ReportsPage(props: ReportsPageProps) {
     const switchView = useBool();
     const data = props.data;
     const [filter] = Form.useForm<ICriteria<DTO.Ticket>>();
+    const [users, setUsers] = useState<DTO.Users[]>([]);
     const { pageable, setPageable, updateSort } = usePageable();
 
     const refresh = () => {
         page.setLoading(true);
+
+        const userMap = Object.fromEntries(
+            users.map((u) => [u.name, u.id] as const)
+        );
+        const query: any = { ...filter.getFieldsValue() };
+
+        if (
+            query.workspace &&
+            query.workspace.userId &&
+            isStr(query.workspace.userId.eq)
+        ) {
+            console.log("Pre Convert", query.workspace.userId.eq);
+            query.workspace.userId.eq = userMap[query.workspace.userId.eq];
+        }
+
+        console.log("Post Convert", query);
         return router
             .push({
                 pathname: router.pathname,
                 query: api.serializeParam({
-                    ...filter.getFieldsValue(),
+                    ...query,
                 }),
             })
             .finally(() => page.setLoading(false));
@@ -111,6 +131,20 @@ function ReportsPage(props: ReportsPageProps) {
                 .catch((err) => notif.error(err))
                 .finally(() => page.setLoading(false));
         }
+    };
+
+    const findUser = async (name: string) => {
+        try {
+            const res = await api.get<DTO.Users[]>("/user", {
+                params: {
+                    plain: true,
+                    name: {
+                        contains: name,
+                    },
+                },
+            });
+            setUsers(res.data);
+        } catch (ex) {}
     };
 
     const hGutter = 16;
@@ -160,7 +194,7 @@ function ReportsPage(props: ReportsPageProps) {
     return (
         <MarsTableProvider refresh={refresh}>
             <ReportContext.Provider value={{ cardSpan: 3 }}>
-                <div className="mars-report" style={{overflow: 'hidden'}}>
+                <div className="mars-report" style={{ overflow: "hidden" }}>
                     <div className="mars-report-tools">
                         <MarsTableConsumer>
                             {(value) => (
@@ -173,6 +207,9 @@ function ReportsPage(props: ReportsPageProps) {
                                         ) : (
                                             <PieChartOutlined />
                                         )}
+                                    </Radio.Button>
+                                    <Radio.Button onClick={() => refresh()}>
+                                        <ReloadOutlined />
                                     </Radio.Button>
                                     <Radio.Button onClick={downloadCsv}>
                                         <Space>
@@ -215,6 +252,19 @@ function ReportsPage(props: ReportsPageProps) {
                     </Form.Item>
                     <Form.Item label="Sedang Dikerjakan" name={["wip", "eq"]}>
                         <BooleanInput />
+                    </Form.Item>
+                    <Form.Item
+                        label="Dikerjakan oleh"
+                        name={["workspace", "userId", "eq"]}
+                    >
+                        <AutoComplete
+                            placeholder="Nama User"
+                            onSearch={findUser}
+                            options={users.map((u) => ({
+                                label: u.name,
+                                value: u.name,
+                            }))}
+                        />
                     </Form.Item>
                     <Form.Item label="Produk" name={["product", "in"]}>
                         <EnumSelect enums={Mars.Product} />
