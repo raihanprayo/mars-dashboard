@@ -66,16 +66,14 @@ interface ReportContext {
 }
 
 function ReportsPage(props: ReportsPageProps) {
-    const hGutter = 10;
-
     if (props.error) {
         return <>Fail to fetch data</>;
     }
 
-    const data = props.data;
     const router = useRouter();
     const page = usePage();
     const switchView = useBool();
+    const data = props.data;
     const [filter] = Form.useForm<ICriteria<DTO.Ticket>>();
     const { pageable, setPageable, updateSort } = usePageable();
 
@@ -115,16 +113,10 @@ function ReportsPage(props: ReportsPageProps) {
         }
     };
 
-    const initialDate = useMemo(
-        () => ({
-            gte: startOfToday(),
-            lte: endOfDay(startOfToday()),
-        }),
-        []
-    );
-
+    const hGutter = 16;
     const charts = (
-        <Row className="mars-chart-container" gutter={16}>
+        <Row className="mars-chart-container" gutter={hGutter}>
+            <ChartView title="Status" data={data.chart.status} />
             <ChartView title="Umur Tiket" data={data.chart.age} />
             <ChartView title="Lama Aksi" data={data.chart.actionAge} />
             <ChartView title="Waktu Respon" data={data.chart.responseAge} />
@@ -168,7 +160,7 @@ function ReportsPage(props: ReportsPageProps) {
     return (
         <MarsTableProvider refresh={refresh}>
             <ReportContext.Provider value={{ cardSpan: 3 }}>
-                <div className="mars-report">
+                <div className="mars-report" style={{overflow: 'hidden'}}>
                     <div className="mars-report-tools">
                         <MarsTableConsumer>
                             {(value) => (
@@ -217,11 +209,7 @@ function ReportsPage(props: ReportsPageProps) {
                     {!switchView.value && charts}
                     {switchView.value && tables}
                 </div>
-                <TFilter
-                    form={filter}
-                    title="Report"
-                    initialValue={{ createdAt: initialDate }}
-                >
+                <TFilter form={filter} title="Report">
                     <Form.Item label="Tanggal Dibuat" name="createdAt" required>
                         <DateRangeFilter withTime />
                     </Form.Item>
@@ -320,13 +308,13 @@ export async function getServerSideProps(
 ): NextServerSidePropsAsync<ReportsPageProps> {
     const session = await getSession(ctx);
 
-    const startDay = startOfToday();
-    const endDay = endOfDay(startDay);
+    // const startDay = startOfToday();
+    // const endDay = endOfDay(startDay);
 
     const config = api.auhtHeader(session, {
         params: {
-            "createdAt.gte": startDay,
-            "createdAt.lte": endDay,
+            // "createdAt.gte": startDay,
+            // "createdAt.lte": endDay,
             ...ctx.query,
         },
     });
@@ -376,6 +364,7 @@ interface PieChartData {
 }
 
 interface PieChartDTO {
+    status: PieChartData[];
     age: PieChartData[];
     actionAge: PieChartData[];
     responseAge: PieChartData[];

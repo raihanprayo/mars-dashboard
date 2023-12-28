@@ -17,6 +17,7 @@ import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from 'rea
 import { useBool } from '_hook/util.hook';
 import notif from '_service/notif';
 import { onAuthenticated } from '_hook/credential.hook';
+import { Mars } from '@mars/common/types/mars';
 
 const DURATION_REGX =
     /^([-+]?)P(?:([-+]?[0-9]+)D)?(T(?:([-+]?[0-9]+)H)?(?:([-+]?[0-9]+)M)?(?:([-+]?[0-9]+)(?:[.,]([0-9]{0,9}))?S)?)?$/;

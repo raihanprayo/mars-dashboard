@@ -23,6 +23,9 @@ import { mapEnum } from '_utils/conversion';
 import { RefreshBadgeEvent } from '_utils/events';
 import { AddTicketDrawer } from './add-ticket.drawer.';
 import { ParsedUrlQuery } from 'querystring';
+import { Pageable } from '@mars/common/types/enums';
+import { Mars } from '@mars/common/types/mars';
+import MarsTable from '_comp/table/table';
 
 type TimeUnit = 's' | 'm' | 'h';
 interface AutoRefresh {
@@ -66,6 +69,7 @@ export function TicketTable(props: TicketTableProps) {
         page.setLoading(true);
 
         const filter = formFilter.getFieldsValue();
+        // filter.sta
         if (filter?.status?.in) filter.status.negated = false;
 
         return router

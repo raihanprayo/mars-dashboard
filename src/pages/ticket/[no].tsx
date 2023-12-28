@@ -428,7 +428,7 @@ function TicketDetail(props: TicketDetailProps) {
                                 // required={[Mars.Status.CLOSED].includes(status)}
                                 rules={[
                                     {
-                                        required: [Mars.Status.CLOSED].includes(status),
+                                        required: [Mars.Status.CLOSED, Mars.Status.PENDING].includes(status),
                                         message: 'Actsol tidak boleh kosong'
                                     }
                                 ]}

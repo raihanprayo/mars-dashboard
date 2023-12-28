@@ -1,4 +1,5 @@
 import { isStr, mergeClassName } from '@mars/common';
+import { Mars } from '@mars/common/types/mars';
 import { Tag } from 'antd';
 import { differenceInSeconds, format } from 'date-fns';
 

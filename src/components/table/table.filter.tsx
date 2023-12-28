@@ -1,12 +1,12 @@
-import { isDefined, isFn } from '@mars/common';
-import { Button, Drawer, Form, FormInstance, Space } from 'antd';
-import { NamePath } from 'antd/lib/form/interface';
-import { useMarsTable } from '_ctx/table.ctx';
+import { isDefined, isFn } from "@mars/common";
+import { Button, Drawer, Form, FormInstance, Space } from "antd";
+import { NamePath } from "antd/lib/form/interface";
+import { useMarsTable } from "_ctx/table.ctx";
 
 export function TFilter<T = any>(props: TFilterProps<T>) {
     const tableCtx = useMarsTable();
     if (!isDefined(tableCtx))
-        throw new Error('TFilter must be in scope of MarsTableContext');
+        throw new Error("TFilter must be in scope of MarsTableContext");
 
     const { form, title, open } = props;
 
@@ -43,24 +43,29 @@ export function TFilter<T = any>(props: TFilterProps<T>) {
                     </Space>,
                 ]}
             >
-                <Form form={form} layout="vertical" initialValues={props.initialValue}>
+                <Form
+                    form={form}
+                    layout="vertical"
+                    initialValues={props.initialValue}
+                >
                     {props.children}
                 </Form>
             </Drawer>
 
-            <Form
+            {/* <Form
                 form={form}
                 layout="vertical"
                 initialValues={props.initialValue}
-                style={{ display: 'none' }}
+                style={{ display: "none" }}
             >
                 {props.children}
-            </Form>
+            </Form> */}
         </>
     );
 }
 
 interface TFilterProps<T = any> extends HasChild {
+    baseId?: string;
     form?: FormInstance<ICriteria<T>>;
 
     title?: string;
@@ -71,7 +76,10 @@ interface TFilterProps<T = any> extends HasChild {
     initialValue?: ICriteria<T>;
 }
 
-export type FilterField = Fields.FieldString | Fields.FieldNumber | Fields.FieldDate;
+export type FilterField =
+    | Fields.FieldString
+    | Fields.FieldNumber
+    | Fields.FieldDate;
 namespace Fields {
     interface BaseField {
         index: NamePath;
@@ -79,34 +87,34 @@ namespace Fields {
     }
 
     export interface FieldString extends BaseField {
-        type: 'string';
+        type: "string";
         enums?: object;
     }
     export interface FieldNumber extends BaseField {
-        type: 'number';
+        type: "number";
     }
     export interface FieldDate extends BaseField {
-        type: 'date';
+        type: "date";
     }
 
     const OPERATOR = {
-        eq: '==',
-        notEq: '!=',
-        in: '[>]',
-        notIn: '![>]',
+        eq: "==",
+        notEq: "!=",
+        in: "[>]",
+        notIn: "![>]",
     } as const;
 
     export const STR_OPERATOR = {
         ...OPERATOR,
-        like: '[=]',
-        notLike: '![=]',
+        like: "[=]",
+        notLike: "![=]",
     } as const;
 
     export const RANGE_OPERATOR = {
         ...OPERATOR,
-        gt: '>',
-        gte: '>=',
-        lt: '<',
-        lte: '<=',
+        gt: ">",
+        gte: ">=",
+        lt: "<",
+        lte: "<=",
     } as const;
 }

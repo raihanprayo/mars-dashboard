@@ -36,10 +36,46 @@ export interface TableSolutionColumnOptions {
 
 export const TableTicketColms = (opt: TableTickerColumnOptions) => {
     const { takeOrder, withActionCol = true, withCopyToDrawer = false } = opt;
-    const cols: ColumnType<DTO.Ticket>[] = [
+    const cols: ColumnType<DTO.Ticket>[] = filterDefined([
         DefaultCol.INCREMENTAL_NO_COL(opt.pageable),
+        optionalColumn(withActionCol, {
+            title: 'Action',
+            align: 'center',
+            render(v, rec, index) {
+                const disabled = [
+                    Mars.Status.CONFIRMATION,
+                    Mars.Status.CLOSED,
+                    Mars.Status.PENDING,
+                ].includes(rec.status);
+
+                return (
+                    <Space>
+                        {withCopyToDrawer && (
+                            <MarsButton
+                                type="primary"
+                                title="Buat Gangguan Ulang"
+                                icon={<CopyOutlined />}
+                                onClick={() => CopyAsGaulTicketEvent.emit(rec)}
+                                disabledOnRole={MarsButton.disableIfAdmin}
+                            />
+                        )}
+                        {isFn(takeOrder) && (
+                            <MarsButton
+                                type="primary"
+                                onClick={() => takeOrder(rec)}
+                                icon={<EditOutlined />}
+                                title="Ambil tiket"
+                                disabled={disabled}
+                                disabledOnRole={MarsButton.disableIfAdmin}
+                                children={!withCopyToDrawer ? 'Ambil' : null}
+                            />
+                        )}
+                    </Space>
+                );
+            },
+        }),
         {
-            title: 'Order No',
+            title: 'No Order',
             align: 'center',
             dataIndex: 'no',
             sorter: true,
@@ -87,7 +123,7 @@ export const TableTicketColms = (opt: TableTickerColumnOptions) => {
             sorter: true,
         },
         {
-            title: 'Tiket NOSSA',
+            title: 'No Tiket',
             align: 'center',
             dataIndex: 'incidentNo',
             sorter: true,
@@ -120,46 +156,46 @@ export const TableTicketColms = (opt: TableTickerColumnOptions) => {
             render: Render.tags(),
         },
         { ...DefaultCol.CREATION_DATE_COL, sorter: true },
-    ];
+    ]);
 
-    if (withActionCol) {
-        cols.push({
-            title: 'Action',
-            align: 'center',
-            render(v, rec, index) {
-                const disabled = [
-                    Mars.Status.CONFIRMATION,
-                    Mars.Status.CLOSED,
-                    Mars.Status.PENDING,
-                ].includes(rec.status);
+    // if (withActionCol) {
+    //     cols.push({
+    //         title: 'Action',
+    //         align: 'center',
+    //         render(v, rec, index) {
+    //             const disabled = [
+    //                 Mars.Status.CONFIRMATION,
+    //                 Mars.Status.CLOSED,
+    //                 Mars.Status.PENDING,
+    //             ].includes(rec.status);
 
-                return (
-                    <Space>
-                        {withCopyToDrawer && (
-                            <MarsButton
-                                type="primary"
-                                title="Buat Gangguan Ulang"
-                                icon={<CopyOutlined />}
-                                onClick={() => CopyAsGaulTicketEvent.emit(rec)}
-                                disabledOnRole={MarsButton.disableIfAdmin}
-                            />
-                        )}
-                        {isFn(takeOrder) && (
-                            <MarsButton
-                                type="primary"
-                                onClick={() => takeOrder(rec)}
-                                icon={<EditOutlined />}
-                                title="Ambil tiket"
-                                disabled={disabled}
-                                disabledOnRole={MarsButton.disableIfAdmin}
-                                children={!withCopyToDrawer ? 'Ambil' : null}
-                            />
-                        )}
-                    </Space>
-                );
-            },
-        });
-    }
+    //             return (
+    //                 <Space>
+    //                     {withCopyToDrawer && (
+    //                         <MarsButton
+    //                             type="primary"
+    //                             title="Buat Gangguan Ulang"
+    //                             icon={<CopyOutlined />}
+    //                             onClick={() => CopyAsGaulTicketEvent.emit(rec)}
+    //                             disabledOnRole={MarsButton.disableIfAdmin}
+    //                         />
+    //                     )}
+    //                     {isFn(takeOrder) && (
+    //                         <MarsButton
+    //                             type="primary"
+    //                             onClick={() => takeOrder(rec)}
+    //                             icon={<EditOutlined />}
+    //                             title="Ambil tiket"
+    //                             disabled={disabled}
+    //                             disabledOnRole={MarsButton.disableIfAdmin}
+    //                             children={!withCopyToDrawer ? 'Ambil' : null}
+    //                         />
+    //                     )}
+    //                 </Space>
+    //             );
+    //         },
+    //     });
+    // }
 
     return cols;
 };
@@ -183,16 +219,6 @@ export const TableUserColms = (opt: TableUserColumnOptions = {}) => {
             dataIndex: 'nik',
             sorter: true,
         },
-        // {
-        //     title: 'Group',
-        //     align: 'center',
-        //     render(value, record, index) {
-        //         if (!isDefined(record.group)) return '-';
-        //         return (
-        //             <Link href={`/group/${record.group.id}`}>{record.group.name}</Link>
-        //         );
-        //     },
-        // },
         {
             title: 'Witel/STO',
             dataIndex: 'witel',
@@ -423,4 +449,12 @@ export namespace DefaultCol {
             return f;
         },
     };
+}
+
+
+function filterDefined<T>(columns: ColumnType<T>[]) {
+    return columns.filter(isDefined);
+}
+function optionalColumn<T>(condition: boolean, column: ColumnType<T>) {
+    return condition ? column : null;
 }

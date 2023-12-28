@@ -1,15 +1,48 @@
-import { Duration } from '.';
-import { Filter } from '../utils/filter';
+import "./enums";
+import { Filter } from "../utils/filter";
+import { Mars } from "./mars";
+
+export namespace DTO {
+    export enum SettingType {
+        STRING = "STRING",
+        BOOLEAN = "BOOLEAN",
+        // JSON = 'JSON',
+        // ARRAY = 'ARRAY',
+        DURATION = "DURATION",
+        CHARACTER = "CHARACTER",
+        INTEGER = "INTEGER",
+        LONG = "LONG",
+        DOUBLE = "DOUBLE",
+        SHORT = "SHORT",
+        FLOAT = "FLOAT",
+        LIST = "LIST",
+    }
+    export enum SettingKey {
+        APP_ALLOW_AGENT_CREATE_TICKET_BOOL = "agent-allowed-to-create-ticket",
+        APP_USER_REGISTRATION_APPROVAL_BOOL = "user-registration-approval",
+        APP_USER_REGISTRATION_APPROVAL_DRT = "user-registration-approval-duration",
+        APP_ISSUE_GAUL_EXCLUDE_LIST = "issue-gaul-exclusion",
+        APP_SOLUTION_REPORT_EXCLUDE_LIST = "solution-report-exclusion",
+
+        ACC_EXPIRED_BOOL = "account-expireable",
+        ACC_EXPIRED_DRT = "account-expired-duration",
+        ACC_REGISTRATION_EMAILS_LIST = "account-registration-approval-email",
+
+        CRD_PASSWORD_ALGO_STR = "password-algo",
+        CRD_PASSWORD_SECRET_STR = "password-secret",
+        CRD_PASSWORD_HASH_ITERATION_INT = "password-hash-iteration",
+        CRD_PASSWORD_HISTORY_INT = "password-history",
+
+        JWT_TOKEN_REFRESH_EXPIRED_DRT = "token-refresh-expired",
+        JWT_TOKEN_EXPIRED_DRT = "token-expired",
+
+        TG_CONFIRMATION_DRT = "confirmation-duration",
+        TG_PENDING_CONFIRMATION_DRT = "confirmation-pending-duration",
+        TG_START_CMD_ISSUE_COLUMN_INT = "tg-stat-command-issue-col-count",
+    }
+}
 
 declare global {
-    type PageableSortTupple = [string, Pageable.Sorts.ASC | Pageable.Sorts.DESC];
-    type PageableSort = PageableSortTupple | PageableSortTupple[];
-    interface Pageable {
-        page: number;
-        size: number;
-        sort: PageableSort | Pageable.Sorts.UNSORT;
-    }
-
     namespace DTO {
         interface Auditable extends Timestamp {
             createdBy: string;
@@ -100,8 +133,8 @@ declare global {
             wipBy?: string;
 
             age: {
-                age: DurationSegment
-            }
+                age: DurationSegment;
+            };
             // assets?: string[];
         }
         export interface TicketAgent extends Auditable {
@@ -192,7 +225,7 @@ declare global {
         }
         export interface IssueParam {
             id: number;
-            type: 'CAPTURE' | 'NOTE' | 'FILE';
+            type: "CAPTURE" | "NOTE" | "FILE";
             display: string;
             required: boolean;
         }
@@ -279,7 +312,7 @@ declare global {
                 id: number;
                 message: string;
 
-                mode?: 'Markdown' | 'MarkdownV2' | 'HTML';
+                mode?: "Markdown" | "MarkdownV2" | "HTML";
                 escaped?: boolean;
             }
 
@@ -332,3 +365,5 @@ declare global {
         ? ICriteria<NonNullable<T>>
         : Filter.Of<NonNullable<T>>;
 }
+
+addToGlobal({ DTO });

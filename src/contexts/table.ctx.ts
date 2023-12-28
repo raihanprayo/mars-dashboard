@@ -1,12 +1,11 @@
-import { isArr, isDefined } from '@mars/common';
-import { Table, TablePaginationConfig } from 'antd';
+import { isArr, isDefined } from "@mars/common";
+import { Table, TablePaginationConfig } from "antd";
 import {
     FilterValue,
     SorterResult,
     TableCurrentDataSource,
-} from 'antd/lib/table/interface';
-import { createContext, createElement, useContext, useState } from 'react';
-import pages from 'src/pages';
+} from "antd/lib/table/interface";
+import { createContext, createElement, useContext, useState } from "react";
 
 const MarsTableContext = createContext<MarsTableContext>(null);
 export interface MarsTableContext {
@@ -54,6 +53,7 @@ export function MarsTablePagination(
         defaultCurrent: 1,
         defaultPageSize: 50,
         showSizeChanger: true,
+        position: ["topRight"],
         onChange(page, pageSize) {
             const actualPage = page - 1;
 
@@ -79,18 +79,20 @@ type TableOnchange<R> = (
     extra: TableCurrentDataSource<R>
 ) => void;
 
-export function MarsTableSorter<R>(opt: MarsTableSorterOptions<R>): TableOnchange<R> {
+export function MarsTableSorter<R>(
+    opt: MarsTableSorterOptions<R>
+): TableOnchange<R> {
     // return TableProps
     return (pagination, filters, sorter, extra) => {
-        if (extra.action === 'sort') {
+        if (extra.action === "sort") {
             if (!isArr(sorter)) {
                 const { column, order, field } = sorter;
-                const f = !isArr(field) ? String(field) : field.join('.');
+                const f = !isArr(field) ? String(field) : field.join(".");
                 opt.updateSort(f, order);
             } else {
                 for (const sortProp of sorter) {
                     const { column, order, field } = sortProp;
-                    const f = !isArr(field) ? String(field) : field.join('.');
+                    const f = !isArr(field) ? String(field) : field.join(".");
                     opt.updateSort(f, order);
                 }
             }
@@ -99,6 +101,6 @@ export function MarsTableSorter<R>(opt: MarsTableSorterOptions<R>): TableOnchang
 }
 
 export interface MarsTableSorterOptions<R> {
-    updateSort(field: string, direction: 'ascend' | 'descend'): void;
+    updateSort(field: string, direction: "ascend" | "descend"): void;
     onChange?: TableOnchange<R>;
 }
