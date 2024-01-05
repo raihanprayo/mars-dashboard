@@ -11,6 +11,7 @@ import {
     BugOutlined,
     StarOutlined,
     TeamOutlined,
+    SlidersOutlined,
 } from '@ant-design/icons';
 import { isDefined } from '@mars/common';
 import { Session } from 'next-auth';
@@ -46,9 +47,18 @@ const PageRoutes: PageRoute[] = [
         icon: createElement(StarOutlined),
     },
     {
+        type: 'page',
+        name: 'Pengaturan',
+        path: '/admin/settings',
+        icon: createElement(SettingOutlined),
+        access: {
+            hasRole: [ROLE_ADMIN],
+        },
+    },
+    {
         type: 'group',
-        name: 'Lain - lain',
-        icon: createElement(ApartmentOutlined),
+        name: 'Lain - Lain',
+        icon: createElement(SlidersOutlined),
         access: {
             hasRole: [ROLE_ADMIN],
         },
@@ -78,18 +88,10 @@ const PageRoutes: PageRoute[] = [
     },
     {
         type: 'group',
-        name: 'Aplikasi',
-        icon: createElement(ApartmentOutlined),
+        name: 'Users',
+        icon: createElement(TeamOutlined),
         children: [
-            {
-                type: 'page',
-                name: 'Pengaturan',
-                path: '/admin/settings',
-                icon: createElement(SettingOutlined),
-                access: {
-                    hasRole: [ROLE_ADMIN],
-                },
-            },
+
             {
                 type: 'page',
                 name: 'Users',
@@ -101,42 +103,42 @@ const PageRoutes: PageRoute[] = [
             },
             {
                 type: 'page',
-                name: 'User Event',
+                name: 'Event',
                 path: '/admin/events',
-                icon: createElement(UserOutlined),
+                icon: createElement(SolutionOutlined),
                 access: {
                     hasRole: [ROLE_ADMIN],
                 },
             },
             {
                 type: 'page',
-                name: 'User Approvals',
+                name: 'Registrasi',
                 path: '/admin/approvals',
                 icon: createElement(AuditOutlined),
                 access: {
                     hasRole: [ROLE_ADMIN],
                 },
             },
-            {
-                type: 'page',
-                name: 'Groups',
-                path: '/admin/groups',
-                icon: createElement(GroupOutlined),
-                access: {
-                    disable: true,
-                    hasRole: [ROLE_ADMIN],
-                },
-            },
-            {
-                type: 'page',
-                name: 'Roles',
-                path: '/admin/roles',
-                icon: createElement(SolutionOutlined),
-                access: {
-                    disable: true,
-                    hasRole: [ROLE_ADMIN],
-                },
-            },
+            // {
+            //     type: 'page',
+            //     name: 'Groups',
+            //     path: '/admin/groups',
+            //     icon: createElement(GroupOutlined),
+            //     access: {
+            //         disable: true,
+            //         hasRole: [ROLE_ADMIN],
+            //     },
+            // },
+            // {
+            //     type: 'page',
+            //     name: 'Roles',
+            //     path: '/admin/roles',
+            //     icon: createElement(SolutionOutlined),
+            //     access: {
+            //         disable: true,
+            //         hasRole: [ROLE_ADMIN],
+            //     },
+            // },
         ],
     },
 ];

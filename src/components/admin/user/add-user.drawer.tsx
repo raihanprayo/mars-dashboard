@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { EnumSelect, RoleTransfer } from '_comp/table/input.fields';
 import { useApp } from '_ctx/app.ctx';
 import { FormRules } from '../rules';
+import { Mars } from '@mars/common/types/mars';
 
 export function AddUserDrawer(props: AddUserDrawerProps) {
     const router = useRouter();

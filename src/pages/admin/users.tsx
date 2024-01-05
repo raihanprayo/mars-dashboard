@@ -16,6 +16,8 @@ import { MarsTablePagination, MarsTableProvider, MarsTableSorter } from '_ctx/ta
 import { usePageable } from '_hook/pageable.hook';
 import type { CoreService } from '_service/api';
 import Head from 'next/head';
+import { Pageable } from '@mars/common/types/enums';
+import { Mars } from '@mars/common/types/mars';
 
 export default function UsersPage(props: UsersPageProps) {
     const router = useRouter();

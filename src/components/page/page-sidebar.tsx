@@ -104,7 +104,7 @@ function renderMenu(selectedPath: string, route: PageRoute, index?: number) {
         <SubMenu
             key={getKey(route.name, index)}
             icon={route.icon}
-            title={<span>{capitalize(route.name)}</span>}
+            title={<span>{route.name}</span>}
         >
             {route.children.map((subroute, i) => renderMenu(selectedPath, subroute, i))}
         </SubMenu>
