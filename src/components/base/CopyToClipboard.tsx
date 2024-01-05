@@ -1,19 +1,21 @@
-import { CopyOutlined } from '@ant-design/icons';
-import { isDefined, mergeClassName } from '@mars/common';
-import { message, Space } from 'antd';
-import { useState } from 'react';
+import { CopyOutlined } from "@ant-design/icons";
+import { isDefined, mergeClassName } from "@mars/common";
+import { message, Space } from "antd";
+import { useCallback } from "react";
 
 export function CopyToClipboard(props: CopyToClipboardProps) {
-    const onClick = () =>
+    const onClick = useCallback(() => {
+        console.debug("copy data to clipboard", props.data)
         navigator.clipboard
             .writeText(String(props.data))
-            .then(() => message.success('Copy To Clipboard', 2));
+            .then(() => message.success("Copy To Clipboard", 2));
+    }, [props.data]);
 
-    const cls = mergeClassName('copyable', props.className);
+    const cls = mergeClassName("copyable", props.className);
     if (!isDefined(props.data)) return <></>;
     return (
         <span
-            title={'copy ' + props.data}
+            title={"copy " + props.data}
             // align="baseline"
             className={cls}
             onClickCapture={onClick}

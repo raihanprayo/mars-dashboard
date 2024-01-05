@@ -160,7 +160,7 @@ function ReportsPage(props: ReportsPageProps) {
     return (
         <MarsTableProvider refresh={refresh}>
             <ReportContext.Provider value={{ cardSpan: 3 }}>
-                <div className="mars-report" style={{overflow: 'hidden'}}>
+                <div className="mars-report">
                     <div className="mars-report-tools">
                         <MarsTableConsumer>
                             {(value) => (

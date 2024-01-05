@@ -173,7 +173,7 @@ export default function SettingPage() {
                             <SettingTagApplication />
                             <SettingTagTelegram />
                             <SettingTagAccount />
-                            <SettingTagCredential />
+                            {/* <SettingTagCredential /> */}
                         </div>
                     </Form>
                 )}

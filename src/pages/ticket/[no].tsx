@@ -204,7 +204,7 @@ function TicketDetail(props: TicketDetailProps) {
         return <>Cannot get Ticket detail</>;
     }
 
-    const logs = [...props.logs].reverse();
+    const logs = useMemo(() => [...props.logs].reverse(), [props.logs]);
 
     const tabItems: Tab[] = [
         {
@@ -267,7 +267,7 @@ function TicketDetail(props: TicketDetailProps) {
         },
     };
 
-    console.log(props.assets);
+    // console.log(props.assets);
     return (
         <DetailContext.Provider
             value={{ ticket: props.data, assets: props.assets }}
@@ -601,6 +601,7 @@ function SharedAsset(props: SharedAssetProps) {
                 BlobCache.set(url, img);
             }
 
+            
             await navigator.clipboard.write([
                 new ClipboardItem({ [img.type]: img.data }),
             ]);
