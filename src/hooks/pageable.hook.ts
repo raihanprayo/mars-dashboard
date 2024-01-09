@@ -2,6 +2,7 @@ import { isArr, isNull, isStr } from '@mars/common';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { useBool } from './util.hook';
+import { Pageable } from '@mars/common/types/enums';
 
 const disableMultipleSort = true;
 export function usePageable(defaultSort?: PageableSort): PageableHook {
@@ -104,5 +105,5 @@ usePageable.DEFAULT_PAGE = 0;
 export interface PageableHook {
     pageable: Pageable;
     setPageable(v: Partial<Pageable>): void;
-    updateSort(field: string, order: 'ascend' | 'descend' | null): void;
+    updateSort(field: string, order?: 'ascend' | 'descend' | null): void;
 }

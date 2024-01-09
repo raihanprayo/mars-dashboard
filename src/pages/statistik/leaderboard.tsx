@@ -1,6 +1,6 @@
 import { ReloadOutlined } from "@ant-design/icons";
 import { Button, Form, Space, Table } from "antd";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { THeader } from "_comp/table/table.header";
 import { NextPageContext } from "next";
 import { getSession } from "next-auth/react";
@@ -12,6 +12,44 @@ import { DateRangeFilter } from "_comp/table/input.fields";
 import { DefaultCol } from "_comp/table/table.definitions";
 import { PageTitle } from "_utils/conversion";
 import { Mars } from "@mars/common/types/mars";
+import { isArr, isDefined } from "@mars/common";
+import { Pageable } from "@mars/common/types/enums";
+import { usePageable } from "_hook/pageable.hook";
+
+export async function getServerSideProps(ctx: NextPageContext) {
+    const session = await getSession(ctx);
+
+    const { page, size, ...query } = ctx.query;
+    const config = api.auhtHeader(session, {
+        params: query,
+    });
+
+    const res = await api.manage(api.get("/chart/leaderboard", config));
+    if (axios.isAxiosError(res)) return api.serverSideError(res);
+    else {
+        let data: LeaderboardDTO[] = res.data;
+        // if (sort.length > 0) {
+        //     const field = sort[0];
+        //     const direction = sort[1];
+
+        //     data = data.sort((a, b) => {
+        //         if (field !== "score") {
+        //             const a1 = a[sort[0]];
+        //             const b1 = b[sort[0]];
+        //             return direction === Pageable.Sorts.ASC ? a1 - b1 : b1 - a1;
+        //         } else {
+        //             const a1 =
+        //                 a.total - a.totalDispatch * 0.1 + a.totalHandleDispatch * 0.1;
+        //             const b1 =
+        //                 b.total - b.totalDispatch * 0.1 + b.totalHandleDispatch * 0.1;
+        //             return direction === Pageable.Sorts.ASC ? a1 - b1 : b1 - a1;
+        //         }
+        //     });
+        // }
+
+        return { props: { data } };
+    }
+}
 
 function LeaderboardPage(props: LeaderboardPageProps) {
     const router = useRouter();
@@ -19,6 +57,8 @@ function LeaderboardPage(props: LeaderboardPageProps) {
 
     // const { pageable } = usePageable();
     const [filter] = Form.useForm<LeaderboardCriteria>();
+    const { pageable, updateSort } = usePageable();
+    // const [sort, setSort] = useState<PageableSortTupple>();
 
     const refresh = useCallback(() => {
         page.setLoading(true, "Complicated query, please wait");
@@ -50,24 +90,60 @@ function LeaderboardPage(props: LeaderboardPageProps) {
             </Form>
             <Table<LeaderboardDTO>
                 size="small"
-                dataSource={props.data}
+                dataSource={
+                    props.data
+                    //     .sort((a, b) => {
+                    //     console.log("Apply Sort Leaderboard");
+                    //     if (!isDefined(sort)) {
+                    //         return 0;
+                    //     }
+
+                    //     const [field, direction] = sort;
+                    //     if (field !== "Skor") {
+                    //         const a1 = a[sort[0]];
+                    //         const b1 = b[sort[0]];
+                    //         return direction === Pageable.Sorts.ASC ? a1 - b1 : b1 - a1;
+                    //     } else {
+                    //         const a1 =
+                    //             a.total - a.totalDispatch * 0.1 + a.totalHandleDispatch * 0.1;
+                    //         const b1 =
+                    //             b.total - b.totalDispatch * 0.1 + b.totalHandleDispatch * 0.1;
+                    //         return direction === Pageable.Sorts.ASC ? a1 - b1 : b1 - a1;
+                    //     }
+                    // })
+                }
                 pagination={false}
+                onChange={(paginate, filters, sorter, extra) => {
+                    if (extra.action === "sort") {
+                        console.log("Manual Sort Leaderboard", sorter);
+                        if (!isArr(sorter)) {
+                            console.log("Single Sort");
+                            const { column, order, field, columnKey } = sorter;
+                            const f = !isArr(field) ? String(field) : field.join(".");
+                            updateSort(f, order);
+                        } else {
+                            for (const sortProp of sorter) {
+                                const { column, order, field } = sortProp;
+                                const f = !isArr(field) ? String(field) : field.join(".");
+                                updateSort(f, order);
+                            }
+                        }
+                    }
+                }}
                 columns={[
                     DefaultCol.NO_COL,
                     {
                         title: "NIK",
                         align: "center",
                         dataIndex: "nik",
-                        sorter: {
-                            multiple: 0
-                        },
+                        sorter: true,
                     },
                     {
                         title: "Nama",
                         align: "center",
                         dataIndex: "name",
                         sorter: {
-                            multiple: 1
+                            multiple: 1,
                         },
                     },
                     {
@@ -77,32 +153,25 @@ function LeaderboardPage(props: LeaderboardPageProps) {
                         render: (v: number) => {
                             return calcTime(v);
                         },
-                        sorter: {
-                            multiple: 2
-                        },
+                        sorter: true,
                     },
                     {
                         title: "Total Dispatch",
                         align: "center",
                         dataIndex: "totalDispatch",
-                        sorter: {
-                            multiple: 3
-                        },
+                        sorter: true,
                     },
                     {
                         title: "Handle Dispatch",
                         align: "center",
                         dataIndex: "totalHandleDispatch",
-                        sorter: {
-                            multiple: 4
-                        },
+                        sorter: true,
                     },
                     {
                         title: "Skor",
                         align: "center",
-                        sorter: {
-                            multiple: 5
-                        },
+                        dataIndex: "score",
+                        sorter: true,
                         render(v, record) {
                             const score =
                                 record.total -
@@ -115,30 +184,12 @@ function LeaderboardPage(props: LeaderboardPageProps) {
                         title: "Total",
                         align: "center",
                         dataIndex: "total",
-                        sorter: {
-                            multiple: 6
-                        },
+                        sorter: true,
                     },
                 ]}
             />
         </div>
     );
-}
-export async function getServerSideProps(ctx: NextPageContext) {
-    const session = await getSession(ctx);
-    const config = api.auhtHeader(session, {
-        params: ctx.query,
-    });
-
-    const res = await api.manage(api.get("/chart/leaderboard", config));
-    if (axios.isAxiosError(res)) return api.serverSideError(res);
-    else {
-        return {
-            props: {
-                data: res.data,
-            },
-        };
-    }
 }
 
 interface LeaderboardPageProps extends CoreService.ErrorDTO {
