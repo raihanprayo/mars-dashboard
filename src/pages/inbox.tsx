@@ -13,6 +13,7 @@ function InboxPage(props: TicketPageMetadata) {
                 withActionCol={false}
                 withLinkToDetail
                 withFixPending
+                
             />
         </PageTitle.Wrap>
     );

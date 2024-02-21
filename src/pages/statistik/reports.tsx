@@ -152,8 +152,8 @@ function ReportsPage(props: ReportsPageProps) {
         <Row className="mars-chart-container" gutter={hGutter}>
             <ChartView title="Status" data={data.chart.status} />
             <ChartView title="Umur Tiket" data={data.chart.age} />
-            <ChartView title="Lama Aksi" data={data.chart.actionAge} />
-            <ChartView title="Waktu Respon" data={data.chart.responseAge} />
+            <ChartView title="Lama Aksi" data={data.chart.responseAge} />
+            <ChartView title="Waktu Respon" data={data.chart.actionAge} />
         </Row>
     );
 

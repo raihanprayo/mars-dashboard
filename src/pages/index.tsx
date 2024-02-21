@@ -16,6 +16,7 @@ function IndexPage(props: TicketPageMetadata) {
             customContextMenu
             withLinkToDetail
             withActionCol
+            withAutoRefreshData
         />
     );
 }
