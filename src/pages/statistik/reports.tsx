@@ -10,7 +10,6 @@ import {
     Col,
     Form,
     Input,
-    Modal,
     Radio,
     Row,
     Space,
@@ -20,18 +19,9 @@ import {
     message,
 } from "antd";
 import axios from "axios";
-import { endOfDay, startOfToday } from "date-fns";
 import { NextPageContext } from "next";
 import { getSession } from "next-auth/react";
-import {
-    createContext,
-    MouseEvent,
-    MouseEventHandler,
-    ReactNode,
-    useContext,
-    useMemo,
-    useState,
-} from "react";
+import { createContext, MouseEventHandler, ReactNode, useContext, useState } from "react";
 import dynamic from "next/dynamic";
 import { isBrowser } from "_utils/constants";
 import { TFilter } from "_comp/table/table.filter";
@@ -40,11 +30,7 @@ import {
     MarsTablePagination,
     MarsTableProvider,
 } from "_ctx/table.ctx";
-import {
-    BooleanInput,
-    DateRangeFilter,
-    EnumSelect,
-} from "_comp/table/input.fields";
+import { BooleanInput, DateRangeFilter, EnumSelect } from "_comp/table/input.fields";
 import { useRouter } from "next/router";
 import { usePage } from "_ctx/page.ctx";
 import { PageTitle } from "_utils/conversion";
@@ -84,9 +70,7 @@ function ReportsPage(props: ReportsPageProps) {
     const refresh = () => {
         page.setLoading(true);
 
-        const userMap = Object.fromEntries(
-            users.map((u) => [u.name, u.id] as const)
-        );
+        const userMap = Object.fromEntries(users.map((u) => [u.name, u.id] as const));
         const query: any = { ...filter.getFieldsValue() };
 
         if (
@@ -181,9 +165,7 @@ function ReportsPage(props: ReportsPageProps) {
                 } else {
                     for (const sortProp of s) {
                         const { column, order, field } = sortProp;
-                        const f = !isArr(field)
-                            ? String(field)
-                            : field.join(".");
+                        const f = !isArr(field) ? String(field) : field.join(".");
                         updateSort(f, order);
                     }
                 }
@@ -199,9 +181,7 @@ function ReportsPage(props: ReportsPageProps) {
                         <MarsTableConsumer>
                             {(value) => (
                                 <Radio.Group>
-                                    <Radio.Button
-                                        onClick={() => switchView.toggle()}
-                                    >
+                                    <Radio.Button onClick={() => switchView.toggle()}>
                                         {switchView.value ? (
                                             <TableOutlined />
                                         ) : (
@@ -217,9 +197,7 @@ function ReportsPage(props: ReportsPageProps) {
                                             CSV
                                         </Space>
                                     </Radio.Button>
-                                    <Radio.Button
-                                        onClick={() => value.toggleFilter()}
-                                    >
+                                    <Radio.Button onClick={() => value.toggleFilter()}>
                                         Filter
                                     </Radio.Button>
                                 </Radio.Group>
@@ -234,14 +212,8 @@ function ReportsPage(props: ReportsPageProps) {
                             prefix={<AuditOutlined />}
                         />
                         <CardInfo title="IPTV" value={data.chart.count.iptv} />
-                        <CardInfo
-                            title="INTERNET"
-                            value={data.chart.count.internet}
-                        />
-                        <CardInfo
-                            title="VOICE"
-                            value={data.chart.count.voice}
-                        />
+                        <CardInfo title="INTERNET" value={data.chart.count.internet} />
+                        <CardInfo title="VOICE" value={data.chart.count.voice} />
                     </Row>
                     {!switchView.value && charts}
                     {switchView.value && tables}
@@ -275,10 +247,7 @@ function ReportsPage(props: ReportsPageProps) {
                     <Form.Item label="Witel" name={["witel", "in"]}>
                         <EnumSelect enums={Mars.Witel} />
                     </Form.Item>
-                    <Form.Item
-                        label="Tiket NOSSA"
-                        name={["incidentNo", "like"]}
-                    >
+                    <Form.Item label="Tiket NOSSA" name={["incidentNo", "like"]}>
                         <Input />
                     </Form.Item>
                     <Form.Item label="Service No" name={["serviceNo", "like"]}>
@@ -312,11 +281,7 @@ function CardInfo(props: CardInfoProps) {
         </Col>
     );
 }
-function ChartView(props: {
-    data: PieChartData[];
-    title?: string;
-    span?: number;
-}) {
+function ChartView(props: { data: PieChartData[]; title?: string; span?: number }) {
     const data = props.data;
     return (
         <Col className="mars-chart-view" span={props.span ?? 7}>
