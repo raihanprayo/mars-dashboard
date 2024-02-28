@@ -51,15 +51,6 @@ export function TFilter<T = any>(props: TFilterProps<T>) {
                     {props.children}
                 </Form>
             </Drawer>
-
-            {/* <Form
-                form={form}
-                layout="vertical"
-                initialValues={props.initialValue}
-                style={{ display: "none" }}
-            >
-                {props.children}
-            </Form> */}
         </>
     );
 }

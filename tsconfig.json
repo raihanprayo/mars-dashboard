@@ -66,7 +66,7 @@
     "**/*.ts",
     "**/*.tsx",
     "src/configs/app.config.ts",
-    "scripts/build.js"
+    "scripts/commands/zip.js"
   ],
   "exclude": [
     "node_modules"

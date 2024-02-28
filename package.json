@@ -2,15 +2,16 @@
     "name": "@mars/ui",
     "mars": "ui-client",
     "version": "0.1.0",
-    "main": "server.js",
+    "main": "scripts/cli.js",
     "private": true,
     "scripts": {
+        "lint": "next lint",
         "dev": "next dev -p 9011",
-        "build": "rimraf .next && next build --no-lint && node ./scripts/build.js",
+        "build": "rimraf .next && next build --no-lint",
         "start": "next start -p 9011",
-        "zipped": "node ./scripts/build.js",
-        "release": "npm run build && npm run zipped",
-        "lint": "next lint"
+        "zip": "node . zip",
+        "pack": "node . pack",
+        "release": "npm run build && node . pack && node . zip"
     },
     "dependencies": {
         "@ant-design/icons": "^4.7.0",
@@ -36,6 +37,7 @@
         "@types/node": "18.7.14",
         "@types/react": "18.0.18",
         "@types/react-dom": "18.0.6",
+        "commander": "^12.0.0",
         "eslint": "8.23.0",
         "eslint-config-next": "12.2.5",
         "next-transpile-modules": "^10.0.0",

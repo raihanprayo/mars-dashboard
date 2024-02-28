@@ -21,7 +21,14 @@ import {
 import axios from "axios";
 import { NextPageContext } from "next";
 import { getSession } from "next-auth/react";
-import { createContext, MouseEventHandler, ReactNode, useContext, useState } from "react";
+import {
+    createContext,
+    MouseEventHandler,
+    ReactNode,
+    useCallback,
+    useContext,
+    useState,
+} from "react";
 import dynamic from "next/dynamic";
 import { isBrowser } from "_utils/constants";
 import { TFilter } from "_comp/table/table.filter";
@@ -67,11 +74,8 @@ function ReportsPage(props: ReportsPageProps) {
     const [users, setUsers] = useState<DTO.Users[]>([]);
     const { pageable, setPageable, updateSort } = usePageable();
 
-    const refresh = () => {
-        page.setLoading(true);
-
+    const userIdConvertion = useCallback((query: map) => {
         const userMap = Object.fromEntries(users.map((u) => [u.name, u.id] as const));
-        const query: any = { ...filter.getFieldsValue() };
 
         if (
             query.workspace &&
@@ -81,6 +85,15 @@ function ReportsPage(props: ReportsPageProps) {
             console.log("Pre Convert", query.workspace.userId.eq);
             query.workspace.userId.eq = userMap[query.workspace.userId.eq];
         }
+
+        return query;
+    }, [users]);
+
+    const refresh = () => {
+        page.setLoading(true);
+
+        const userMap = Object.fromEntries(users.map((u) => [u.name, u.id] as const));
+        const query = userIdConvertion({ ...filter.getFieldsValue() });
 
         console.log("Post Convert", query);
         return router
@@ -100,7 +113,7 @@ function ReportsPage(props: ReportsPageProps) {
             page.setLoading(true);
             api.get("/chart/ticket/report/download", {
                 responseType: "blob",
-                params: filter.getFieldsValue(),
+                params: userIdConvertion({...filter.getFieldsValue()}),
             })
                 .then((res) => {
                     const blob: Blob = res.data;
@@ -117,19 +130,24 @@ function ReportsPage(props: ReportsPageProps) {
         }
     };
 
-    const findUser = async (name: string) => {
-        try {
-            const res = await api.get<DTO.Users[]>("/user", {
-                params: {
-                    plain: true,
-                    name: {
-                        contains: name,
+    const findUser = useCallback(
+        async (name: string) => {
+            try {
+                const res = await api.get<DTO.Users[]>("/user", {
+                    params: {
+                        plain: true,
+                        name: {
+                            like: name,
+                        },
                     },
-                },
-            });
-            setUsers(res.data);
-        } catch (ex) {}
-    };
+                });
+
+                console.log(res.data);
+                setUsers(res.data);
+            } catch (ex) {}
+        },
+        [users]
+    );
 
     const hGutter = 16;
     const charts = (
@@ -231,11 +249,14 @@ function ReportsPage(props: ReportsPageProps) {
                     >
                         <AutoComplete
                             placeholder="Nama User"
+                            options={users.map((u) => {
+                                console.log("map user", u);
+                                return {
+                                    label: u.name,
+                                    value: u.name,
+                                };
+                            })}
                             onSearch={findUser}
-                            options={users.map((u) => ({
-                                label: u.name,
-                                value: u.name,
-                            }))}
                         />
                     </Form.Item>
                     <Form.Item label="Produk" name={["product", "in"]}>
