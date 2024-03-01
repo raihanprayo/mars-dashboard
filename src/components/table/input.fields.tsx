@@ -184,7 +184,7 @@ export interface BooleanInputProps extends BaseInputProps {
 // ==================================================================================================================
 export function EnumSelect(props: EnumSelectProps) {
     const { mode = 'multiple', ...rest } = props;
-    const [options, setOptions] = useState<DefaultOptionType[]>([
+    const options = useMemo<DefaultOptionType[]>(() => [
         ...Object.keys(props.enums)
             .filter((e) => {
                 const value = props.enums[e];
@@ -196,7 +196,7 @@ export function EnumSelect(props: EnumSelectProps) {
                 const value = props.enums[en];
                 return { label: en, value: value }
             }),
-    ]);
+    ], [props.enums]);
 
     let actualMode = mode === 'multiple' ? mode : mode === 'single' ? null : mode;
     return <Select {...rest} mode={actualMode} options={options} />;

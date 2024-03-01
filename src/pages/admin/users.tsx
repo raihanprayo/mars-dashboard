@@ -1,23 +1,24 @@
-import { ReloadOutlined, UserAddOutlined } from '@ant-design/icons';
-import { HttpHeader } from '@mars/common';
-import { Form, Input, Radio, Select, Table } from 'antd';
-import axios from 'axios';
-import { NextPageContext } from 'next';
-import { getSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useCallback, useState } from 'react';
-import { AddUserDrawer, EditUserDrawer } from '_comp/admin/index';
-import { TableUserColms } from '_comp/table/table.definitions';
-import { DateRangeFilter, EnumSelect } from '_comp/table/input.fields';
-import { TFilter } from '_comp/table/table.filter';
-import { THeader } from '_comp/table/table.header';
-import { usePage } from '_ctx/page.ctx';
-import { MarsTablePagination, MarsTableProvider, MarsTableSorter } from '_ctx/table.ctx';
-import { usePageable } from '_hook/pageable.hook';
-import type { CoreService } from '_service/api';
-import Head from 'next/head';
-import { Pageable } from '@mars/common/types/enums';
-import { Mars } from '@mars/common/types/mars';
+import { ReloadOutlined, UserAddOutlined } from "@ant-design/icons";
+import { HttpHeader } from "@mars/common";
+import { Form, Input, Radio, Select, Table } from "antd";
+import axios from "axios";
+import { NextPageContext } from "next";
+import { getSession } from "next-auth/react";
+import { useRouter } from "next/router";
+import { useCallback, useState } from "react";
+import { AddUserDrawer, EditUserDrawer } from "_comp/admin/index";
+import { TableUserColms } from "_comp/table/table.definitions";
+import { DateRangeFilter, EnumSelect } from "_comp/table/input.fields";
+import { TFilter } from "_comp/table/table.filter";
+import { THeader } from "_comp/table/table.header";
+import { usePage } from "_ctx/page.ctx";
+import { MarsTablePagination, MarsTableProvider, MarsTableSorter } from "_ctx/table.ctx";
+import { usePageable } from "_hook/pageable.hook";
+import type { CoreService } from "_service/api";
+import Head from "next/head";
+import { Pageable } from "@mars/common/types/enums";
+import { Mars } from "@mars/common/types/mars";
+import { ROLE_ADMIN, ROLE_AGENT, ROLE_USER } from "_utils/constants";
 
 export default function UsersPage(props: UsersPageProps) {
     const router = useRouter();
@@ -44,11 +45,10 @@ export default function UsersPage(props: UsersPageProps) {
                             ? undefined
                             : pageable.sort,
                     ...filter.getFieldsValue(),
-                    roles: {},
                 }),
             })
             .finally(() => pageCtx.setLoading(false));
-    }, [pageable.page, pageable.size, pageable.sort]);
+    }, [filter, pageable.page, pageable.size, pageable.sort]);
 
     const editUser = useCallback((user: DTO.Users) => {
         setEditor({ open: true, user });
@@ -96,29 +96,39 @@ export default function UsersPage(props: UsersPageProps) {
                     onChange={MarsTableSorter({ updateSort })}
                 />
                 <TFilter form={filter} title="User Filter">
-                    <Form.Item label="ID" name={['id', 'eq']} colon>
+                    <Form.Item label="ID" name={["id", "eq"]} colon>
                         <Input />
                     </Form.Item>
-                    <Form.Item label="Nama" name={['name', 'like']} colon>
+                    <Form.Item label="Nama" name={["name", "like"]} colon>
                         <Input />
                     </Form.Item>
-                    <Form.Item label="NIK" name={['nik', 'like']} colon>
+                    <Form.Item label="NIK" name={["nik", "like"]} colon>
                         <Input />
                     </Form.Item>
-                    <Form.Item label="Witel" name={['witel', 'in']} colon>
+                    <Form.Item label="Witel" name={["witel", "in"]} colon>
                         <EnumSelect enums={Mars.Witel} />
                     </Form.Item>
-                    <Form.Item label="No HP" name={['phone', 'eq']} colon>
+                    <Form.Item label="No HP" name={["phone", "like"]} colon>
                         <Input />
                     </Form.Item>
-                    <Form.Item label="Email" name={['email', 'like']} colon>
+                    <Form.Item label="Email" name={["email", "like"]} colon>
                         <Input />
                     </Form.Item>
-                    <Form.Item label="Aktif" name={['active', 'eq']} colon>
+                    <Form.Item label="Aktif" name={["active", "eq"]} colon>
                         <Radio.Group buttonStyle="solid">
                             <Radio.Button value={true}>Ya</Radio.Button>
                             <Radio.Button value={false}>Tidak</Radio.Button>
                         </Radio.Group>
+                    </Form.Item>
+                    <Form.Item label="Role" name={["roles", "name", "in"]} colon>
+                        <EnumSelect
+                            enums={{
+                                ROLE_ADMIN,
+                                ROLE_AGENT,
+                                ROLE_USER,
+                            }}
+                            allowClear
+                        />
                     </Form.Item>
                     <Form.Item label="Tanggal Dibuat" name="createdAt" colon>
                         <DateRangeFilter allowClear withTime />
@@ -148,7 +158,7 @@ export async function getServerSideProps(ctx: NextPageContext) {
         params: ctx.query,
     });
 
-    const res = await api.manage(api.get<DTO.Users[]>('/user', config));
+    const res = await api.manage(api.get<DTO.Users[]>("/user", config));
     if (axios.isAxiosError(res)) return api.serverSideError(res);
 
     const total = res.headers[HttpHeader.X_TOTAL_COUNT] || res.data.length;
