@@ -1,4 +1,4 @@
-import { CheckOutlined, CloseOutlined, ReloadOutlined } from '@ant-design/icons';
+import { CheckOutlined, CloseOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
 import { HttpHeader, isDefined } from '@mars/common';
 import { Form, Input, Radio, Table } from 'antd';
 import axios from 'axios';
@@ -16,6 +16,7 @@ import { MarsTablePagination, MarsTableProvider, MarsTableSorter } from '_ctx/ta
 import { usePageable } from '_hook/pageable.hook';
 import { CoreService } from '_service/api';
 import { useBool } from '_hook/util.hook';
+import { Pageable } from '@mars/common/types/enums';
 
 export default function UserApprovalPage(props: UserApprovalPageProps) {
     const router = useRouter();
@@ -43,7 +44,7 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
                 }),
             })
             .finally(() => page.setLoading(false));
-    }, [pageable.page, pageable.size, pageable.sort]);
+    }, [filter, pageable]);
 
     const onSelectedChanged = (
         selectedRowKeys: React.Key[],
@@ -107,17 +108,24 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
                         title={
                             hasSelected
                                 ? 'Tolak Permintaan'
-                                : 'Check salah 1 data terlebih dahulu'
+                                : 'Pilih salah 1 data terlebih dahulu'
                         }
                     >
                         Tolak
                     </THeader.Action>
+
                     <THeader.Action
                         pos="right"
                         type="primary"
                         title="Refresh"
                         icon={<ReloadOutlined />}
                         onClick={refresh}
+                    />
+                    <THeader.FilterAction 
+                        pos='right'
+                        type='primary'
+                        title='Filter'
+                        icon={<FilterOutlined />}
                     />
                 </THeader>
                 <Table
@@ -140,7 +148,7 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
                     onChange={MarsTableSorter({ updateSort })}
                 />
                 <TFilter form={filter} title="Approval Filter">
-                    <Form.Item label="ID" name={['id', 'eq']} colon>
+                    <Form.Item label="No Registrasi" name={['no', 'like']} colon>
                         <Input />
                     </Form.Item>
                     <Form.Item label="Nama" name={['name', 'like']} colon>
@@ -172,7 +180,9 @@ export default function UserApprovalPage(props: UserApprovalPageProps) {
 
 export async function getServerSideProps(ctx: NextPageContext) {
     const session = await getSession(ctx);
-    const config = api.auhtHeader(session);
+    const config = api.auhtHeader(session, {
+        params: ctx.query
+    });
 
     const res = await api.manage<DTO.UserApproval[]>(api.get('/user/approvals', config));
     if (axios.isAxiosError(res)) return api.serverSideError(res);

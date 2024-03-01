@@ -39,10 +39,12 @@ export function useMarsTable() {
     return useContext(MarsTableContext);
 }
 
-export function MarsTablePagination(
-    opt: MarsTablePaginationOptions
-): TablePaginationConfig {
-    const { pageable, setPageable, total } = opt;
+export function MarsTablePagination({
+    pageable,
+    setPageable,
+    total,
+}: MarsTablePaginationOptions): TablePaginationConfig {
+    // const  = opt;
 
     return {
         total: total,
@@ -79,9 +81,7 @@ type TableOnchange<R> = (
     extra: TableCurrentDataSource<R>
 ) => void;
 
-export function MarsTableSorter<R>(
-    opt: MarsTableSorterOptions<R>
-): TableOnchange<R> {
+export function MarsTableSorter<R>(opt: MarsTableSorterOptions<R>): TableOnchange<R> {
     // return TableProps
     return (pagination, filters, sorter, extra) => {
         if (extra.action === "sort") {

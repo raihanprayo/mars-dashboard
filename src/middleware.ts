@@ -8,8 +8,8 @@ const rootMiddleware: NextMiddleware = async (req, event) => {
     if (isIgnored) return;
     const authMiddeware: any = withAuth(
         function (req, event) {
-            console.log('INCOMING REQUEST TO', req.nextUrl.pathname);
-            console.log('REQUEST COOKIE', req.cookies.getAll());
+            // console.log('INCOMING REQUEST TO', req.nextUrl.pathname);
+            // console.log('REQUEST COOKIE', req.cookies.getAll());
         },
         {
             pages: {
