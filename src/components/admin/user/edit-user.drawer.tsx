@@ -2,6 +2,7 @@ import { Form, message, Drawer, Space, Button, Input, Radio } from 'antd';
 import { useState, useEffect } from 'react';
 import { EnumSelect, RoleTransfer, StoSelect } from '_comp/table/input.fields';
 import notif from '_service/notif';
+import { Mars } from '@mars/common/types/mars';
 
 export function EditUserDrawer(props: UserDetailDrawerProps) {
     const [form] = Form.useForm();
@@ -48,10 +49,10 @@ export function EditUserDrawer(props: UserDetailDrawerProps) {
                 <Form.Item label="ID" name="id">
                     <Input disabled />
                 </Form.Item>
-                <Form.Item label="Nama" name="name">
-                    <Input />
-                </Form.Item>
                 <Form.Item label="NIK" name="nik">
+                    <Input disabled />
+                </Form.Item>
+                <Form.Item label="Nama" name="name">
                     <Input />
                 </Form.Item>
                 <Form.Item label="No HP" name="phone">

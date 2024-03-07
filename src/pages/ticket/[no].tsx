@@ -108,8 +108,7 @@ function TicketDetail(props: TicketDetailProps) {
         ].includes(ticket.status);
 
         const invalidProgress =
-            session.status === "authenticated" &&
-            ticket.wipBy !== session.data?.user?.id;
+            session.status === "authenticated" && ticket.wipBy !== session.data?.user?.id;
 
         return invalidStat || invalidProgress;
     }, [ticket]);
@@ -126,8 +125,7 @@ function TicketDetail(props: TicketDetailProps) {
 
         form.set("note", description);
         if (solution) form.set("solution", solution);
-        for (const file of files)
-            form.append("files", file as RcFile, file.fileName);
+        for (const file of files) form.append("files", file as RcFile, file.fileName);
 
         const statusLink =
             status === Mars.Status.CLOSED
@@ -213,10 +211,7 @@ function TicketDetail(props: TicketDetailProps) {
             children: (
                 <Timeline mode="left">
                     {logs.map((log, i) => {
-                        const d = Render.date(
-                            log.createdAt,
-                            Render.DATE_WITH_TIMESTAMP
-                        );
+                        const d = Render.date(log.createdAt, Render.DATE_WITH_TIMESTAMP);
                         return (
                             <Timeline.Item key={`tl:item-${i}`} label={d}>
                                 {log.message}
@@ -257,21 +252,19 @@ function TicketDetail(props: TicketDetailProps) {
         name: props.data.senderName || "-",
         phone: props.contact?.phone || "-",
         get link() {
-            if (!props.contact?.phone) return;
+            if (!props.contact?.tg?.username) return;
 
-            let phone = props.contact.phone;
+            // let phone = props.contact.phone;
 
-            if (phone.startsWith("+62")) phone = phone;
-            else phone = "+62" + phone.substring(1);
-            return "https://t.me/" + phone;
+            // if (phone.startsWith("+62")) phone = phone;
+            // else phone = "+62" + phone.substring(1);
+            return "https://t.me/" + props.contact.tg.username;
         },
     };
 
     // console.log(props.assets);
     return (
-        <DetailContext.Provider
-            value={{ ticket: props.data, assets: props.assets }}
-        >
+        <DetailContext.Provider value={{ ticket: props.data, assets: props.assets }}>
             <div className="tc-detail-container">
                 <Head>
                     <title>Mars - Detail Tiket {ticket.no}</title>
@@ -301,10 +294,7 @@ function TicketDetail(props: TicketDetailProps) {
                             <CopyToClipboard data={ticket.serviceNo} withIcon />
                         </Descriptions.Item>
                         <Descriptions.Item label="Tiket Nossa">
-                            <CopyToClipboard
-                                data={ticket.incidentNo}
-                                withIcon
-                            />
+                            <CopyToClipboard data={ticket.incidentNo} withIcon />
                         </Descriptions.Item>
                         <Descriptions.Item label="Kendala">
                             {ticket.issue.name}
@@ -317,9 +307,7 @@ function TicketDetail(props: TicketDetailProps) {
                             {Render.witel(ticket.witel)}
                         </Descriptions.Item>
                         <Descriptions.Item label="STO" span={2}>
-                            {Render.tags({ bold: true, statusDisplay: true })(
-                                ticket.sto
-                            )}
+                            {Render.tags({ bold: true, statusDisplay: true })(ticket.sto)}
                         </Descriptions.Item>
 
                         <Descriptions.Item label="Sumber">
@@ -344,24 +332,23 @@ function TicketDetail(props: TicketDetailProps) {
                                     >
                                         Get
                                     </Button>
-                                    <Button
-                                        type="primary"
-                                        // size="small"
-                                        href={contact.link}
-                                        target="_blank"
-                                        rel="noreferrer noopener"
-                                        icon={<SendOutlined />}
-                                    >
-                                        Chat
-                                    </Button>
+                                    {props.contact?.tg?.username && (
+                                        <Button
+                                            type="primary"
+                                            // size="small"
+                                            href={contact.link}
+                                            target="_blank"
+                                            rel="noreferrer noopener"
+                                            icon={<SendOutlined />}
+                                        >
+                                            Chat
+                                        </Button>
+                                    )}
                                 </Button.Group>
                             </Space>
                         </Descriptions.Item>
                         <Descriptions.Item label="Attachments" span={5}>
-                            <SharedAsset
-                                assets={props.assets.assets}
-                                emptyWithText
-                            />
+                            <SharedAsset assets={props.assets.assets} emptyWithText />
                         </Descriptions.Item>
                     </Descriptions>
                     <Divider />
@@ -406,10 +393,7 @@ function TicketDetail(props: TicketDetailProps) {
                                     },
                                 ]}
                             >
-                                <Radio.Group
-                                    buttonStyle="solid"
-                                    disabled={disableSubmit}
-                                >
+                                <Radio.Group buttonStyle="solid" disabled={disableSubmit}>
                                     <Radio.Button value={Mars.Status.CLOSED}>
                                         Close
                                     </Radio.Button>
@@ -428,14 +412,16 @@ function TicketDetail(props: TicketDetailProps) {
                                 // required={[Mars.Status.CLOSED].includes(status)}
                                 rules={[
                                     {
-                                        required: [Mars.Status.CLOSED, Mars.Status.PENDING].includes(status),
-                                        message: 'Actsol tidak boleh kosong'
-                                    }
+                                        required: [
+                                            Mars.Status.CLOSED,
+                                            Mars.Status.PENDING,
+                                        ].includes(status),
+                                        message: "Actsol tidak boleh kosong",
+                                    },
                                 ]}
                             >
                                 <SolutionSelect disabled={disableSubmit} />
                             </Form.Item>
-
 
                             <Form.Item label={<b>Attachments</b>}>
                                 <Form.Item name="files" noStyle>
@@ -463,8 +449,7 @@ function TicketDetail(props: TicketDetailProps) {
                                         Click or drag file to this area to upload
                                     </p> */}
                                         <p className="ant-upload-hint">
-                                            Click or drag file to this area to
-                                            upload
+                                            Click or drag file to this area to upload
                                             {/* Support for a single or bulk upload. */}
                                         </p>
                                     </Upload.Dragger>
@@ -476,8 +461,7 @@ function TicketDetail(props: TicketDetailProps) {
                                 name="description"
                                 rules={[
                                     {
-                                        required:
-                                            watchStat !== Mars.Status.DISPATCH,
+                                        required: watchStat !== Mars.Status.DISPATCH,
                                         message: "Worklog tidak boleh kosong",
                                     },
                                 ]}
@@ -533,14 +517,13 @@ export async function getServerSideProps(
         } else {
             const viewOnly = "viewOnly" in ctx.query;
             const data: DTO.Ticket = res.data;
-            const logRes = await api.get(
-                `/ticket/detail/${ticketNo}/logs`,
-                config
-            );
+            const logRes = await api.get(`/ticket/detail/${ticketNo}/logs`, config);
+
             const relatedRes = await api.get<DTO.Ticket[]>(
                 `/ticket/detail/${ticketNo}/relation`,
                 { ...config, params: { wip: { in: [true, false] } } }
             );
+
             const workspacesRes = await api.get<DTO.AgentWorkspace[]>(
                 `/ticket/detail/${ticketNo}/workspaces`,
                 { ...config, params: { full: true } }
@@ -601,7 +584,6 @@ function SharedAsset(props: SharedAssetProps) {
                 BlobCache.set(url, img);
             }
 
-            
             await navigator.clipboard.write([
                 new ClipboardItem({ [img.type]: img.data }),
             ]);
@@ -613,10 +595,7 @@ function SharedAsset(props: SharedAssetProps) {
     }, []);
 
     const previewImage = (asset: SharedAsset) => {
-        const url =
-            "/api/shared" +
-            (asset.path.startsWith("/") ? "" : "/") +
-            asset.path;
+        const url = "/api/shared" + (asset.path.startsWith("/") ? "" : "/") + asset.path;
         const link = document.createElement("a");
         link.href = url;
         link.target = "_blank";
@@ -624,10 +603,7 @@ function SharedAsset(props: SharedAssetProps) {
     };
 
     const downloadAction = (asset: SharedAsset) => {
-        const url =
-            "/api/shared" +
-            (asset.path.startsWith("/") ? "" : "/") +
-            asset.path;
+        const url = "/api/shared" + (asset.path.startsWith("/") ? "" : "/") + asset.path;
         axios.get(url, { responseType: "blob" }).then((res) => {
             const href = URL.createObjectURL(res.data);
             const link = document.createElement("a");
@@ -666,9 +642,7 @@ function SharedAsset(props: SharedAssetProps) {
                 <Button
                     type="text"
                     onClick={() => downloadAction(asset)}
-                    icon={
-                        <DownloadOutlined title="Download" style={iconStyle} />
-                    }
+                    icon={<DownloadOutlined title="Download" style={iconStyle} />}
                 />
             );
         }
@@ -719,9 +693,7 @@ function SharedAsset(props: SharedAssetProps) {
             dataSource={datasource}
             renderItem={(item, index) => (
                 <List.Item
-                    title={`${item.previewable ? "Image" : "Dokumen"}: ${
-                        item.name
-                    }`}
+                    title={`${item.previewable ? "Image" : "Dokumen"}: ${item.name}`}
                     actions={actions(item)}
                 >
                     <List.Item.Meta
@@ -788,18 +760,13 @@ function GaulRelation(props: { relations: DTO.Ticket[] }) {
             itemLayout="vertical"
             dataSource={relations}
             renderItem={(item) => {
-                const title = (
-                    <Link href={`/ticket/${item.no}`}>Tiket - {item.no}</Link>
-                );
+                const title = <Link href={`/ticket/${item.no}`}>Tiket - {item.no}</Link>;
 
                 const description = (
                     <p className="text-primary">
                         Created:{" "}
-                        {format(
-                            new Date(item.createdAt),
-                            Render.DATE_WITH_TIMESTAMP
-                        )}
-                        , By: {item.createdBy}
+                        {format(new Date(item.createdAt), Render.DATE_WITH_TIMESTAMP)},
+                        By: {item.createdBy}
                     </p>
                 );
                 const actionStatus = (
@@ -848,25 +815,14 @@ function Workspaces(props: { ws: DTO.AgentWorkspace }) {
             <CreatedBy data={{ nik: ws.agent.nik }} field="nik" replace />
         </Space>
     );
-    const extra = (
-        <Space>{Render.date(ws.createdAt, Render.DATE_WITH_TIMESTAMP)}</Space>
-    );
+    const extra = <Space>{Render.date(ws.createdAt, Render.DATE_WITH_TIMESTAMP)}</Space>;
     return (
-        <Card
-            title={title}
-            size="small"
-            extra={extra}
-            style={{ marginBottom: "1rem" }}
-        >
+        <Card title={title} size="small" extra={extra} style={{ marginBottom: "1rem" }}>
             {ws.worklogs
                 .sort((a, b) => a.id - b.id)
                 .reverse()
                 .map((wl) => (
-                    <WorklogView
-                        key={`worklog:${ws.id}-` + wl.id}
-                        ws={ws}
-                        wl={wl}
-                    />
+                    <WorklogView key={`worklog:${ws.id}-` + wl.id} ws={ws} wl={wl} />
                 ))}
         </Card>
     );
@@ -884,15 +840,11 @@ function WorklogView(props: { ws: DTO.AgentWorkspace; wl: DTO.AgentWorklog }) {
         <Space>
             {wl.takeStatus}
             <RightSquareOutlined />
-            {wl.closeStatus || (
-                <span className="text-primary">* Sedang Dikerjakan</span>
-            )}
+            {wl.closeStatus || <span className="text-primary">* Sedang Dikerjakan</span>}
         </Space>
     );
 
-    const extra = (
-        <Space>{Render.date(wl.createdAt, Render.DATE_WITH_TIMESTAMP)}</Space>
-    );
+    const extra = <Space>{Render.date(wl.createdAt, Render.DATE_WITH_TIMESTAMP)}</Space>;
     const messageFooter = (
         <>
             <Divider style={{ margin: "10px 0" }} />
@@ -917,9 +869,7 @@ function ListAssets(props: { open: BoolHook }) {
         <Modal>
             <List
                 dataSource={[{}]}
-                renderItem={(item, index) => (
-                    <List.Item>Ini Item {index}</List.Item>
-                )}
+                renderItem={(item, index) => <List.Item>Ini Item {index}</List.Item>}
             />
         </Modal>
     );
