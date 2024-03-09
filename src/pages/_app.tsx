@@ -28,9 +28,8 @@ function MarsRocApp({ Component, pageProps, router }: AppProps) {
     const isUnauthenticated = session.status !== 'authenticated';
 
     useEffect(() => {
-        if (isUnauthenticated && !isExcluded(router.pathname)) {
+        if (isUnauthenticated && !isExcluded(router.pathname))
             signIn();
-        }
     }, [isUnauthenticated]);
 
     return (
@@ -51,7 +50,9 @@ function MarsRocApp({ Component, pageProps, router }: AppProps) {
 
 function MarsRocWrapper(props: AppProps & CustomAppProps) {
     const { session, info, ...others } = props;
-
+    // console.log('Im running in browser ?');
+    if (session?.bearer)
+        api.defaults.headers[HttpHeader.AUTHORIZATION] = `Bearer ${session.bearer}`;
     return (
         <SessionProvider session={session} refetchInterval={60 * 5}>
             <AppProvider info={info}>

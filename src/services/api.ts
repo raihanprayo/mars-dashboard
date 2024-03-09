@@ -1,10 +1,10 @@
-import axios, { Axios, AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import qs from 'qs';
-import { HttpHeader, isArr, Properties } from '@mars/common';
-import { Session } from 'next-auth';
-import { isBrowser, isServer } from '_utils/constants';
-import config from '_config';
-import { PathBuilder, RequestPath } from './service';
+import axios, { Axios, AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import qs from "qs";
+import { HttpHeader, isArr, Properties } from "@mars/common";
+import { Session } from "next-auth";
+import { isBrowser, isServer } from "_utils/constants";
+import config from "_config";
+import { PathBuilder, RequestPath } from "./service";
 
 const api: CoreService = axios.create({
     baseURL: isServer ? config.service.url : null,
@@ -49,8 +49,23 @@ api.serverSideError = (err, status) => {
         },
     };
 };
-api.serverSideErrorLog = (err) => {
-    console.error(err);
+api.serverSideErrorLog = (err: AxiosError) => {
+    if (!err.response) console.error(err);
+    else {
+        const res = err.response;
+        console.error('Server Error:');
+
+        
+        console.error('--- Request:', {
+            path: err.request?.path,
+            headers: err.request?._header
+        });
+        console.error('--- Response:', {
+            status: res.status,
+            headers: res.headers,
+            payload: res.data
+        });
+    }
     return err;
 };
 api.serializeParam = (params = {}) => {
@@ -59,8 +74,8 @@ api.serializeParam = (params = {}) => {
         // .stringify(others, {
         .stringify(params, {
             allowDots: true,
-            arrayFormat: 'comma',
-            charset: 'utf-8',
+            arrayFormat: "comma",
+            charset: "utf-8",
             skipNulls: false,
             addQueryPrefix: true,
             serializeDate: (d) => d.toJSON(),

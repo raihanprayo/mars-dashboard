@@ -434,6 +434,7 @@ TicketTable.getServerSideProps = function getServerSidePropsInitilizer(
     return async function getServerSideProps(ctx: NextPageContext) {
         const session = await getSession(ctx);
 
+        console.log('Get Ticket:', session);
         const defaultOptions = !isFn(defaults) ? defaults : defaults(ctx.query);
 
         const properties = new Properties({
